@@ -167,6 +167,7 @@ const DEFAULT_WORK = [
   { id: 13, type: "video", cat: "electricity", videoId: "Xbm5PzihEYw", title: "IKEA Stylish Light Unboxing", desc: "First impressions of a stylish IKEA light fixture" },
   { id: 14, type: "video", cat: "electricity", videoId: "iwQxh1fkeCc", title: "RANARP IKEA Pendant Lamp", desc: "Choosing the right fixture for your dinner room" },
   { id: 15, type: "video", cat: "electricity", videoId: "rs6nN7732y4", title: "IKEA SINNERLIG Light Installation", desc: "Professional light installation for living rooms" },
+  { id: 16, type: "video", cat: "electricity", videoId: "OUI2MzJaM6U", title: "IKEA NYMANE Spot Lights", desc: "Beautiful spot lights for living rooms in Zurich" },
 ];
 
 const DEFAULT_FAQS = [
