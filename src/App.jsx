@@ -1,4 +1,79 @@
 import { useState, useRef, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+// ─── Supabase client (nullable if not configured) ───
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+
+// ─── Supabase helpers ───
+async function uploadImage(file, folder) {
+  if (!supabase) return null;
+  const ext = file.name.split(".").pop();
+  const name = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage.from("images").upload(name, file);
+  if (error) throw error;
+  const { data } = supabase.storage.from("images").getPublicUrl(name);
+  return data.publicUrl;
+}
+
+async function fetchCategories() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("categories").select("*").order("sort_order");
+  if (error) throw error;
+  return data;
+}
+async function addCategory(id, label, headerImage) {
+  if (!supabase) return;
+  const { error } = await supabase.from("categories").insert({ id, label, header_image: headerImage });
+  if (error) throw error;
+}
+async function deleteCategory(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("categories").delete().eq("id", id);
+  if (error) throw error;
+}
+
+async function fetchWorkItems() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("work_items").select("*").order("sort_order");
+  if (error) throw error;
+  return data;
+}
+async function addWorkItem(item) {
+  if (!supabase) return;
+  const { data, error } = await supabase.from("work_items").insert(item).select().single();
+  if (error) throw error;
+  return data;
+}
+async function deleteWorkItem(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("work_items").delete().eq("id", id);
+  if (error) throw error;
+}
+
+async function fetchFaqs() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("faqs").select("*").order("sort_order");
+  if (error) throw error;
+  return data;
+}
+async function addFaqRow(question, answer) {
+  if (!supabase) return;
+  const { data, error } = await supabase.from("faqs").insert({ question, answer }).select().single();
+  if (error) throw error;
+  return data;
+}
+async function updateFaqRow(id, question, answer) {
+  if (!supabase) return;
+  const { error } = await supabase.from("faqs").update({ question, answer }).eq("id", id);
+  if (error) throw error;
+}
+async function deleteFaqRow(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("faqs").delete().eq("id", id);
+  if (error) throw error;
+}
 
 // ─── Animation hooks ───
 function useFadeIn(threshold = 0.15) {
@@ -60,7 +135,7 @@ const WA_LINK = "https://wa.me/41765949581?text=Hi%2C%20I%20need%20a%20handyman%
 const HERO_IMG = "/images/hero_img.jpg";
 const PROFILE_IMG = "/images/profile_img.jpg";
 
-const CATS = [
+const DEFAULT_CATS = [
   { id: "all", label: "All" },
   { id: "electricity", label: "Electricity" },
   { id: "plumbing", label: "Plumbing" },
@@ -76,7 +151,7 @@ const REAL_2 = "/images/real_2.jpg";
 const REAL_3 = "/images/real_3.jpg";
 const REAL_4 = "/images/real_4.jpg";
 
-const WORK = [
+const DEFAULT_WORK = [
   { id: 1, type: "image", cat: "electricity", src: REAL_0, title: "LED Ceiling Light", desc: "Bedroom LED installation with ambient blue backlight" },
   { id: 2, type: "image", cat: "electricity", src: REAL_1, title: "Dining Pendant", desc: "Modern ring pendant light over dining table" },
   { id: 3, type: "image", cat: "electricity", src: REAL_2, title: "Living Room Light", desc: "Decorative pendant installation in cozy living room" },
@@ -84,11 +159,23 @@ const WORK = [
   { id: 5, type: "image", cat: "electricity", src: REAL_4, title: "Dining Setup", desc: "Warm pendant lighting for open dining area" },
   { id: 6, type: "image", cat: "fixings", src: "https://images.unsplash.com/photo-1615873968403-89e068629265?w=800&h=500&fit=crop", title: "Parquet flooring", desc: "Hardwood installation" },
   { id: 7, type: "image", cat: "plumbing", src: "https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=500&fit=crop", title: "Faucet upgrade", desc: "Grohe fixtures installation" },
-  { id: 8, type: "video", cat: "mounting", thumb: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&h=500&fit=crop", title: "Floating shelves", desc: "Wall-mounted shelving", videoId: "dQw4w9WgXcQ" },
+  { id: 8, type: "image", cat: "mounting", src: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&h=500&fit=crop", title: "Floating shelves", desc: "Wall-mounted shelving" },
   { id: 9, type: "image", cat: "plumbing", src: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&h=500&fit=crop", title: "Walk-in shower", desc: "Glass enclosure install" },
   { id: 10, type: "image", cat: "mounting", src: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=500&fit=crop", title: "TV wall mount", desc: "Samsung 65\" with cable management" },
   { id: 11, type: "image", cat: "gardening", src: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800&h=500&fit=crop", title: "Garden maintenance", desc: "Seasonal care and planting" },
   { id: 12, type: "image", cat: "electricity", src: "https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=800&h=500&fit=crop", title: "Panel upgrade", desc: "Full electrical rewiring" },
+  { id: 13, type: "video", cat: "electricity", videoId: "Xbm5PzihEYw", title: "IKEA Stylish Light Unboxing", desc: "First impressions of a stylish IKEA light fixture" },
+  { id: 14, type: "video", cat: "electricity", videoId: "iwQxh1fkeCc", title: "RANARP IKEA Pendant Lamp", desc: "Choosing the right fixture for your dinner room" },
+  { id: 15, type: "video", cat: "electricity", videoId: "rs6nN7732y4", title: "IKEA SINNERLIG Light Installation", desc: "Professional light installation for living rooms" },
+];
+
+const DEFAULT_FAQS = [
+  { q: "What areas do you cover?", a: "I serve the entire Zurich region including Winterthur, Baden, Uster, and surrounding areas." },
+  { q: "How quickly can you schedule?", a: "Typically within 24–48 hours. Same-day emergency service available." },
+  { q: "Do you provide free estimates?", a: "Yes, all estimates are free and non-binding. Send photos of your project via WhatsApp for a quick quote." },
+  { q: "Are you insured?", a: "Fully insured with all necessary permits for professional work in Switzerland." },
+  { q: "What payment methods?", a: "Bank transfer, TWINT, credit cards, and cash. Payment after completion." },
+  { q: "Guarantee on work?", a: "Every job comes with a 2-year workmanship guarantee." },
 ];
 
 const REVIEWS = [
@@ -104,15 +191,6 @@ const REVIEWS = [
   { name: "Robert M.", r: 5, text: "Built custom shelving in our office. Measured everything perfectly, looks like it was always there. Highly professional.", time: "5 months ago" },
   { name: "Elena K.", r: 5, text: "Garden maintenance and new lighting installation. Transformed our outdoor space completely. So happy with the result!", time: "6 months ago" },
   { name: "Stefan W.", r: 5, text: "Fixed a leaking faucet and installed a new bathroom mirror. Quick, efficient, and very friendly. Recommended to all my neighbors.", time: "6 months ago" },
-];
-
-const FAQS = [
-  { q: "What areas do you cover?", a: "I serve the entire Zurich region including Winterthur, Baden, Uster, and surrounding areas." },
-  { q: "How quickly can you schedule?", a: "Typically within 24–48 hours. Same-day emergency service available." },
-  { q: "Do you provide free estimates?", a: "Yes, all estimates are free and non-binding. Send photos of your project via WhatsApp for a quick quote." },
-  { q: "Are you insured?", a: "Fully insured with all necessary permits for professional work in Switzerland." },
-  { q: "What payment methods?", a: "Bank transfer, TWINT, credit cards, and cash. Payment after completion." },
-  { q: "Guarantee on work?", a: "Every job comes with a 2-year workmanship guarantee." },
 ];
 
 const Stars = ({ n, sz = 12 }) => (
@@ -180,7 +258,7 @@ function Carousel({ items, onClickItem }) {
             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(198,40,40,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
             <div style={{ position: "relative", paddingTop: "62%" }}>
-              <img src={item.type === "video" ? item.thumb : item.src} alt={item.title} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+              <img src={item.type === "video" ? ytThumb(item) : item.src} alt={item.title} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
               {item.type === "video" && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.1)" }}>
                   <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -207,6 +285,8 @@ const ab = (s) => ({
   display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", zIndex: 2,
 });
 
+const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` : "");
+
 // Google logo SVG for reviews
 const GoogleG = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
@@ -223,11 +303,41 @@ export default function App() {
   const [cat, setCat] = useState("all");
   const [mt, setMt] = useState("all");
   const [fq, setFq] = useState(null);
-  const [admin, setAdmin] = useState(false);
-  const [cats, setCats] = useState(CATS);
-  const [items, setItems] = useState(WORK);
-  const [nc, setNc] = useState("");
+  const [admin, setAdmin] = useState(() => window.location.hash === "#admin");
+  const [cats, setCats] = useState(DEFAULT_CATS);
+  const [items, setItems] = useState(DEFAULT_WORK);
+  const [faqs, setFaqs] = useState(DEFAULT_FAQS);
   const [mobileMenu, setMobileMenu] = useState(false);
+
+  // Admin state
+  const [session, setSession] = useState(null);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  const [loginErr, setLoginErr] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [adminTab, setAdminTab] = useState("categories");
+  const [adminMsg, setAdminMsg] = useState("");
+  const [adminLoading, setAdminLoading] = useState(false);
+
+  // Category form
+  const [ncLabel, setNcLabel] = useState("");
+  const [ncFile, setNcFile] = useState(null);
+
+  // Work item form
+  const [wiType, setWiType] = useState("image");
+  const [wiCat, setWiCat] = useState("");
+  const [wiTitle, setWiTitle] = useState("");
+  const [wiDesc, setWiDesc] = useState("");
+  const [wiFile, setWiFile] = useState(null);
+  const [wiVideoId, setWiVideoId] = useState("");
+  const [wiThumbFile, setWiThumbFile] = useState(null);
+
+  // FAQ form
+  const [faqQ, setFaqQ] = useState("");
+  const [faqA, setFaqA] = useState("");
+  const [editingFaq, setEditingFaq] = useState(null);
+  const [editFaqQ, setEditFaqQ] = useState("");
+  const [editFaqA, setEditFaqA] = useState("");
 
   const avg = (REVIEWS.reduce((a, r) => a + r.r, 0) / REVIEWS.length).toFixed(1);
   const filtered = items.filter(w => (cat === "all" || w.cat === cat) && (mt === "all" || w.type === mt));
@@ -248,42 +358,398 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const onHash = () => { const h = window.location.hash.slice(1); setPageState(["portfolio","reviews","faq"].includes(h) ? h : "home"); window.scrollTo?.(0, 0); };
+    const onHash = () => {
+      const h = window.location.hash.slice(1);
+      if (h === "admin") { setAdmin(true); return; }
+      setAdmin(false);
+      setPageState(["portfolio","reviews","faq"].includes(h) ? h : "home");
+      window.scrollTo?.(0, 0);
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  // Admin
+  // Load Supabase data on mount
+  useEffect(() => {
+    if (!supabase) return;
+    (async () => {
+      try {
+        const [dbCats, dbItems, dbFaqs] = await Promise.all([fetchCategories(), fetchWorkItems(), fetchFaqs()]);
+        if (dbCats && dbCats.length > 0) {
+          setCats([{ id: "all", label: "All" }, ...dbCats.map(c => ({ id: c.id, label: c.label, header_image: c.header_image }))]);
+        }
+        if (dbItems && dbItems.length > 0) {
+          setItems(dbItems.map(w => ({
+            id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb,
+            title: w.title, desc: w.description, videoId: w.video_id,
+          })));
+        }
+        if (dbFaqs && dbFaqs.length > 0) {
+          setFaqs(dbFaqs.map(f => ({ id: f.id, q: f.question, a: f.answer })));
+        }
+      } catch (err) {
+        console.warn("Supabase load failed, using defaults:", err.message);
+      }
+    })();
+  }, []);
+
+  // Check existing session on mount
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      if (s) setSession(s);
+    });
+  }, []);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!supabase) { setLoginErr("Supabase not configured"); return; }
+    setLoginLoading(true);
+    setLoginErr("");
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPass });
+      if (error) throw error;
+      setSession(data.session);
+    } catch (err) {
+      setLoginErr(err.message);
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (supabase) await supabase.auth.signOut();
+    setSession(null);
+  };
+
+  const flash = (msg) => { setAdminMsg(msg); setTimeout(() => setAdminMsg(""), 2500); };
+
+  // ── Category CRUD ──
+  const handleAddCategory = async () => {
+    const label = ncLabel.trim();
+    if (!label) return;
+    const id = label.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    setAdminLoading(true);
+    try {
+      let headerImage = null;
+      if (ncFile) headerImage = await uploadImage(ncFile, "categories");
+      await addCategory(id, label, headerImage);
+      setCats(prev => [...prev, { id, label, header_image: headerImage }]);
+      setNcLabel("");
+      setNcFile(null);
+      flash("Category added");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    setAdminLoading(true);
+    try {
+      await deleteCategory(id);
+      setCats(prev => prev.filter(c => c.id !== id));
+      setItems(prev => prev.filter(w => w.cat !== id));
+      flash("Category deleted");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // ── Work item CRUD ──
+  const handleAddWorkItem = async () => {
+    if (!wiTitle.trim() || !wiCat) return;
+    setAdminLoading(true);
+    try {
+      let src = null, thumb = null;
+      if (wiType === "image" && wiFile) {
+        src = await uploadImage(wiFile, "work");
+      }
+      if (wiType === "video" && wiThumbFile) {
+        thumb = await uploadImage(wiThumbFile, "work");
+      }
+      const row = {
+        type: wiType, cat: wiCat, title: wiTitle.trim(),
+        description: wiDesc.trim() || null,
+        src, thumb,
+        video_id: wiType === "video" ? wiVideoId.trim() || null : null,
+      };
+      const saved = await addWorkItem(row);
+      setItems(prev => [...prev, {
+        id: saved.id, type: saved.type, cat: saved.cat, src: saved.src,
+        thumb: saved.thumb, title: saved.title, desc: saved.description, videoId: saved.video_id,
+      }]);
+      setWiTitle(""); setWiDesc(""); setWiFile(null); setWiVideoId(""); setWiThumbFile(null);
+      flash("Work item added");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleDeleteWorkItem = async (id) => {
+    setAdminLoading(true);
+    try {
+      await deleteWorkItem(id);
+      setItems(prev => prev.filter(w => w.id !== id));
+      flash("Item deleted");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // ── FAQ CRUD ──
+  const handleAddFaq = async () => {
+    if (!faqQ.trim() || !faqA.trim()) return;
+    setAdminLoading(true);
+    try {
+      const saved = await addFaqRow(faqQ.trim(), faqA.trim());
+      setFaqs(prev => [...prev, { id: saved.id, q: saved.question, a: saved.answer }]);
+      setFaqQ(""); setFaqA("");
+      flash("FAQ added");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleUpdateFaq = async (id) => {
+    if (!editFaqQ.trim() || !editFaqA.trim()) return;
+    setAdminLoading(true);
+    try {
+      await updateFaqRow(id, editFaqQ.trim(), editFaqA.trim());
+      setFaqs(prev => prev.map(f => f.id === id ? { ...f, q: editFaqQ.trim(), a: editFaqA.trim() } : f));
+      setEditingFaq(null);
+      flash("FAQ updated");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleDeleteFaq = async (id) => {
+    setAdminLoading(true);
+    try {
+      await deleteFaqRow(id);
+      setFaqs(prev => prev.filter(f => f.id !== id));
+      flash("FAQ deleted");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // ── Admin panel ──
   if (admin) return (
     <div style={S.root}><style>{css}</style>
-      <div style={{ maxWidth: 560, margin: "0 auto", padding: "28px 20px" }}>
+      <div style={{ maxWidth: 620, margin: "0 auto", padding: "28px 20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 700 }}>Admin</h2>
-          <button onClick={() => setAdmin(false)} style={S.ghost}>← Back</button>
-        </div>
-        <p style={S.label}>Categories</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
-          {cats.filter(c => c.id !== "all").map(c => (
-            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#f5f5f5", padding: "4px 11px", borderRadius: 14, fontSize: 12 }}>
-              {c.label}<button onClick={() => setCats(cats.filter(x => x.id !== c.id))} style={{ background: "none", border: "none", color: R, cursor: "pointer", fontWeight: 700 }}>×</button>
-            </span>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
-          <input value={nc} onChange={e => setNc(e.target.value)} placeholder="New category..." onKeyDown={e => { if (e.key === "Enter" && nc.trim()) { setCats([...cats, { id: nc.toLowerCase().replace(/\s/g,"-"), label: nc.trim() }]); setNc(""); }}} style={{ flex: 1, padding: "7px 10px", border: "1px solid #e0e0e0", borderRadius: 6, fontSize: 12, outline: "none" }}/>
-          <button onClick={() => { if (nc.trim()) { setCats([...cats, { id: nc.toLowerCase().replace(/\s/g,"-"), label: nc.trim() }]); setNc(""); }}} style={{ background: "#222", color: "#fff", border: "none", padding: "7px 16px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Add</button>
-        </div>
-        <p style={S.label}>Content · {items.length}</p>
-        {items.map(item => (
-          <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f3f3f3" }}>
-            <img src={item.type === "video" ? item.thumb : item.src} style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5 }}/>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
-              <div style={{ fontSize: 10, color: "#777" }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
-            </div>
-            <button onClick={() => setItems(items.filter(x => x.id !== item.id))} style={{ ...S.ghost, color: R, borderColor: "#fdd", fontSize: 10, padding: "2px 8px" }}>Remove</button>
+          <h2 style={{ fontSize: 17, fontWeight: 700 }}>Admin Panel</h2>
+          <div style={{ display: "flex", gap: 8 }}>
+            {session && <button onClick={handleLogout} style={{ ...S.ghost, color: R, borderColor: "#fdd" }}>Logout</button>}
+            <button onClick={() => { setAdmin(false); window.location.hash = ""; }} style={S.ghost}>← Back</button>
           </div>
-        ))}
+        </div>
+
+        {/* Not configured warning */}
+        {!supabase && (
+          <div style={{ padding: "14px 16px", background: "#FFF3E0", borderRadius: 8, marginBottom: 20, fontSize: 12, color: "#E65100", lineHeight: 1.5 }}>
+            Supabase not configured. Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in <code>.env</code> to enable persistence.
+          </div>
+        )}
+
+        {/* Login gate */}
+        {supabase && !session ? (
+          <form onSubmit={handleLogin} style={{ maxWidth: 320, margin: "60px auto" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>Admin Login</h3>
+            <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Email" required
+              style={S.input}/>
+            <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} placeholder="Password" required
+              style={{ ...S.input, marginTop: 8 }}/>
+            {loginErr && <div style={{ color: R, fontSize: 11, marginTop: 6 }}>{loginErr}</div>}
+            <button type="submit" disabled={loginLoading}
+              style={{ ...S.btnPrimary, marginTop: 12, width: "100%", opacity: loginLoading ? 0.6 : 1 }}>
+              {loginLoading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+        ) : (
+          <>
+            {/* Status flash */}
+            {adminMsg && (
+              <div style={{ padding: "8px 14px", background: adminMsg.startsWith("Error") ? "#FFEBEE" : "#E8F5E9", borderRadius: 6, marginBottom: 14, fontSize: 12, color: adminMsg.startsWith("Error") ? R : "#2E7D32" }}>
+                {adminMsg}
+              </div>
+            )}
+
+            {/* Tabs */}
+            <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0" }}>
+              {[["categories","Categories"],["work","Work"],["faqs","FAQs"]].map(([k, l]) => (
+                <button key={k} onClick={() => setAdminTab(k)}
+                  style={{ padding: "8px 18px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: adminTab === k ? 600 : 400, color: adminTab === k ? R : "#999", borderBottom: adminTab === k ? `2px solid ${R}` : "2px solid transparent", marginBottom: -2 }}>
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            {/* ── Categories Tab ── */}
+            {adminTab === "categories" && (
+              <div>
+                <p style={S.label}>Categories ({cats.filter(c => c.id !== "all").length})</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                  {cats.filter(c => c.id !== "all").map(c => (
+                    <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f5f5f5", padding: "5px 12px", borderRadius: 14, fontSize: 12 }}>
+                      {c.header_image && <img src={c.header_image} alt="" style={{ width: 18, height: 18, borderRadius: 3, objectFit: "cover" }}/>}
+                      {c.label}
+                      <button onClick={() => handleDeleteCategory(c.id)} disabled={adminLoading}
+                        style={{ background: "none", border: "none", color: R, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+                    </span>
+                  ))}
+                </div>
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0" }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add Category</p>
+                  <input value={ncLabel} onChange={e => setNcLabel(e.target.value)} placeholder="Category name"
+                    style={S.input}/>
+                  <div style={{ marginTop: 8 }}>
+                    <label style={{ fontSize: 11, color: "#888" }}>Header image (optional)</label>
+                    <input type="file" accept="image/*" onChange={e => setNcFile(e.target.files[0] || null)}
+                      style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                  </div>
+                  <button onClick={handleAddCategory} disabled={adminLoading || !ncLabel.trim()}
+                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !ncLabel.trim()) ? 0.5 : 1 }}>
+                    {adminLoading ? "Adding..." : "Add Category"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Work Tab ── */}
+            {adminTab === "work" && (
+              <div>
+                <p style={S.label}>Work Items ({items.length})</p>
+
+                {/* Add form */}
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginBottom: 20 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add Work Item</p>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                    {["image","video"].map(t => (
+                      <button key={t} onClick={() => setWiType(t)}
+                        style={{ padding: "5px 14px", borderRadius: 6, border: "none", fontSize: 12, cursor: "pointer", fontWeight: wiType === t ? 600 : 400, background: wiType === t ? "#222" : "#eee", color: wiType === t ? "#fff" : "#666" }}>
+                        {t === "image" ? "Image" : "Video"}
+                      </button>
+                    ))}
+                  </div>
+                  <select value={wiCat} onChange={e => setWiCat(e.target.value)}
+                    style={{ ...S.input, marginBottom: 8, color: wiCat ? "#222" : "#aaa" }}>
+                    <option value="" disabled>Select category...</option>
+                    {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                  </select>
+                  <input value={wiTitle} onChange={e => setWiTitle(e.target.value)} placeholder="Title"
+                    style={{ ...S.input, marginBottom: 8 }}/>
+                  <input value={wiDesc} onChange={e => setWiDesc(e.target.value)} placeholder="Description (optional)"
+                    style={{ ...S.input, marginBottom: 8 }}/>
+                  {wiType === "image" && (
+                    <div style={{ marginBottom: 8 }}>
+                      <label style={{ fontSize: 11, color: "#888" }}>Image file</label>
+                      <input type="file" accept="image/*" onChange={e => setWiFile(e.target.files[0] || null)}
+                        style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                    </div>
+                  )}
+                  {wiType === "video" && (
+                    <>
+                      <input value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="YouTube video ID"
+                        style={{ ...S.input, marginBottom: 8 }}/>
+                      <div style={{ marginBottom: 8 }}>
+                        <label style={{ fontSize: 11, color: "#888" }}>Thumbnail image <span style={{ color: "#bbb" }}>(optional — uses YouTube thumbnail if empty)</span></label>
+                        <input type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)}
+                          style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                      </div>
+                    </>
+                  )}
+                  <button onClick={handleAddWorkItem} disabled={adminLoading || !wiTitle.trim() || !wiCat}
+                    style={{ ...S.btnPrimary, opacity: (adminLoading || !wiTitle.trim() || !wiCat) ? 0.5 : 1 }}>
+                    {adminLoading ? "Adding..." : "Add Item"}
+                  </button>
+                </div>
+
+                {/* Items list */}
+                {items.map(item => (
+                  <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f3f3f3" }}>
+                    <img src={item.type === "video" ? ytThumb(item) : item.src} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5, background: "#eee" }}/>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
+                      <div style={{ fontSize: 10, color: "#777" }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
+                    </div>
+                    <button onClick={() => handleDeleteWorkItem(item.id)} disabled={adminLoading}
+                      style={{ ...S.ghost, color: R, borderColor: "#fdd", fontSize: 10, padding: "2px 8px" }}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── FAQs Tab ── */}
+            {adminTab === "faqs" && (
+              <div>
+                <p style={S.label}>FAQs ({faqs.length})</p>
+
+                {/* Add form */}
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginBottom: 20 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add FAQ</p>
+                  <input value={faqQ} onChange={e => setFaqQ(e.target.value)} placeholder="Question"
+                    style={{ ...S.input, marginBottom: 8 }}/>
+                  <textarea value={faqA} onChange={e => setFaqA(e.target.value)} placeholder="Answer" rows={3}
+                    style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}/>
+                  <button onClick={handleAddFaq} disabled={adminLoading || !faqQ.trim() || !faqA.trim()}
+                    style={{ ...S.btnPrimary, marginTop: 10, opacity: (adminLoading || !faqQ.trim() || !faqA.trim()) ? 0.5 : 1 }}>
+                    {adminLoading ? "Adding..." : "Add FAQ"}
+                  </button>
+                </div>
+
+                {/* FAQ list */}
+                {faqs.map(f => (
+                  <div key={f.id || f.q} style={{ padding: "12px 0", borderBottom: "1px solid #f0f0f0" }}>
+                    {editingFaq === (f.id || f.q) ? (
+                      <div>
+                        <input value={editFaqQ} onChange={e => setEditFaqQ(e.target.value)}
+                          style={{ ...S.input, marginBottom: 6, fontWeight: 600 }}/>
+                        <textarea value={editFaqA} onChange={e => setEditFaqA(e.target.value)} rows={3}
+                          style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}/>
+                        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                          <button onClick={() => handleUpdateFaq(f.id)} disabled={adminLoading}
+                            style={{ ...S.btnPrimary, padding: "5px 14px", fontSize: 11 }}>Save</button>
+                          <button onClick={() => setEditingFaq(null)} style={S.ghost}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>{f.q}</div>
+                        <div style={{ fontSize: 12, color: "#666", lineHeight: 1.5, marginBottom: 6 }}>{f.a}</div>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          {f.id && (
+                            <button onClick={() => { setEditingFaq(f.id); setEditFaqQ(f.q); setEditFaqA(f.a); }}
+                              style={{ ...S.ghost, fontSize: 10, padding: "2px 8px" }}>Edit</button>
+                          )}
+                          {f.id && (
+                            <button onClick={() => handleDeleteFaq(f.id)} disabled={adminLoading}
+                              style={{ ...S.ghost, color: R, borderColor: "#fdd", fontSize: 10, padding: "2px 8px" }}>Delete</button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
@@ -387,7 +853,7 @@ export default function App() {
               <div style={{ flex: 1, minWidth: 240 }}>
                 <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Meet your handyman</h2>
                 <p style={{ fontSize: 14, color: "#888", lineHeight: 1.6, marginBottom: 12 }}>
-                  Specialist technician with years of experience in domestic matters across the Zurich region. 
+                  Specialist technician with years of experience in domestic matters across the Zurich region.
                   From furniture assembly to electrical work, plumbing to wall mounting — I treat every home like my own.
                 </p>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -410,6 +876,22 @@ export default function App() {
             <Carousel items={items.slice(0, 6)} onClickItem={setLb}/>
           </section>
           </FadeIn>
+
+          {/* Video showcase */}
+          {items.filter(w => w.type === "video").length > 0 && (
+          <FadeIn delay={0.15}>
+          <section style={{ padding: "0 24px 40px", maxWidth: 940, margin: "0 auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+              <h2 style={{ fontSize: 17, fontWeight: 700 }}>
+                <svg width="18" height="18" viewBox="0 0 20 20" fill={R} style={{ verticalAlign: "-3px", marginRight: 6 }}><path d="M6 4l10 6-10 6V4z"/></svg>
+                Videos
+              </h2>
+              <button onClick={() => { nav("portfolio"); setMt("video"); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>View all →</button>
+            </div>
+            <Carousel items={items.filter(w => w.type === "video")} onClickItem={setLb}/>
+          </section>
+          </FadeIn>
+          )}
 
           {/* Reviews — Visual Google Section */}
           <FadeIn>
@@ -463,8 +945,8 @@ export default function App() {
           <FadeIn>
           <section style={{ padding: "16px 24px 32px", maxWidth: 600, margin: "0 auto" }}>
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#777", marginBottom: 12, textAlign: "center" }}>Common questions</div>
-            {FAQS.slice(0, 3).map((f, i) => (
-              <div key={i} style={{ borderBottom: "1px solid #f0f0f0", padding: "12px 0" }}>
+            {faqs.slice(0, 3).map((f, i) => (
+              <div key={f.id || i} style={{ borderBottom: "1px solid #f0f0f0", padding: "12px 0" }}>
                 <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{f.q}</div>
                 <div style={{ fontSize: 12, color: "#666", lineHeight: 1.5 }}>{f.a}</div>
               </div>
@@ -521,7 +1003,7 @@ export default function App() {
                 onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(198,40,40,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ position: "relative", paddingTop: "62%" }}>
-                  <img src={item.type === "video" ? item.thumb : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+                  <img src={item.type === "video" ? ytThumb(item) : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
                   {item.type === "video" && (
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.08)" }}>
                       <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -607,8 +1089,8 @@ export default function App() {
       {page === "faq" && (
         <div style={{ maxWidth: 560, margin: "0 auto", padding: "32px 24px 80px" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>FAQ</h2>
-          {FAQS.map((f, i) => (
-            <div key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+          {faqs.map((f, i) => (
+            <div key={f.id || i} style={{ borderBottom: "1px solid #f0f0f0" }}>
               <button onClick={() => setFq(fq === i ? null : i)}
                 style={{ width: "100%", textAlign: "left", padding: "14px 0", background: "none", border: "none", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14, fontWeight: 500, color: "#222" }}>
                 {f.q}
@@ -724,4 +1206,6 @@ const S = {
   navIn: { maxWidth: 940, margin: "0 auto", padding: "0 24px", height: 52, display: "flex", justifyContent: "space-between", alignItems: "center" },
   ghost: { background: "none", border: "1px solid #e5e5e5", padding: "4px 10px", borderRadius: 5, cursor: "pointer", fontSize: 11, color: "#666" },
   label: { fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#777", marginBottom: 10 },
+  input: { width: "100%", padding: "8px 11px", border: "1px solid #e0e0e0", borderRadius: 6, fontSize: 13, outline: "none", display: "block" },
+  btnPrimary: { background: "#222", color: "#fff", border: "none", padding: "8px 18px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 },
 };
