@@ -800,12 +800,12 @@ export default function App() {
       {page === "home" && (
         <>
           {/* Hero */}
-          <section style={{ position: "relative", height: "70vh", minHeight: 400, maxHeight: 600, overflow: "hidden" }}>
-            <img src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" style={{ width: "100%", height: "120%", objectFit: "cover", transform: `translateY(${scrollY * -0.15}px)`, willChange: "transform" }}/>
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.6) 100%)" }}/>
+          <section className="hero-section" style={{ position: "relative", height: "70vh", minHeight: 300, maxHeight: 600, overflow: "hidden" }}>
+            <img src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" style={{ width: "100%", height: "120%", objectFit: "cover", transform: `translateY(${scrollY * -0.08}px)`, willChange: "transform" }}/>
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.72) 100%)" }}/>
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 44px" }}>
               <div className="heroContent" style={{ maxWidth: 900, margin: "0 auto" }}>
-                <h1 style={{ fontSize: "clamp(26px, 4.5vw, 42px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, textShadow: "0 2px 8px rgba(0,0,0,0.5)", marginBottom: 8, letterSpacing: "-0.02em" }}>
+                <h1 style={{ fontSize: "clamp(26px, 4.5vw, 42px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 8, letterSpacing: "-0.02em" }}>
                   Professional Handyman<br/>Services in Zurich
                 </h1>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
@@ -817,7 +817,7 @@ export default function App() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
                     WhatsApp me
                   </a>
-                  <button onClick={() => nav("portfolio")} style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+                  <button onClick={() => nav("portfolio")} style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.4)", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
                     See my work
                   </button>
                 </div>
@@ -1195,6 +1195,9 @@ const css = `
   @media (max-width: 640px) {
     .desktop-nav { display: none !important; }
     .mobile-hamburger { display: block !important; }
+    .hero-section { height: 50vh !important; }
+    .hero-section .heroContent { padding-bottom: 0; }
+    .hero-section .heroContent h1 { font-size: 24px !important; }
   }
   @media (min-width: 641px) {
     .mobile-menu { display: none !important; }
