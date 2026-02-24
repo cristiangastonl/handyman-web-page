@@ -132,7 +132,7 @@ function FadeIn({ children, delay = 0, direction = "up", style = {} }) {
 const R = "#C62828";
 const PHONE = "+41 76 594 95 81";
 const WA_LINK = "https://wa.me/41765949581?text=Hi%2C%20I%20need%20a%20handyman%20in%20Zurich";
-const HERO_IMG = "/images/hero_img.jpg";
+const HERO_IMG = "/images/hero_collage.jpg";
 const PROFILE_IMG = "/images/profile_img.jpg";
 
 const DEFAULT_CATS = [
@@ -830,7 +830,7 @@ export default function App() {
           <section style={{ padding: "32px 24px 0", maxWidth: 900, margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
               {[
-                { val: 5, label: "Years Experience", suffix: "+" },
+                { val: 20, label: "Years Experience", suffix: "+" },
                 { val: 200, label: "Projects Completed", suffix: "+", decimals: 0 },
                 { val: 4.8, label: "Google Rating", suffix: "/5" },
                 { val: 2, label: "Hour Response", suffix: "h", prefix: "<" },
