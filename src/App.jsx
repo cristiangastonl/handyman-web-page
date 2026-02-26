@@ -135,49 +135,9 @@ const WA_LINK = "https://wa.me/41765949581?text=Hi%2C%20I%20need%20a%20handyman%
 const HERO_IMG = "/images/hero_collage.jpg";
 const PROFILE_IMG = "/images/profile_img.jpg";
 
-const DEFAULT_CATS = [
-  { id: "all", label: "All" },
-  { id: "electricity", label: "Electricity" },
-  { id: "plumbing", label: "Plumbing" },
-  { id: "assembly", label: "Furniture Assembly" },
-  { id: "mounting", label: "Wall Mounting" },
-  { id: "fixings", label: "Fixings" },
-  { id: "gardening", label: "Gardening" },
-];
-
-const REAL_0 = "/images/real_0.jpg";
-const REAL_1 = "/images/real_1.jpg";
-const REAL_2 = "/images/real_2.jpg";
-const REAL_3 = "/images/real_3.jpg";
-const REAL_4 = "/images/real_4.jpg";
-
-const DEFAULT_WORK = [
-  { id: 1, type: "image", cat: "electricity", src: REAL_0, title: "LED Ceiling Light", desc: "Bedroom LED installation with ambient blue backlight" },
-  { id: 2, type: "image", cat: "electricity", src: REAL_1, title: "Dining Pendant", desc: "Modern ring pendant light over dining table" },
-  { id: 3, type: "image", cat: "electricity", src: REAL_2, title: "Living Room Light", desc: "Decorative pendant installation in cozy living room" },
-  { id: 4, type: "image", cat: "electricity", src: REAL_3, title: "Kitchen Ceiling", desc: "Flush mount LED light in modern kitchen" },
-  { id: 5, type: "image", cat: "electricity", src: REAL_4, title: "Dining Setup", desc: "Warm pendant lighting for open dining area" },
-  { id: 6, type: "image", cat: "fixings", src: "https://images.unsplash.com/photo-1615873968403-89e068629265?w=800&h=500&fit=crop", title: "Parquet flooring", desc: "Hardwood installation" },
-  { id: 7, type: "image", cat: "plumbing", src: "https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=500&fit=crop", title: "Faucet upgrade", desc: "Grohe fixtures installation" },
-  { id: 8, type: "image", cat: "mounting", src: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&h=500&fit=crop", title: "Floating shelves", desc: "Wall-mounted shelving" },
-  { id: 9, type: "image", cat: "plumbing", src: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&h=500&fit=crop", title: "Walk-in shower", desc: "Glass enclosure install" },
-  { id: 10, type: "image", cat: "mounting", src: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=500&fit=crop", title: "TV wall mount", desc: "Samsung 65\" with cable management" },
-  { id: 11, type: "image", cat: "gardening", src: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800&h=500&fit=crop", title: "Garden maintenance", desc: "Seasonal care and planting" },
-  { id: 12, type: "image", cat: "electricity", src: "https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=800&h=500&fit=crop", title: "Panel upgrade", desc: "Full electrical rewiring" },
-  { id: 13, type: "video", cat: "electricity", videoId: "Xbm5PzihEYw", title: "IKEA Stylish Light Unboxing", desc: "First impressions of a stylish IKEA light fixture" },
-  { id: 14, type: "video", cat: "electricity", videoId: "iwQxh1fkeCc", title: "RANARP IKEA Pendant Lamp", desc: "Choosing the right fixture for your dinner room" },
-  { id: 15, type: "video", cat: "electricity", videoId: "rs6nN7732y4", title: "IKEA SINNERLIG Light Installation", desc: "Professional light installation for living rooms" },
-  { id: 16, type: "video", cat: "electricity", videoId: "OUI2MzJaM6U", title: "IKEA NYMANE Spot Lights", desc: "Beautiful spot lights for living rooms in Zurich" },
-];
-
-const DEFAULT_FAQS = [
-  { q: "What areas do you cover?", a: "I serve the entire Zurich region including Winterthur, Baden, Uster, and surrounding areas." },
-  { q: "How quickly can you schedule?", a: "Typically within 24–48 hours. Same-day emergency service available." },
-  { q: "Do you provide free estimates?", a: "Yes, all estimates are free and non-binding. Send photos of your project via WhatsApp for a quick quote." },
-  { q: "Are you insured?", a: "Fully insured with all necessary permits for professional work in Switzerland." },
-  { q: "What payment methods?", a: "Bank transfer, TWINT, credit cards, and cash. Payment after completion." },
-  { q: "Guarantee on work?", a: "Every job comes with a 2-year workmanship guarantee." },
-];
+const DEFAULT_CATS = [{ id: "all", label: "All" }];
+const DEFAULT_WORK = [];
+const DEFAULT_FAQS = [];
 
 const REVIEWS = [
   { name: "Anna M.", r: 5, text: "Outstanding service! Our bathroom looks brand new. Very professional and punctual. Will definitely call again for future projects.", time: "2 weeks ago" },
