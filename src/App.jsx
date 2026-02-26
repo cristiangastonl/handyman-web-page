@@ -186,25 +186,7 @@ const Socials = ({ sz = 14, color = "#999" }) => (
 );
 
 const Logo = () => (
-  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-    <svg width="36" height="36" viewBox="0 0 120 120" fill="none">
-      <path d="M5 55L60 12L115 55" stroke="#222" strokeWidth="4.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M22 50V95H98V50" stroke="#222" strokeWidth="4.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <rect x="85" y="22" width="8" height="22" fill="#222" rx="1"/>
-      <path d="M32 82C32 82 46 72 60 72C74 72 88 82 88 82" stroke="#222" strokeWidth="3" fill="none"/>
-      <path d="M60 80C60 80 38 58 38 45C38 32.85 47.85 23 60 23C72.15 23 82 32.85 82 45C82 58 60 80 60 80Z" fill={R}/>
-      <path d="M60 78C60 78 39.5 57 39.5 45C39.5 33.7 48.7 24.5 60 24.5C71.3 24.5 80.5 33.7 80.5 45C80.5 57 60 78 60 78Z" fill="url(#pg)"/>
-      <rect x="55" y="33" width="10" height="24" rx="2" fill="#fff"/>
-      <rect x="48" y="40" width="24" height="10" rx="2" fill="#fff"/>
-      <ellipse cx="52" cy="37" rx="5" ry="6" fill="rgba(255,255,255,0.3)"/>
-      <defs><radialGradient id="pg" cx="45%" cy="35%" r="60%"><stop offset="0%" stopColor="#EF5350"/><stop offset="100%" stopColor="#B71C1C"/></radialGradient></defs>
-    </svg>
-    <div style={{ lineHeight: 1.1 }}>
-      <span style={{ fontWeight: 800, fontSize: 14, color: R }}>HANDY</span>
-      <span style={{ fontWeight: 800, fontSize: 14, color: "#555" }}>MAN</span>
-      <div style={{ fontFamily: "'Dancing Script', cursive", fontSize: 11, fontWeight: 500, color: "#666", marginTop: 1 }}>Services in Zürich</div>
-    </div>
-  </div>
+  <img src="/images/logo.jpeg" alt="Handyman Services in Zurich" style={{ height: 48, width: "auto" }}/>
 );
 
 function Carousel({ items, onClickItem }) {
