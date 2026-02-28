@@ -1,0 +1,82 @@
+{
+  "nav.home": "Inicio",
+  "nav.portfolio": "Portfolio",
+  "nav.reviews": "Reseñas",
+  "nav.faq": "FAQ",
+
+  "hero.title": "Professional Handyman\nServices in Zürich",
+  "hero.subtitle": "Al servicio de la comunidad internacional de Zürich",
+  "hero.whatsapp": "Escríbeme por WhatsApp",
+  "hero.seeWork": "Ver mis trabajos",
+
+  "stats.experience": "Años de experiencia",
+  "stats.reviews": "Reseñas reales 🤝",
+  "stats.videos": "Videos",
+  "stats.ytViews": "Vistas en YouTube",
+  "stats.fbFollowers": "Seguidores en Facebook",
+  "stats.response": "Tiempo de respuesta",
+
+  "social.title": "¿Por qué seguir, suscribirse o contactar? 🔍",
+  "social.fb": "+1.400 seguidores · 10 portfolios · 100+ Reels · +100 reseñas reales · +100K vistas/mes",
+  "social.yt": "14 playlists · 100+ publicaciones · 400+ videos · +900K vistas",
+  "social.wa": "Respuesta en menos de 24hs",
+  "social.reviewsNote": "+100 reseñas y menciones genuinas de personas reales 🤝 (con muchos clientes recurrentes 🙂)\nSiempre un placer 😌 ayudar a todos 🌍🌎🌏 en Suiza 🇨🇭 en nuestra comunidad de expatriados ✨🥰",
+
+  "about.title": "Conoce a tu handyman",
+  "about.bio": "Después de más de 20 años de experiencia en construcción alrededor del mundo 🌍🌎🌏, ahora estoy basado en Zürich 🇨🇭 ofreciendo una amplia gama de servicios profesionales — desde trabajos eléctricos, montaje y estanterías, hasta instalación de muebles, pintura y renovación de decoración del hogar 🏡.",
+  "about.expatNote": "Hablo inglés con fluidez — al servicio de la comunidad local y de expatriados 🤗.",
+  "about.highlight1.title": "Qué esperar 🤔",
+  "about.highlight1.text": "Ideas frescas que te ahorran tiempo y estrés, buscando tu total satisfacción, mi compromiso principal 😊.",
+  "about.highlight2.title": "Lo que realmente obtienes 🤩",
+  "about.highlight2.text": "Trabajo de calidad profesional ✨ a precios accesibles 👌 — resultados excelentes, un acabado impecable 🤝, y la tranquilidad + garantía que todos buscan 😌.",
+  "about.highlight3.title": "A quién sirvo 🤗",
+  "about.highlight3.text": "Siempre encantado de ayudar tanto a la comunidad local como a la internacional en Zürich y alrededores.",
+  "about.skills.electricity": "Electricidad",
+  "about.skills.plumbing": "Fontanería",
+  "about.skills.assembly": "Montaje",
+  "about.skills.fixings": "Reparaciones",
+  "about.skills.gardening": "Jardinería",
+  "about.skills.wallMounting": "Montaje en pared",
+
+  "serviceAreas.title": "Áreas de servicio",
+  "serviceAreas.subtitle": "Zürich y la región circundante",
+
+  "recentWork.title": "Trabajos recientes",
+  "recentWork.viewAll": "Ver todos →",
+
+  "videos.title": "Videos",
+  "videos.viewAll": "Ver todos →",
+
+  "reviews.title": "Reseñas de Google",
+  "reviews.based": "Basado en {{count}} reseñas",
+  "reviews.count": "{{count}} reseñas",
+  "reviews.seeAll": "Todas las reseñas →",
+  "reviews.leaveReview": "Dejar una reseña en Google",
+
+  "faq.title": "FAQ",
+  "faq.common": "Preguntas frecuentes",
+  "faq.viewAll": "Todas las FAQ",
+
+  "cta.title": "¿Listo para empezar?",
+  "cta.subtitle": "Presupuesto en el día · Respuesta en 2 horas · Calidad garantizada",
+  "cta.multilingual": "Servicio multilingüe para la diversa comunidad de Zürich",
+  "cta.description": "Envíame fotos de tu proyecto y recibe un presupuesto gratis",
+  "cta.button": "Escríbeme por WhatsApp",
+
+  "footer.follow": "¡Sígueme, suscríbete o escríbeme!",
+  "footer.copyright": "© {{year}} Handyman Services in Zürich",
+  "footer.credit": "Diseñado y desarrollado por",
+
+  "sticky.tagline": "Tu satisfacción, mi compromiso",
+  "sticky.whatsapp": "WhatsApp",
+  "sticky.seeWork": "Mis trabajos",
+
+  "portfolio.title": "Portfolio",
+  "portfolio.all": "Todos",
+  "portfolio.photos": "Fotos",
+  "portfolio.videos": "Videos",
+  "portfolio.backToCategories": "← Todas las categorías",
+  "portfolio.noItems": "No se encontraron elementos.",
+
+  "lightbox.close": "Cerrar"
+}

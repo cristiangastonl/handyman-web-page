@@ -1,0 +1,82 @@
+{
+  "nav.home": "Startseite",
+  "nav.portfolio": "Portfolio",
+  "nav.reviews": "Bewertungen",
+  "nav.faq": "FAQ",
+
+  "hero.title": "Professional Handyman\nServices in Zürich",
+  "hero.subtitle": "Stolz im Dienst der internationalen Gemeinschaft Zürichs",
+  "hero.whatsapp": "WhatsApp",
+  "hero.seeWork": "Meine Arbeit",
+
+  "stats.experience": "Jahre Erfahrung",
+  "stats.reviews": "Echte Bewertungen 🤝",
+  "stats.videos": "Video-Shows",
+  "stats.ytViews": "YouTube-Aufrufe",
+  "stats.fbFollowers": "Facebook-Follower",
+  "stats.response": "Antwortzeit",
+
+  "social.title": "Warum folgen, abonnieren oder kontaktieren? 🔍",
+  "social.fb": "+1.400 Follower · 10 Portfolios · 100+ Reels · +100 echte Bewertungen · +100K Aufrufe/Monat",
+  "social.yt": "14 Playlists · 100+ Beiträge · 400+ Video-Shows · +900K Aufrufe",
+  "social.wa": "Antwort in weniger als 24 Stunden",
+  "social.reviewsNote": "+100 echte Bewertungen und Erwähnungen von echten Menschen 🤝 (mit vielen Stammkunden 🙂)\nImmer eine Freude 😌 jedem zu helfen 🌍🌎🌏 in der Schweiz 🇨🇭 in unserer Expat-Gemeinschaft ✨🥰",
+
+  "about.title": "Lernen Sie Ihren Handyman kennen",
+  "about.bio": "Nach über 20 Jahren Bauerfahrung weltweit 🌍🌎🌏 bin ich jetzt in Zürich 🇨🇭 tätig und biete ein breites Spektrum professioneller Dienstleistungen — von Elektroarbeit, Montage und Regalbau bis hin zu Möbelinstallation, Malerarbeiten und Wohnraumrenovierung 🏡.",
+  "about.expatNote": "Fliessend in Englisch — im Dienst der lokalen und internationalen Gemeinschaft 🤗.",
+  "about.highlight1.title": "Was Sie erwartet 🤔",
+  "about.highlight1.text": "Frische Ideen, die Ihnen Zeit und Stress sparen — Ihre Zufriedenheit ist mein oberstes Ziel 😊.",
+  "about.highlight2.title": "Was Sie bekommen 🤩",
+  "about.highlight2.text": "Professionelle Qualität ✨ zu fairen Preisen 👌 — erstklassige Ergebnisse, makellose Ausführung 🤝 und Garantie 😌.",
+  "about.highlight3.title": "Wen ich bediene 🤗",
+  "about.highlight3.text": "Gerne für Einheimische und Internationale in Zürich und Umgebung im Einsatz.",
+  "about.skills.electricity": "Elektrik",
+  "about.skills.plumbing": "Sanitär",
+  "about.skills.assembly": "Montage",
+  "about.skills.fixings": "Reparaturen",
+  "about.skills.gardening": "Gartenarbeit",
+  "about.skills.wallMounting": "Wandmontage",
+
+  "serviceAreas.title": "Servicegebiete",
+  "serviceAreas.subtitle": "Zürich und Umgebung im Einsatz",
+
+  "recentWork.title": "Aktuelle Arbeiten",
+  "recentWork.viewAll": "Alle ansehen →",
+
+  "videos.title": "Videos",
+  "videos.viewAll": "Alle ansehen →",
+
+  "reviews.title": "Google Bewertungen",
+  "reviews.based": "Basierend auf {{count}} Bewertungen",
+  "reviews.count": "{{count}} Bewertungen",
+  "reviews.seeAll": "Alle Bewertungen →",
+  "reviews.leaveReview": "Bewertung auf Google hinterlassen",
+
+  "faq.title": "FAQ",
+  "faq.common": "Häufige Fragen",
+  "faq.viewAll": "Alle FAQs ansehen",
+
+  "cta.title": "Bereit loszulegen?",
+  "cta.subtitle": "Kostenvoranschlag am selben Tag · Antwort innerhalb von 2 Stunden · Qualität garantiert",
+  "cta.multilingual": "Mehrsprachiger Service für Zürichs vielfältige Gemeinschaft",
+  "cta.description": "Senden Sie mir Fotos Ihres Projekts und erhalten Sie sofort ein kostenloses Angebot",
+  "cta.button": "Jetzt per WhatsApp schreiben",
+
+  "footer.follow": "Folgen, abonnieren oder schreiben Sie mir!",
+  "footer.copyright": "© {{year}} Handyman Services in Zürich",
+  "footer.credit": "Entworfen & entwickelt von",
+
+  "sticky.tagline": "Ihre Zufriedenheit, mein Engagement",
+  "sticky.whatsapp": "WhatsApp",
+  "sticky.seeWork": "Meine Arbeit",
+
+  "portfolio.title": "Portfolio",
+  "portfolio.all": "Alle",
+  "portfolio.photos": "Fotos",
+  "portfolio.videos": "Videos",
+  "portfolio.backToCategories": "← Alle Kategorien",
+  "portfolio.noItems": "Keine Einträge gefunden.",
+
+  "lightbox.close": "Schliessen"
+}

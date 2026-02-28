@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { createClient } from "@supabase/supabase-js";
 
 // ─── Supabase client (nullable if not configured) ───
@@ -139,6 +140,22 @@ const DEFAULT_CATS = [{ id: "all", label: "All" }];
 const DEFAULT_WORK = [];
 const DEFAULT_FAQS = [];
 
+const SERVICE_AREAS = [
+  { name: "Zürich", primary: true },
+  { name: "Saint Gallen", primary: false },
+  { name: "Zug", primary: false },
+  { name: "Basel", primary: false },
+  { name: "Aarau", primary: false },
+];
+
+const LANGS = [
+  { code: "en", flag: "🇬🇧", label: "English" },
+  { code: "de", flag: "🇩🇪", label: "Deutsch" },
+  { code: "it", flag: "🇮🇹", label: "Italiano" },
+  { code: "fr", flag: "🇫🇷", label: "Français" },
+  { code: "es", flag: "🇪🇸", label: "Español" },
+];
+
 const REVIEWS = [
   { name: "Anna M.", r: 5, text: "Outstanding service! Our bathroom looks brand new. Very professional and punctual. Will definitely call again for future projects.", time: "2 weeks ago" },
   { name: "Thomas K.", r: 5, text: "Assembled our entire IKEA kitchen in one day. Perfect work. Highly recommended!", time: "1 month ago" },
@@ -240,7 +257,38 @@ const GoogleG = () => (
   </svg>
 );
 
+// Map pin icon for service areas
+const MapPin = ({ size = 18, color = "#999" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+    <circle cx="12" cy="10" r="3"/>
+  </svg>
+);
+
+// Language selector component
+const LangSelector = ({ currentLang, onChange }) => (
+  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+    {LANGS.map(l => (
+      <button key={l.code} onClick={() => onChange(l.code)}
+        title={l.label}
+        style={{
+          background: "none", border: "none", cursor: "pointer", fontSize: 16, lineHeight: 1,
+          padding: "2px 3px", borderRadius: 4,
+          opacity: currentLang === l.code ? 1 : 0.4,
+          transform: currentLang === l.code ? "scale(1.15)" : "scale(1)",
+          transition: "opacity .2s, transform .2s",
+        }}
+        onMouseEnter={e => { if (currentLang !== l.code) e.currentTarget.style.opacity = 0.7; }}
+        onMouseLeave={e => { if (currentLang !== l.code) e.currentTarget.style.opacity = 0.4; }}
+      >
+        {l.flag}
+      </button>
+    ))}
+  </div>
+);
+
 export default function App() {
+  const { t, i18n } = useTranslation();
   const [page, setPageState] = useState(() => { const h = window.location.hash.slice(1); return ["portfolio","reviews","faq"].includes(h) ? h : "home"; });
   const [lb, setLb] = useState(null);
   const [cat, setCat] = useState("all");
@@ -251,6 +299,9 @@ export default function App() {
   const [items, setItems] = useState(DEFAULT_WORK);
   const [faqs, setFaqs] = useState(DEFAULT_FAQS);
   const [mobileMenu, setMobileMenu] = useState(false);
+
+  // Portfolio view state: "categories" or { cat: "lighting", tab: "photos" }
+  const [portfolioView, setPortfolioView] = useState("categories");
 
   // Admin state
   const [session, setSession] = useState(null);
@@ -285,7 +336,7 @@ export default function App() {
   const avg = (REVIEWS.reduce((a, r) => a + r.r, 0) / REVIEWS.length).toFixed(1);
   const filtered = items.filter(w => (cat === "all" || w.cat === cat) && (mt === "all" || w.type === mt));
   const setPage = (p) => { setPageState(p); window.location.hash = p === "home" ? "" : p; };
-  const nav = (p) => { setPage(p); setCat("all"); setMt("all"); setMobileMenu(false); window.scrollTo?.(0, 0); };
+  const nav = (p) => { setPage(p); setCat("all"); setMt("all"); setPortfolioView("categories"); setMobileMenu(false); window.scrollTo?.(0, 0); };
   const revRef = useRef(null);
   const [scrollY, setScrollY] = useState(0);
   useEffect(() => {
@@ -343,6 +394,11 @@ export default function App() {
       if (s) setSession(s);
     });
   }, []);
+
+  const changeLang = (code) => {
+    i18n.changeLanguage(code);
+    localStorage.setItem("lang", code);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -697,6 +753,9 @@ export default function App() {
     </div>
   );
 
+  // Helper: get categories that have work items (for portfolio grid)
+  const activeCats = cats.filter(c => c.id !== "all" && items.some(w => w.cat === c.id));
+
   return (
     <div style={S.root}><style>{css}</style>
 
@@ -709,11 +768,13 @@ export default function App() {
             {["home","portfolio","reviews","faq"].map(p => (
               <button key={p} onClick={() => nav(p)}
                 style={{ background: "none", border: "none", cursor: "pointer", padding: "5px 10px", fontSize: 13, fontWeight: page === p ? 600 : 400, color: page === p ? R : "#aaa" }}>
-                {p === "home" ? "Home" : p === "portfolio" ? "Portfolio" : p === "reviews" ? "Reviews" : "FAQ"}
+                {t(`nav.${p}`)}
               </button>
             ))}
             <div style={{ width: 1, height: 14, background: "#e5e5e5", margin: "0 6px" }}/>
             <Socials sz={13}/>
+            <div style={{ width: 1, height: 14, background: "#e5e5e5", margin: "0 6px" }}/>
+            <LangSelector currentLang={i18n.language} onChange={changeLang}/>
           </div>
           {/* Mobile hamburger */}
           <button className="mobile-hamburger" onClick={() => setMobileMenu(!mobileMenu)}
@@ -728,10 +789,13 @@ export default function App() {
             {["home","portfolio","reviews","faq"].map(p => (
               <button key={p} onClick={() => nav(p)}
                 style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 0", fontSize: 15, fontWeight: page === p ? 600 : 400, color: page === p ? R : "#666", textAlign: "left" }}>
-                {p === "home" ? "Home" : p === "portfolio" ? "Portfolio" : p === "reviews" ? "Reviews" : "FAQ"}
+                {t(`nav.${p}`)}
               </button>
             ))}
-            <div style={{ paddingTop: 8 }}><Socials sz={16}/></div>
+            <div style={{ paddingTop: 8, display: "flex", alignItems: "center", gap: 16 }}>
+              <Socials sz={16}/>
+              <LangSelector currentLang={i18n.language} onChange={changeLang}/>
+            </div>
           </div>
         )}
       </nav>
@@ -747,20 +811,20 @@ export default function App() {
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.72) 100%)" }}/>
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 44px" }}>
               <div className="heroContent" style={{ maxWidth: 900, margin: "0 auto" }}>
-                <h1 style={{ fontSize: "clamp(26px, 4.5vw, 42px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 8, letterSpacing: "-0.02em" }}>
-                  Professional Handyman<br/>Services in Zurich
+                <h1 style={{ fontSize: "clamp(26px, 4.5vw, 42px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 8, letterSpacing: "-0.02em", whiteSpace: "pre-line" }}>
+                  {t("hero.title")}
                 </h1>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
-                  Your satisfaction, my commitment · Zurich region
+                  {t("hero.subtitle")}
                 </p>
                 <div style={{ marginBottom: 20 }} />
                 <div style={{ display: "flex", gap: 10 }}>
                   <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#25D366", color: "#fff", border: "none", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
-                    WhatsApp me
+                    {t("hero.whatsapp")}
                   </a>
                   <button onClick={() => nav("portfolio")} style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.4)", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-                    See my work
+                    {t("hero.seeWork")}
                   </button>
                 </div>
               </div>
@@ -772,10 +836,11 @@ export default function App() {
           <section style={{ padding: "32px 24px 0", maxWidth: 900, margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
               {[
-                { val: 20, label: "Years Experience", suffix: "+" },
-                { val: 200, label: "Projects Completed", suffix: "+", decimals: 0 },
-                { val: 4.8, label: "Google Rating", suffix: "/5" },
-                { val: 2, label: "Hour Response", suffix: "h", prefix: "<" },
+                { val: 20, label: t("stats.experience"), suffix: "+", decimals: 0 },
+                { val: 100, label: t("stats.reviews"), suffix: "+", decimals: 0 },
+                { val: 400, label: t("stats.videos"), suffix: "+", decimals: 0 },
+                { val: 900, label: t("stats.ytViews"), suffix: "K+", decimals: 0 },
+                { val: 1400, label: t("stats.fbFollowers"), suffix: "+", decimals: 0 },
               ].map((s, i) => (
                 <div key={i} style={{ textAlign: "center", minWidth: 100 }}>
                   <div style={{ fontSize: 28, fontWeight: 800, color: R }}>
@@ -788,23 +853,82 @@ export default function App() {
           </section>
           </FadeIn>
 
+          {/* Social proof — from PDFs */}
+          <FadeIn>
+          <section style={{ padding: "20px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 14 }}>
+              <p style={{ fontSize: 13, color: "#999", fontStyle: "italic", lineHeight: 1.6, whiteSpace: "pre-line" }}>{t("social.reviewsNote")}</p>
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              {[
+                { icon: svgP.fb, url: socialUrls.fb, text: t("social.fb") },
+                { icon: svgP.yt, url: socialUrls.yt, text: t("social.yt") },
+                { icon: svgP.wa, url: WA_LINK, text: t("social.wa") },
+              ].map((s, i) => (
+                <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
+                  style={{ flex: "1 1 200px", maxWidth: 300, display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", textDecoration: "none", transition: "border-color .2s" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "#ddd"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = "#f0f0f0"}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#999" style={{ flexShrink: 0, marginTop: 1 }}><path d={s.icon}/></svg>
+                  <span style={{ fontSize: 11, color: "#888", lineHeight: 1.5 }}>{s.text}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+          </FadeIn>
+
           {/* About / Meet section */}
           <FadeIn>
           <section style={{ padding: "48px 24px", maxWidth: 900, margin: "0 auto" }}>
             <div style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
               <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 140, height: 140, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
               <div style={{ flex: 1, minWidth: 240 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Meet your handyman</h2>
-                <p style={{ fontSize: 14, color: "#888", lineHeight: 1.6, marginBottom: 12 }}>
-                  Specialist technician with years of experience in domestic matters across the Zurich region.
-                  From furniture assembly to electrical work, plumbing to wall mounting — I treat every home like my own.
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{t("about.title")}</h2>
+                <p style={{ fontSize: 14, color: "#888", lineHeight: 1.6, marginBottom: 6 }}>
+                  {t("about.bio")}
+                </p>
+                <p style={{ fontSize: 13, color: "#999", lineHeight: 1.5, marginBottom: 12, fontStyle: "italic" }}>
+                  {t("about.expatNote")}
                 </p>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {["Electricity","Plumbing","Assembly","Fixings","Gardening","Wall Mounting"].map(s => (
-                    <span key={s} style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #eee", fontSize: 12, color: "#777", fontWeight: 500 }}>{s}</span>
+                  {["electricity","plumbing","assembly","fixings","gardening","wallMounting"].map(s => (
+                    <span key={s} style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #eee", fontSize: 12, color: "#777", fontWeight: 500 }}>{t(`about.skills.${s}`)}</span>
                   ))}
                 </div>
               </div>
+            </div>
+            {/* Highlight cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginTop: 28 }}>
+              {[1, 2, 3].map(n => (
+                <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 4 }}>{t(`about.highlight${n}.title`)}</div>
+                  <div style={{ fontSize: 12, color: "#888", lineHeight: 1.55 }}>{t(`about.highlight${n}.text`)}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+          </FadeIn>
+
+          {/* Service Areas */}
+          <FadeIn>
+          <section style={{ padding: "0 24px 40px", maxWidth: 900, margin: "0 auto" }}>
+            <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>{t("serviceAreas.title")}</h2>
+            <p style={{ fontSize: 12, color: "#999", marginBottom: 16 }}>{t("serviceAreas.subtitle")}</p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+              {SERVICE_AREAS.map(area => (
+                <div key={area.name} style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "10px 18px", borderRadius: 10,
+                  background: area.primary ? R : "#f5f5f5",
+                  color: area.primary ? "#fff" : "#555",
+                  fontWeight: area.primary ? 700 : 500,
+                  fontSize: 13,
+                  border: area.primary ? "none" : "1px solid #eee",
+                }}>
+                  <MapPin size={15} color={area.primary ? "#fff" : "#bbb"}/>
+                  {area.name}
+                </div>
+              ))}
             </div>
           </section>
           </FadeIn>
@@ -813,8 +937,8 @@ export default function App() {
           <FadeIn delay={0.1}>
           <section style={{ padding: "8px 24px 40px", maxWidth: 940, margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
-              <h2 style={{ fontSize: 17, fontWeight: 700 }}>Recent work</h2>
-              <button onClick={() => nav("portfolio")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>View all →</button>
+              <h2 style={{ fontSize: 17, fontWeight: 700 }}>{t("recentWork.title")}</h2>
+              <button onClick={() => nav("portfolio")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("recentWork.viewAll")}</button>
             </div>
             <Carousel items={items.slice(0, 6)} onClickItem={setLb}/>
           </section>
@@ -827,9 +951,9 @@ export default function App() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
               <h2 style={{ fontSize: 17, fontWeight: 700 }}>
                 <svg width="18" height="18" viewBox="0 0 20 20" fill={R} style={{ verticalAlign: "-3px", marginRight: 6 }}><path d="M6 4l10 6-10 6V4z"/></svg>
-                Videos
+                {t("videos.title")}
               </h2>
-              <button onClick={() => { nav("portfolio"); setMt("video"); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>View all →</button>
+              <button onClick={() => { nav("portfolio"); setMt("video"); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("videos.viewAll")}</button>
             </div>
             <Carousel items={items.filter(w => w.type === "video")} onClickItem={setLb}/>
           </section>
@@ -845,18 +969,18 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <GoogleG/>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "#444" }}>Google Reviews</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
                   </div>
                   <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                     <span style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400}/></span>
                     <div>
                       <Stars n={Math.round(parseFloat(avg))} sz={15}/>
-                      <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{REVIEWS.length} reviews</div>
+                      <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{t("reviews.count", { count: REVIEWS.length })}</div>
                     </div>
                   </div>
                 </div>
-                <button onClick={() => nav("reviews")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>See all reviews →</button>
+                <button onClick={() => nav("reviews")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("reviews.seeAll")}</button>
               </div>
 
               {/* Reviews carousel */}
@@ -887,7 +1011,7 @@ export default function App() {
           {/* Quick FAQs */}
           <FadeIn>
           <section style={{ padding: "16px 24px 32px", maxWidth: 600, margin: "0 auto" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#777", marginBottom: 12, textAlign: "center" }}>Common questions</div>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#777", marginBottom: 12, textAlign: "center" }}>{t("faq.common")}</div>
             {faqs.slice(0, 3).map((f, i) => (
               <div key={f.id || i} style={{ borderBottom: "1px solid #f0f0f0", padding: "12px 0" }}>
                 <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{f.q}</div>
@@ -895,7 +1019,7 @@ export default function App() {
               </div>
             ))}
             <div style={{ textAlign: "center", marginTop: 12 }}>
-              <button onClick={() => nav("faq")} style={{ background: "none", border: "none", color: R, fontSize: 12, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}>View all FAQs</button>
+              <button onClick={() => nav("faq")} style={{ background: "none", border: "none", color: R, fontSize: 12, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}>{t("faq.viewAll")}</button>
             </div>
           </section>
           </FadeIn>
@@ -904,12 +1028,13 @@ export default function App() {
           <FadeIn delay={0.1}>
           <section style={{ padding: "8px 24px 48px", textAlign: "center" }}>
             <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 32px", background: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)", borderRadius: 16, color: "#fff" }}>
-              <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6 }}>Ready to get started?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>Same-day estimates · Reply within 2 hours · Quality guaranteed</p>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>Send me photos of your project and get a free quote instantly</p>
+              <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6 }}>{t("cta.title")}</h3>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>{t("cta.subtitle")}</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>{t("cta.multilingual")}</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>{t("cta.description")}</p>
               <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "12px 28px", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,211,102,0.3)" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
-                WhatsApp me now
+                {t("cta.button")}
               </a>
             </div>
           </section>
@@ -920,49 +1045,99 @@ export default function App() {
       {/* ===== PORTFOLIO ===== */}
       {page === "portfolio" && (
         <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>Portfolio</h2>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-              {cats.map(c => (
-                <button key={c.id} onClick={() => setCat(c.id)}
-                  style={{ padding: "5px 13px", borderRadius: 16, border: "none", fontSize: 12, cursor: "pointer", fontWeight: cat === c.id ? 600 : 400, background: cat === c.id ? "#222" : "#f5f5f5", color: cat === c.id ? "#fff" : "#888" }}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-            <div style={{ display: "flex", gap: 3 }}>
-              {[["all","All"],["image","Photos"],["video","Videos"]].map(([k,l]) => (
-                <button key={k} onClick={() => setMt(k)}
-                  style={{ padding: "4px 10px", border: "none", borderRadius: 5, fontSize: 11, cursor: "pointer", fontWeight: mt === k ? 600 : 400, background: mt === k ? "#eee" : "transparent", color: mt === k ? "#222" : "#ccc" }}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 10 }}>
-            {filtered.map(item => (
-              <div key={item.id} onClick={() => setLb(item)}
-                style={{ borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
-                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(198,40,40,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                <div style={{ position: "relative", paddingTop: "62%" }}>
-                  <img src={item.type === "video" ? ytThumb(item) : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
-                  {item.type === "video" && (
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.08)" }}>
-                      <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <svg width="13" height="13" viewBox="0 0 20 20" fill={R}><path d="M6 4l10 6-10 6V4z"/></svg>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>{t("portfolio.title")}</h2>
+
+          {/* Level 1: Category Grid */}
+          {portfolioView === "categories" && (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
+                {activeCats.map(c => {
+                  const catItems = items.filter(w => w.cat === c.id);
+                  const thumb = c.header_image || (catItems[0]?.type === "video" ? ytThumb(catItems[0]) : catItems[0]?.src) || "";
+                  return (
+                    <div key={c.id}
+                      onClick={() => { setPortfolioView({ cat: c.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
+                      style={{ borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(198,40,40,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                      <div style={{ position: "relative", paddingTop: "65%", background: "#f5f5f5" }}>
+                        {thumb && <img src={thumb} alt={c.label} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>}
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }}/>
+                        <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{c.label}</div>
+                          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{catItems.length} {catItems.length === 1 ? "item" : "items"}</div>
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-                <div style={{ padding: "9px 11px" }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</div>
-                  <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{cats.find(c => c.id === item.cat)?.label}</div>
-                </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-          {!filtered.length && <p style={{ textAlign: "center", padding: 60, color: "#ccc", fontSize: 13 }}>No items found.</p>}
+              {!activeCats.length && <p style={{ textAlign: "center", padding: 60, color: "#ccc", fontSize: 13 }}>{t("portfolio.noItems")}</p>}
+            </>
+          )}
+
+          {/* Level 2: Category Detail View */}
+          {typeof portfolioView === "object" && portfolioView.cat && (() => {
+            const currentCat = cats.find(c => c.id === portfolioView.cat);
+            const catItems = items.filter(w => w.cat === portfolioView.cat);
+            const photos = catItems.filter(w => w.type === "image");
+            const videos = catItems.filter(w => w.type === "video");
+            const activeTab = portfolioView.tab || "photos";
+            const displayItems = activeTab === "photos" ? photos : videos;
+
+            return (
+              <>
+                {/* Back button + title */}
+                <button onClick={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: R, fontWeight: 600, marginBottom: 16, padding: 0 }}>
+                  {t("portfolio.backToCategories")}
+                </button>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 14 }}>{currentCat?.label}</h3>
+
+                {/* Tabs: Photos / Videos */}
+                <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0" }}>
+                  {[["photos", t("portfolio.photos"), photos.length], ["videos", t("portfolio.videos"), videos.length]].map(([tab, label, count]) => (
+                    <button key={tab} onClick={() => setPortfolioView({ ...portfolioView, tab })}
+                      style={{
+                        padding: "8px 18px", background: "none", border: "none", cursor: "pointer",
+                        fontSize: 13, fontWeight: activeTab === tab ? 600 : 400,
+                        color: activeTab === tab ? R : "#999",
+                        borderBottom: activeTab === tab ? `2px solid ${R}` : "2px solid transparent",
+                        marginBottom: -2,
+                      }}>
+                      {label} ({count})
+                    </button>
+                  ))}
+                </div>
+
+                {/* Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 10 }}>
+                  {displayItems.map(item => (
+                    <div key={item.id} onClick={() => setLb(item)}
+                      style={{ borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(198,40,40,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                      <div style={{ position: "relative", paddingTop: "62%" }}>
+                        <img src={item.type === "video" ? ytThumb(item) : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+                        {item.type === "video" && (
+                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.08)" }}>
+                            <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <svg width="13" height="13" viewBox="0 0 20 20" fill={R}><path d="M6 4l10 6-10 6V4z"/></svg>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ padding: "9px 11px" }}>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</div>
+                        {item.desc && <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{item.desc}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {!displayItems.length && <p style={{ textAlign: "center", padding: 60, color: "#ccc", fontSize: 13 }}>{t("portfolio.noItems")}</p>}
+              </>
+            );
+          })()}
         </div>
       )}
 
@@ -978,11 +1153,11 @@ export default function App() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              <span style={{ fontSize: 18, fontWeight: 700 }}>Google Reviews</span>
+              <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
             </div>
             <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600}/></div>
             <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
-            <div style={{ fontSize: 14, color: "#aaa" }}>Based on {REVIEWS.length} reviews</div>
+            <div style={{ fontSize: 14, color: "#aaa" }}>{t("reviews.based", { count: REVIEWS.length })}</div>
 
             {/* Rating distribution bars */}
             <div style={{ maxWidth: 280, margin: "20px auto 0" }}>
@@ -1004,7 +1179,7 @@ export default function App() {
 
             <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer"
               style={{ display: "inline-block", marginTop: 20, padding: "8px 20px", border: "1px solid #ddd", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none" }}>
-              Leave a review on Google
+              {t("reviews.leaveReview")}
             </a>
           </div>
 
@@ -1031,7 +1206,7 @@ export default function App() {
       {/* ===== FAQ ===== */}
       {page === "faq" && (
         <div style={{ maxWidth: 560, margin: "0 auto", padding: "32px 24px 80px" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>FAQ</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>{t("faq.title")}</h2>
           {faqs.map((f, i) => (
             <div key={f.id || i} style={{ borderBottom: "1px solid #f0f0f0" }}>
               <button onClick={() => setFq(fq === i ? null : i)}
@@ -1049,12 +1224,12 @@ export default function App() {
       </main>
       <footer style={{ borderTop: "1px solid #f0f0f0", padding: "28px 24px" }}>
         <div style={{ maxWidth: 940, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ fontFamily: "'Dancing Script', cursive", fontSize: 16, color: "#ccc", marginBottom: 10 }}>Why not follow, subscribe or message me?</div>
+          <div style={{ fontFamily: "'Dancing Script', cursive", fontSize: 16, color: "#ccc", marginBottom: 10 }}>{t("footer.follow")}</div>
           <div style={{ display: "flex", justifyContent: "center" }}><Socials sz={15} color="#bbb"/></div>
           <div style={{ marginTop: 12 }}>
-            <span style={{ fontSize: 11, color: "#ccc" }}>© {new Date().getFullYear()} Handyman Services in Zurich</span>
+            <span style={{ fontSize: 11, color: "#ccc" }}>{t("footer.copyright", { year: new Date().getFullYear() })}</span>
           </div>
-          <div style={{ fontSize: 10, color: "#ddd", marginTop: 6 }}>Designed & developed by <span style={{ fontWeight: 600, color: "#bbb" }}>Zipper</span></div>
+          <div style={{ fontSize: 10, color: "#ddd", marginTop: 6 }}>{t("footer.credit")} <span style={{ fontWeight: 600, color: "#bbb" }}>Zipper</span></div>
         </div>
       </footer>
 
@@ -1069,17 +1244,17 @@ export default function App() {
       }}>
         <div style={{ maxWidth: 940, margin: "0 auto", padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Your satisfaction, my commitment</span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>{t("sticky.tagline")}</span>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
               style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#25D366", color: "#fff", padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
-              WhatsApp me
+              {t("sticky.whatsapp")}
             </a>
             <button onClick={() => nav("portfolio")}
               style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)", padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
-              See my work
+              {t("sticky.seeWork")}
             </button>
           </div>
         </div>
