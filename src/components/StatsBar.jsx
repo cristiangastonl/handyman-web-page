@@ -5,10 +5,12 @@ import { FadeIn, AnimatedCounter } from "./FadeIn";
 export default function StatsBar() {
   const { t } = useTranslation();
   return (
-    <>
+    <div style={{ position: "relative", overflow: "hidden" }}>
+{/* Logo watermark removed — now global in App */}
+
       {/* Stats counters */}
       <FadeIn>
-      <section style={{ padding: "32px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+      <section style={{ padding: "20px 24px 0", maxWidth: 940, margin: "0 auto", position: "relative" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
           {[
             { val: 20, label: t("stats.experience"), suffix: "+", decimals: 0 },
@@ -18,7 +20,7 @@ export default function StatsBar() {
             { val: 1400, label: t("stats.fbFollowers"), suffix: "+", decimals: 0 },
           ].map((s, i) => (
             <div key={i} style={{ textAlign: "center", minWidth: 100 }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: R }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: R }}>
                 {s.prefix || ""}<AnimatedCounter target={s.val} decimals={s.decimals ?? 1}/>{s.suffix}
               </div>
               <div style={{ fontSize: 11, color: "#777", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{s.label}</div>
@@ -30,7 +32,7 @@ export default function StatsBar() {
 
       {/* Social proof cards */}
       <FadeIn>
-      <section style={{ padding: "20px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+      <section style={{ padding: "20px 24px 0", maxWidth: 940, margin: "0 auto", position: "relative" }}>
         <div style={{ textAlign: "center", marginBottom: 14 }}>
           <p style={{ fontSize: 13, color: "#999", fontStyle: "italic", lineHeight: 1.6, whiteSpace: "pre-line" }}>{t("social.reviewsNote")}</p>
         </div>
@@ -51,6 +53,6 @@ export default function StatsBar() {
         </div>
       </section>
       </FadeIn>
-    </>
+    </div>
   );
 }

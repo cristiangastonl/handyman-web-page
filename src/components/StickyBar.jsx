@@ -4,7 +4,7 @@ import { WA_LINK, svgP } from "../lib/constants";
 export default function StickyBar({ scrollY, nav }) {
   const { t } = useTranslation();
   return (
-    <div style={{
+    <div className="sticky-bar" style={{
       position: "fixed", top: 52, left: 0, right: 0, zIndex: 99,
       background: "rgba(26,26,26,0.95)", backdropFilter: "blur(10px)",
       transform: scrollY > 500 ? "translateY(0)" : "translateY(-100%)",

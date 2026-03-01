@@ -43,9 +43,9 @@ export function BottomCTA() {
     <section style={{ padding: "8px 24px 48px", textAlign: "center" }}>
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 32px", background: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)", borderRadius: 16, color: "#fff" }}>
         <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6 }}>{t("cta.title")}</h3>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>{t("cta.subtitle")}</p>
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>{t("cta.multilingual")}</p>
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>{t("cta.description")}</p>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 4 }}>{t("cta.subtitle")}</p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginBottom: 4 }}>{t("cta.multilingual")}</p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 20 }}>{t("cta.description")}</p>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "12px 28px", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,211,102,0.3)" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
           {t("cta.button")}

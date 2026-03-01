@@ -63,6 +63,9 @@
   "cta.description": "Send me photos of your project and get a free quote instantly",
   "cta.button": "WhatsApp me now",
 
+  "footer.contact": "Contact",
+  "footer.hours": "Working Hours",
+  "footer.emergency": "Emergency service available",
   "footer.follow": "Why not follow, subscribe or message me?",
   "footer.copyright": "© {{year}} Handyman Services in Zürich",
   "footer.credit": "Designed & developed by",

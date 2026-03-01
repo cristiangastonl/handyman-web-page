@@ -4,14 +4,16 @@ import { R, REVIEWS, svgP, socialUrls, ab } from "../lib/constants";
 import { Stars, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
-// Google reviews carousel for the home page
-export function GoogleReviewsHome({ nav, googleReviews = [] }) {
+// Unified reviews carousel for the home page (Google + Facebook)
+export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
   const { t } = useTranslation();
   const revRef = useRef(null);
-  const reviews = googleReviews.length > 0
-    ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label }))
-    : REVIEWS;
-  const avg = (reviews.reduce((a, r) => a + r.r, 0) / reviews.length).toFixed(1);
+  const gReviews = googleReviews.length > 0
+    ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label, source: "google" }))
+    : REVIEWS.map(r => ({ ...r, source: "google" }));
+  const fReviews = fbReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.review_date, source: "facebook" }));
+  const allReviews = [...gReviews, ...fReviews];
+  const avg = (allReviews.reduce((a, r) => a + r.r, 0) / allReviews.length).toFixed(1);
 
   return (
     <FadeIn>
@@ -19,8 +21,10 @@ export function GoogleReviewsHome({ nav, googleReviews = [] }) {
       <div style={{ maxWidth: 940, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <GoogleG/>
+              <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
               <span style={{ fontSize: 14, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
             </div>
             <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
@@ -28,7 +32,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [] }) {
               <span style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400}/></span>
               <div>
                 <Stars n={Math.round(parseFloat(avg))} sz={15}/>
-                <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{t("reviews.count", { count: reviews.length })}</div>
+                <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>
               </div>
             </div>
           </div>
@@ -37,15 +41,15 @@ export function GoogleReviewsHome({ nav, googleReviews = [] }) {
 
         <div style={{ position: "relative" }}>
           <div ref={revRef} className="hs" style={{ display: "flex", gap: 14, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
-            {reviews.slice(0, 8).map((rev, i) => (
-              <div key={i} style={{ minWidth: 300, maxWidth: 320, flexShrink: 0, scrollSnapAlign: "start", padding: "20px", borderRadius: 12, background: "#fff", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+            {allReviews.slice(0, 10).map((rev, i) => (
+              <div key={i} style={{ minWidth: 280, maxWidth: 310, flexShrink: 0, scrollSnapAlign: "start", padding: "18px", borderRadius: 12, background: "#fff", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                   <div style={{ width: 36, height: 36, borderRadius: "50%", background: `hsl(${i * 47}, 45%, 65%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15, color: "#fff" }}>{rev.name[0]}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 14 }}>{rev.name}</div>
                     <div style={{ fontSize: 11, color: "#777" }}>{rev.time}</div>
                   </div>
-                  <GoogleG/>
+                  {rev.source === "google" ? <GoogleG/> : <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>}
                 </div>
                 <Stars n={rev.r} sz={14}/>
                 <p style={{ fontSize: 13, color: "#555", lineHeight: 1.55, margin: "8px 0 0", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{rev.text}</p>
@@ -54,52 +58,6 @@ export function GoogleReviewsHome({ nav, googleReviews = [] }) {
           </div>
           <button onClick={() => revRef.current?.scrollBy({ left: -340, behavior: "smooth" })} style={ab("left")}>&#8249;</button>
           <button onClick={() => revRef.current?.scrollBy({ left: 340, behavior: "smooth" })} style={ab("right")}>&#8250;</button>
-        </div>
-      </div>
-    </section>
-    </FadeIn>
-  );
-}
-
-// Facebook reviews carousel for the home page
-export function FacebookReviewsHome({ fbReviews }) {
-  const { t } = useTranslation();
-  if (!fbReviews.length) return null;
-  return (
-    <FadeIn>
-    <section style={{ padding: "40px 24px 48px", background: "#fff" }}>
-      <div style={{ maxWidth: 940, margin: "0 auto" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#444" }}>{t("fbReviews.title")}</span>
-            </div>
-            <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
-            <div style={{ fontSize: 11, color: "#aaa" }}>{t("fbReviews.count", { count: fbReviews.length })}</div>
-          </div>
-          <a href={socialUrls.fb} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#1877F2", fontWeight: 600, textDecoration: "none" }}>
-            {t("reviews.seeAll")}
-          </a>
-        </div>
-
-        <div style={{ position: "relative" }}>
-          <div className="hs" style={{ display: "flex", gap: 14, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
-            {fbReviews.map((rev, i) => (
-              <div key={rev.id || i} style={{ minWidth: 300, maxWidth: 320, flexShrink: 0, scrollSnapAlign: "start", padding: "20px", borderRadius: 12, background: "#fafafa", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: `hsl(${(i * 67 + 200) % 360}, 45%, 55%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15, color: "#fff" }}>{rev.name[0]}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{rev.name}</div>
-                    <div style={{ fontSize: 11, color: "#777" }}>{rev.review_date}</div>
-                  </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
-                </div>
-                <Stars n={rev.rating} sz={14}/>
-                <p style={{ fontSize: 13, color: "#555", lineHeight: 1.55, margin: "8px 0 0", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{rev.text}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>

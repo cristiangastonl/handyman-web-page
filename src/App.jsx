@@ -17,10 +17,10 @@ import Hero from "./components/Hero";
 import StatsBar from "./components/StatsBar";
 import About from "./components/About";
 import ServiceAreas from "./components/ServiceAreas";
-import { RecentWork, VideoShowcase } from "./components/RecentWork";
+import { RecentWork } from "./components/RecentWork";
 import Highlights from "./components/Highlights";
 import { TailoringCTA, BottomCTA } from "./components/CTA";
-import { GoogleReviewsHome, FacebookReviewsHome, ReviewsPage } from "./components/Reviews";
+import { GoogleReviewsHome, ReviewsPage } from "./components/Reviews";
 import { FAQHome, FAQPage } from "./components/FAQ";
 import Footer from "./components/Footer";
 import Portfolio from "./components/Portfolio";
@@ -59,7 +59,13 @@ export default function App() {
 
   // ── Effects ──
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => { setScrollY(window.scrollY); ticking = false; });
+        ticking = true;
+      }
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -134,6 +140,8 @@ export default function App() {
   // ── Main site ──
   return (
     <div style={S.root}><style>{css}</style>
+      <img src="/images/logo.jpeg" alt="" aria-hidden="true"
+        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 300, height: 300, opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 0 }}/>
       <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>
 
       <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
@@ -146,11 +154,9 @@ export default function App() {
           <About nav={nav} siteConfig={siteConfig}/>
           <ServiceAreas/>
           <RecentWork items={items} setLb={setLb} nav={nav}/>
-          <VideoShowcase items={items} setLb={setLb} nav={nav}/>
           <Highlights highlights={highlights} setLb={setLb} siteConfig={siteConfig}/>
           <TailoringCTA nav={nav}/>
-          <GoogleReviewsHome nav={nav} googleReviews={googleReviews}/>
-          <FacebookReviewsHome fbReviews={fbReviews}/>
+          <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews}/>
           <FAQHome faqs={faqs} nav={nav}/>
           <BottomCTA/>
         </>

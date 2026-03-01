@@ -63,13 +63,12 @@ export const socialUrls = {
 export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` : "");
 
 export const ab = (s) => ({
-  position: "absolute", top: "33%", [s]: -4, width: 38, height: 38, borderRadius: "50%",
-  background: "#fff", border: "1px solid #e5e5e5", cursor: "pointer", fontSize: 16, color: "#555",
+  position: "absolute", top: "33%", [s]: -4, width: 44, height: 44, borderRadius: "50%",
+  background: "#fff", border: "1px solid #e5e5e5", cursor: "pointer", fontSize: 18, color: "#555",
   display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", zIndex: 2,
 });
 
 export const css = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Dancing+Script:wght@400;500;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   .hs::-webkit-scrollbar { display: none; }
   .hs { -ms-overflow-style: none; scrollbar-width: none; }
@@ -78,12 +77,15 @@ export const css = `
   .heroContent h1 { animation: heroFadeUp 0.8s ease 0.3s both; }
   .heroContent p { animation: heroFadeUp 0.8s ease 0.45s both; }
   .heroContent > div:last-child { animation: heroFadeUp 0.8s ease 0.6s both; }
+  @media (max-width: 900px) {
+    .sticky-bar { display: none !important; }
+  }
   @media (max-width: 640px) {
     .desktop-nav { display: none !important; }
     .mobile-hamburger { display: block !important; }
-    .hero-section { height: 50vh !important; }
+    .hero-section { height: 32vh !important; min-height: 200px !important; }
     .hero-section .heroContent { padding-bottom: 0; }
-    .hero-section .heroContent h1 { font-size: 24px !important; }
+    .hero-section .heroContent h1 { font-size: 22px !important; }
   }
   @media (min-width: 641px) {
     .mobile-menu { display: none !important; }

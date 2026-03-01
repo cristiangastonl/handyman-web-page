@@ -12,7 +12,7 @@ export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang }
         <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 4 }}>
           {["home","portfolio","reviews","faq"].map(p => (
             <button key={p} onClick={() => nav(p)}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: "5px 10px", fontSize: 13, fontWeight: page === p ? 600 : 400, color: page === p ? R : "#aaa" }}>
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 12px", fontSize: 13, fontWeight: page === p ? 600 : 400, color: page === p ? R : "#aaa" }}>
               {t(`nav.${p}`)}
             </button>
           ))}

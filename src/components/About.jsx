@@ -6,7 +6,7 @@ export default function About({ nav, siteConfig = {} }) {
   const { t } = useTranslation();
   return (
     <FadeIn>
-    <section style={{ padding: "48px 24px", maxWidth: 900, margin: "0 auto" }}>
+    <section style={{ padding: "40px 24px", maxWidth: 940, margin: "0 auto" }}>
       <div style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
         <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 140, height: 140, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
         <div style={{ flex: 1, minWidth: 240 }}>
