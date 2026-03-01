@@ -76,6 +76,76 @@ async function deleteFaqRow(id) {
   if (error) throw error;
 }
 
+// ─── Site config helpers ───
+async function fetchSiteConfig() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("site_config").select("*");
+  if (error) throw error;
+  return data ? Object.fromEntries(data.map(r => [r.key, r.value])) : {};
+}
+async function upsertSiteConfig(key, value) {
+  if (!supabase) return;
+  const { error } = await supabase.from("site_config").upsert({ key, value });
+  if (error) throw error;
+}
+
+// ─── Subcategory helpers ───
+async function fetchSubcategories() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("subcategories").select("*").order("sort_order");
+  if (error) throw error;
+  return data;
+}
+async function addSubcategory(categoryId, name, headerImage) {
+  if (!supabase) return;
+  const { data, error } = await supabase.from("subcategories").insert({ category_id: categoryId, name, header_image: headerImage }).select().single();
+  if (error) throw error;
+  return data;
+}
+async function deleteSubcategory(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("subcategories").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─── Highlights helpers ───
+async function fetchHighlights() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("highlights").select("*").order("sort_order");
+  if (error) throw error;
+  return data;
+}
+async function addHighlight(title, imageUrl, description) {
+  if (!supabase) return;
+  const { data, error } = await supabase.from("highlights").insert({ title, image_url: imageUrl, description }).select().single();
+  if (error) throw error;
+  return data;
+}
+async function deleteHighlight(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("highlights").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─── Facebook reviews helpers ───
+async function fetchFbReviews() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("facebook_reviews").select("*").order("sort_order");
+  if (error) throw error;
+  return data;
+}
+async function addFbReview(name, rating, text, reviewDate) {
+  if (!supabase) return;
+  const { data, error } = await supabase.from("facebook_reviews").insert({ name, rating, text, review_date: reviewDate }).select().single();
+  if (error) throw error;
+  return data;
+}
+async function deleteFbReview(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("facebook_reviews").delete().eq("id", id);
+  if (error) throw error;
+}
+
 // ─── Animation hooks ───
 function useFadeIn(threshold = 0.15) {
   const ref = useRef(null);
@@ -136,9 +206,46 @@ const WA_LINK = "https://wa.me/41765949581?text=Hi%2C%20I%20need%20a%20handyman%
 const HERO_IMG = "/images/hero_collage.jpg";
 const PROFILE_IMG = "/images/profile_img.jpg";
 
-const DEFAULT_CATS = [{ id: "all", label: "All" }];
-const DEFAULT_WORK = [];
-const DEFAULT_FAQS = [];
+const DEFAULT_CATS = [
+  { id: "all", label: "All" },
+  { id: "lighting", label: "Lighting", header_image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=400&q=80" },
+  { id: "painting", label: "Painting", header_image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=80" },
+  { id: "assembly", label: "Assembly & Mounting", header_image: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=80" },
+  { id: "plumbing", label: "Plumbing", header_image: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400&q=80" },
+  { id: "flooring", label: "Flooring", header_image: "https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?w=400&q=80" },
+];
+const DEFAULT_WORK = [
+  { id: "m1", type: "image", cat: "lighting", src: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=600&q=80", title: "Pendant lights installation", desc: "Modern pendant lights in kitchen" },
+  { id: "m2", type: "image", cat: "lighting", src: "https://images.unsplash.com/photo-1507473885765-e6ed057ab6fe?w=600&q=80", title: "Hallway LED strips", desc: "Warm LED lighting in corridor" },
+  { id: "m3", type: "image", cat: "lighting", src: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=600&q=80", title: "Bathroom spotlights", desc: "Recessed spotlights above mirror" },
+  { id: "m4", type: "video", cat: "lighting", videoId: "dQw4w9WgXcQ", title: "Lighting installation timelapse", desc: "Full kitchen lighting project" },
+  { id: "m5", type: "image", cat: "painting", src: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&q=80", title: "Living room repaint", desc: "Fresh white walls with accent color" },
+  { id: "m6", type: "image", cat: "painting", src: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=600&q=80", title: "Bedroom makeover", desc: "Warm tones for a cozy feel" },
+  { id: "m7", type: "image", cat: "painting", src: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=600&q=80", title: "Exterior painting", desc: "Balcony wall refresh" },
+  { id: "m8", type: "video", cat: "painting", videoId: "dQw4w9WgXcQ", title: "Painting tips & tricks", desc: "How to get clean edges" },
+  { id: "m9", type: "image", cat: "assembly", src: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&q=80", title: "IKEA kitchen assembly", desc: "Full kitchen in one day" },
+  { id: "m10", type: "image", cat: "assembly", src: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=600&q=80", title: "Floating shelves", desc: "Custom wall-mounted shelving" },
+  { id: "m11", type: "image", cat: "assembly", src: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80", title: "TV wall mount", desc: "55\" TV with hidden cables" },
+  { id: "m12", type: "image", cat: "plumbing", src: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&q=80", title: "Faucet replacement", desc: "Modern mixer tap installation" },
+  { id: "m13", type: "image", cat: "plumbing", src: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80", title: "Bathroom renovation", desc: "New fixtures and piping" },
+  { id: "m14", type: "image", cat: "flooring", src: "https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?w=600&q=80", title: "Parquet installation", desc: "Oak parquet in living room" },
+  { id: "m15", type: "image", cat: "flooring", src: "https://images.unsplash.com/photo-1615873968403-89e068629265?w=600&q=80", title: "Vinyl flooring", desc: "Waterproof vinyl in bathroom" },
+];
+const DEFAULT_FAQS = []; // Business hours FAQ and other FAQs are managed from Supabase
+const DEFAULT_SUBCATS = [];
+const DEFAULT_HIGHLIGHTS = [
+  { id: "h1", title: "Kitchen Renovation", image_url: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80", description: "Complete kitchen makeover with custom shelving" },
+  { id: "h2", title: "Bathroom Remodel", image_url: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80", description: "Modern fixtures and tiling" },
+  { id: "h3", title: "Office Setup", image_url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", description: "Ergonomic workspace with cable management" },
+  { id: "h4", title: "Garden Lighting", image_url: "https://images.unsplash.com/photo-1558171813-4c088753af8f?w=600&q=80", description: "Ambient outdoor lighting installation" },
+];
+const DEFAULT_FB_REVIEWS = [
+  { id: "fb1", name: "Maria G.", rating: 5, text: "Absolutely fantastic work! Transformed our apartment in just two days. Super professional and clean.", review_date: "January 2026" },
+  { id: "fb2", name: "James T.", rating: 5, text: "Best handyman service in Zurich. Fixed everything on our list and the price was very fair.", review_date: "December 2025" },
+  { id: "fb3", name: "Sophie M.", rating: 5, text: "As an expat, it was so nice to find someone who speaks English and understands our needs. Highly recommend!", review_date: "November 2025" },
+  { id: "fb4", name: "David R.", rating: 5, text: "Third time using this service. Always reliable, always on time, always great quality.", review_date: "October 2025" },
+  { id: "fb5", name: "Claudia W.", rating: 4, text: "Very professional. Assembled our IKEA furniture and mounted the TV perfectly. Will call again!", review_date: "September 2025" },
+];
 
 const SERVICE_AREAS = [
   { name: "Zürich", primary: true },
@@ -298,7 +405,12 @@ export default function App() {
   const [cats, setCats] = useState(DEFAULT_CATS);
   const [items, setItems] = useState(DEFAULT_WORK);
   const [faqs, setFaqs] = useState(DEFAULT_FAQS);
+  const [subcats, setSubcats] = useState(DEFAULT_SUBCATS);
+  const [highlights, setHighlights] = useState(DEFAULT_HIGHLIGHTS);
+  const [fbReviews, setFbReviews] = useState(DEFAULT_FB_REVIEWS);
+  const [siteConfig, setSiteConfig] = useState({});
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [portfolioModal, setPortfolioModal] = useState(null); // { catId, subcatId?, tab: "photos"|"videos" }
 
   // Portfolio view state: "categories" or { cat: "lighting", tab: "photos" }
   const [portfolioView, setPortfolioView] = useState("categories");
@@ -332,6 +444,22 @@ export default function App() {
   const [editingFaq, setEditingFaq] = useState(null);
   const [editFaqQ, setEditFaqQ] = useState("");
   const [editFaqA, setEditFaqA] = useState("");
+
+  // Subcategory form
+  const [scParent, setScParent] = useState("");
+  const [scName, setScName] = useState("");
+  const [scFile, setScFile] = useState(null);
+
+  // Highlight form
+  const [hlTitle, setHlTitle] = useState("");
+  const [hlDesc, setHlDesc] = useState("");
+  const [hlFile, setHlFile] = useState(null);
+
+  // FB Review form
+  const [fbrName, setFbrName] = useState("");
+  const [fbrRating, setFbrRating] = useState("5");
+  const [fbrText, setFbrText] = useState("");
+  const [fbrDate, setFbrDate] = useState("");
 
   const avg = (REVIEWS.reduce((a, r) => a + r.r, 0) / REVIEWS.length).toFixed(1);
   const filtered = items.filter(w => (cat === "all" || w.cat === cat) && (mt === "all" || w.type === mt));
@@ -368,7 +496,10 @@ export default function App() {
     if (!supabase) return;
     (async () => {
       try {
-        const [dbCats, dbItems, dbFaqs] = await Promise.all([fetchCategories(), fetchWorkItems(), fetchFaqs()]);
+        const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbFbReviews, dbConfig] = await Promise.all([
+          fetchCategories(), fetchWorkItems(), fetchFaqs(),
+          fetchSubcategories(), fetchHighlights(), fetchFbReviews(), fetchSiteConfig(),
+        ]);
         if (dbCats && dbCats.length > 0) {
           setCats([{ id: "all", label: "All" }, ...dbCats.map(c => ({ id: c.id, label: c.label, header_image: c.header_image }))]);
         }
@@ -381,6 +512,10 @@ export default function App() {
         if (dbFaqs && dbFaqs.length > 0) {
           setFaqs(dbFaqs.map(f => ({ id: f.id, q: f.question, a: f.answer })));
         }
+        if (dbSubcats && dbSubcats.length > 0) setSubcats(dbSubcats);
+        if (dbHighlights && dbHighlights.length > 0) setHighlights(dbHighlights);
+        if (dbFbReviews && dbFbReviews.length > 0) setFbReviews(dbFbReviews);
+        if (dbConfig) setSiteConfig(dbConfig);
       } catch (err) {
         console.warn("Supabase load failed, using defaults:", err.message);
       }
@@ -547,6 +682,111 @@ export default function App() {
     }
   };
 
+  // ── Subcategory CRUD ──
+  const handleAddSubcategory = async () => {
+    if (!scName.trim() || !scParent) return;
+    setAdminLoading(true);
+    try {
+      let headerImage = null;
+      if (scFile) headerImage = await uploadImage(scFile, "subcategories");
+      const saved = await addSubcategory(scParent, scName.trim(), headerImage);
+      setSubcats(prev => [...prev, saved]);
+      setScName(""); setScParent(""); setScFile(null);
+      flash("Subcategory added");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleDeleteSubcategory = async (id) => {
+    setAdminLoading(true);
+    try {
+      await deleteSubcategory(id);
+      setSubcats(prev => prev.filter(s => s.id !== id));
+      flash("Subcategory deleted");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // ── Highlight CRUD ──
+  const handleAddHighlight = async () => {
+    if (!hlTitle.trim()) return;
+    setAdminLoading(true);
+    try {
+      let imageUrl = null;
+      if (hlFile) imageUrl = await uploadImage(hlFile, "highlights");
+      const saved = await addHighlight(hlTitle.trim(), imageUrl, hlDesc.trim() || null);
+      setHighlights(prev => [...prev, saved]);
+      setHlTitle(""); setHlDesc(""); setHlFile(null);
+      flash("Highlight added");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleDeleteHighlight = async (id) => {
+    setAdminLoading(true);
+    try {
+      await deleteHighlight(id);
+      setHighlights(prev => prev.filter(h => h.id !== id));
+      flash("Highlight deleted");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // ── FB Review CRUD ──
+  const handleAddFbReview = async () => {
+    if (!fbrName.trim() || !fbrText.trim()) return;
+    setAdminLoading(true);
+    try {
+      const saved = await addFbReview(fbrName.trim(), parseInt(fbrRating), fbrText.trim(), fbrDate || null);
+      setFbReviews(prev => [...prev, saved]);
+      setFbrName(""); setFbrRating("5"); setFbrText(""); setFbrDate("");
+      flash("Facebook review added");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleDeleteFbReview = async (id) => {
+    setAdminLoading(true);
+    try {
+      await deleteFbReview(id);
+      setFbReviews(prev => prev.filter(r => r.id !== id));
+      flash("Review deleted");
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // ── Site Config ──
+  const handleSaveConfig = async (key, value) => {
+    setAdminLoading(true);
+    try {
+      await upsertSiteConfig(key, value);
+      setSiteConfig(prev => ({ ...prev, [key]: value }));
+      flash(`Config "${key}" saved`);
+    } catch (err) {
+      flash("Error: " + err.message);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
   // ── Admin panel ──
   if (admin) return (
     <div style={S.root}><style>{css}</style>
@@ -591,7 +831,7 @@ export default function App() {
 
             {/* Tabs */}
             <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0" }}>
-              {[["categories","Categories"],["work","Work"],["faqs","FAQs"]].map(([k, l]) => (
+              {[["categories","Categories"],["work","Work"],["faqs","FAQs"],["subcategories","Subcats"],["highlights","Highlights"],["fbreview","FB Reviews"],["config","Config"]].map(([k, l]) => (
                 <button key={k} onClick={() => setAdminTab(k)}
                   style={{ padding: "8px 18px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: adminTab === k ? 600 : 400, color: adminTab === k ? R : "#999", borderBottom: adminTab === k ? `2px solid ${R}` : "2px solid transparent", marginBottom: -2 }}>
                   {l}
@@ -747,6 +987,180 @@ export default function App() {
                 ))}
               </div>
             )}
+
+            {/* ── Subcategories Tab ── */}
+            {adminTab === "subcategories" && (
+              <div>
+                <p style={S.label}>Subcategories ({subcats.length})</p>
+
+                {/* Grouped by parent category */}
+                {cats.filter(c => c.id !== "all").map(parentCat => {
+                  const children = subcats.filter(s => s.category_id === parentCat.id);
+                  if (children.length === 0) return null;
+                  return (
+                    <div key={parentCat.id} style={{ marginBottom: 16 }}>
+                      <p style={{ fontSize: 12, fontWeight: 600, color: "#555", marginBottom: 6 }}>{parentCat.label}</p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {children.map(sc => (
+                          <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f5f5f5", padding: "5px 12px", borderRadius: 14, fontSize: 12 }}>
+                            {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: 3, objectFit: "cover" }}/>}
+                            {sc.name}
+                            <button onClick={() => handleDeleteSubcategory(sc.id)} disabled={adminLoading}
+                              style={{ background: "none", border: "none", color: R, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Add form */}
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginTop: 12 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add Subcategory</p>
+                  <select value={scParent} onChange={e => setScParent(e.target.value)}
+                    style={{ ...S.input, marginBottom: 8, color: scParent ? "#222" : "#aaa" }}>
+                    <option value="" disabled>Select parent category...</option>
+                    {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                  </select>
+                  <input value={scName} onChange={e => setScName(e.target.value)} placeholder="Subcategory name"
+                    style={S.input}/>
+                  <div style={{ marginTop: 8 }}>
+                    <label style={{ fontSize: 11, color: "#888" }}>Header image (optional)</label>
+                    <input type="file" accept="image/*" onChange={e => setScFile(e.target.files[0] || null)}
+                      style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                  </div>
+                  <button onClick={handleAddSubcategory} disabled={adminLoading || !scName.trim() || !scParent}
+                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !scName.trim() || !scParent) ? 0.5 : 1 }}>
+                    {adminLoading ? "Adding..." : "Add Subcategory"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Highlights Tab ── */}
+            {adminTab === "highlights" && (
+              <div>
+                <p style={S.label}>Highlights ({highlights.length})</p>
+
+                {/* Add form */}
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginBottom: 20 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add Highlight</p>
+                  <input value={hlTitle} onChange={e => setHlTitle(e.target.value)} placeholder="Title"
+                    style={{ ...S.input, marginBottom: 8 }}/>
+                  <textarea value={hlDesc} onChange={e => setHlDesc(e.target.value)} placeholder="Description (optional)" rows={2}
+                    style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 8 }}/>
+                  <div style={{ marginBottom: 8 }}>
+                    <label style={{ fontSize: 11, color: "#888" }}>Image file</label>
+                    <input type="file" accept="image/*" onChange={e => setHlFile(e.target.files[0] || null)}
+                      style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                  </div>
+                  <button onClick={handleAddHighlight} disabled={adminLoading || !hlTitle.trim()}
+                    style={{ ...S.btnPrimary, opacity: (adminLoading || !hlTitle.trim()) ? 0.5 : 1 }}>
+                    {adminLoading ? "Adding..." : "Add Highlight"}
+                  </button>
+                </div>
+
+                {/* Highlights list */}
+                {highlights.map(h => (
+                  <div key={h.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f3f3f3" }}>
+                    {h.image_url && <img src={h.image_url} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5, background: "#eee" }}/>}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{h.title}</div>
+                      {h.description && <div style={{ fontSize: 10, color: "#777" }}>{h.description}</div>}
+                    </div>
+                    <button onClick={() => handleDeleteHighlight(h.id)} disabled={adminLoading}
+                      style={{ ...S.ghost, color: R, borderColor: "#fdd", fontSize: 10, padding: "2px 8px" }}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── FB Reviews Tab ── */}
+            {adminTab === "fbreview" && (
+              <div>
+                <p style={S.label}>Facebook Reviews ({fbReviews.length})</p>
+
+                {/* Add form */}
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginBottom: 20 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add Facebook Review</p>
+                  <input value={fbrName} onChange={e => setFbrName(e.target.value)} placeholder="Reviewer name"
+                    style={{ ...S.input, marginBottom: 8 }}/>
+                  <select value={fbrRating} onChange={e => setFbrRating(e.target.value)}
+                    style={{ ...S.input, marginBottom: 8 }}>
+                    {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} star{n !== 1 ? "s" : ""}</option>)}
+                  </select>
+                  <textarea value={fbrText} onChange={e => setFbrText(e.target.value)} placeholder="Review text" rows={3}
+                    style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 8 }}/>
+                  <div style={{ marginBottom: 8 }}>
+                    <label style={{ fontSize: 11, color: "#888" }}>Review date (optional)</label>
+                    <input type="date" value={fbrDate} onChange={e => setFbrDate(e.target.value)}
+                      style={{ ...S.input, marginTop: 4 }}/>
+                  </div>
+                  <button onClick={handleAddFbReview} disabled={adminLoading || !fbrName.trim() || !fbrText.trim()}
+                    style={{ ...S.btnPrimary, opacity: (adminLoading || !fbrName.trim() || !fbrText.trim()) ? 0.5 : 1 }}>
+                    {adminLoading ? "Adding..." : "Add Review"}
+                  </button>
+                </div>
+
+                {/* Reviews list */}
+                {fbReviews.map(r => (
+                  <div key={r.id} style={{ padding: "10px 0", borderBottom: "1px solid #f3f3f3" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
+                        <span style={{ fontSize: 11, color: "#E8A317", marginLeft: 8 }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                        {r.review_date && <span style={{ fontSize: 10, color: "#aaa", marginLeft: 8 }}>{r.review_date}</span>}
+                      </div>
+                      <button onClick={() => handleDeleteFbReview(r.id)} disabled={adminLoading}
+                        style={{ ...S.ghost, color: R, borderColor: "#fdd", fontSize: 10, padding: "2px 8px" }}>Remove</button>
+                    </div>
+                    <div style={{ fontSize: 11, color: "#666", marginTop: 4, lineHeight: 1.4 }}>{r.text}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── Config Tab ── */}
+            {adminTab === "config" && (
+              <div>
+                <p style={S.label}>Site Configuration</p>
+
+                {Object.keys(siteConfig).length === 0 && (
+                  <p style={{ fontSize: 12, color: "#999" }}>No configuration keys found. Add keys via Supabase or save a new one below.</p>
+                )}
+
+                {Object.entries(siteConfig).map(([key, value]) => (
+                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "1px solid #f3f3f3" }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, minWidth: 120 }}>{key}</label>
+                    <input
+                      defaultValue={value}
+                      onBlur={e => { if (e.target.value !== value) handleSaveConfig(key, e.target.value); }}
+                      style={{ ...S.input, flex: 1, margin: 0 }}/>
+                    <button onClick={e => { const input = e.target.previousElementSibling; handleSaveConfig(key, input.value); }}
+                      disabled={adminLoading}
+                      style={{ ...S.btnPrimary, padding: "5px 12px", fontSize: 11 }}>Save</button>
+                  </div>
+                ))}
+
+                {/* Add new config key */}
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginTop: 16 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add / Update Config Key</p>
+                  <input id="cfg-key" placeholder="Key" style={{ ...S.input, marginBottom: 8 }}/>
+                  <input id="cfg-val" placeholder="Value" style={S.input}/>
+                  <button onClick={() => {
+                    const k = document.getElementById("cfg-key").value.trim();
+                    const v = document.getElementById("cfg-val").value.trim();
+                    if (!k) return;
+                    handleSaveConfig(k, v);
+                    document.getElementById("cfg-key").value = "";
+                    document.getElementById("cfg-val").value = "";
+                  }} disabled={adminLoading}
+                    style={{ ...S.btnPrimary, marginTop: 12 }}>
+                    {adminLoading ? "Saving..." : "Save Config"}
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -816,6 +1230,9 @@ export default function App() {
                 </h1>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
                   {t("hero.subtitle")}
+                </p>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 2, fontStyle: "italic", fontFamily: "'Dancing Script', cursive" }}>
+                  {t("brand.subtitle")}
                 </p>
                 <div style={{ marginBottom: 20 }} />
                 <div style={{ display: "flex", gap: 10 }}>
@@ -892,7 +1309,12 @@ export default function App() {
                 </p>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {["electricity","plumbing","assembly","fixings","gardening","wallMounting"].map(s => (
-                    <span key={s} style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #eee", fontSize: 12, color: "#777", fontWeight: 500 }}>{t(`about.skills.${s}`)}</span>
+                    <button key={s} onClick={() => nav("portfolio")}
+                      style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #eee", fontSize: 12, color: "#777", fontWeight: 500, background: "none", cursor: "pointer", transition: "border-color .2s, color .2s" }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.color = "#777"; }}>
+                      {t(`about.skills.${s}`)}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -960,6 +1382,43 @@ export default function App() {
           </FadeIn>
           )}
 
+          {/* Highlights carousel */}
+          {highlights.length > 0 && (
+          <FadeIn delay={0.1}>
+          <section style={{ padding: "0 24px 40px", maxWidth: 940, margin: "0 auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+              <h2 style={{ fontSize: 17, fontWeight: 700 }}>{t("highlights.title")}</h2>
+            </div>
+            <Carousel
+              items={highlights.map(h => ({ id: h.id, type: "image", src: h.image_url, title: h.title, desc: h.description }))}
+              onClickItem={item => setLb(item)}
+            />
+          </section>
+          </FadeIn>
+          )}
+
+          {/* Tailoring Work CTA */}
+          <FadeIn delay={0.15}>
+          <section style={{ padding: "0 24px 40px", maxWidth: 940, margin: "0 auto" }}>
+            <div style={{
+              padding: "32px 28px", borderRadius: 14,
+              background: `linear-gradient(135deg, ${R} 0%, #B71C1C 50%, #880E4F 100%)`,
+              color: "#fff", textAlign: "center",
+              boxShadow: "0 8px 32px rgba(198,40,40,0.25)",
+            }}>
+              <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>{t("tailoring.title")}</h3>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 1.6, maxWidth: 460, margin: "0 auto 20px" }}>{t("tailoring.text")}</p>
+              <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", color: R, padding: "11px 26px", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.15)", transition: "transform .2s" }}
+                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={R}><path d={svgP.wa}/></svg>
+                {t("tailoring.button")}
+              </a>
+            </div>
+          </section>
+          </FadeIn>
+
           {/* Reviews — Visual Google Section */}
           <FadeIn>
           <section style={{ padding: "40px 24px 48px", background: "#fafafa" }}>
@@ -1007,6 +1466,50 @@ export default function App() {
             </div>
           </section>
           </FadeIn>
+
+          {/* Facebook Reviews */}
+          {fbReviews.length > 0 && (
+          <FadeIn>
+          <section style={{ padding: "40px 24px 48px", background: "#fff" }}>
+            <div style={{ maxWidth: 940, margin: "0 auto" }}>
+              {/* Facebook rating header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#444" }}>{t("fbReviews.title")}</span>
+                  </div>
+                  <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
+                  <div style={{ fontSize: 11, color: "#aaa" }}>{t("fbReviews.count", { count: fbReviews.length })}</div>
+                </div>
+                <a href={socialUrls.fb} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#1877F2", fontWeight: 600, textDecoration: "none" }}>
+                  {t("reviews.seeAll")}
+                </a>
+              </div>
+
+              {/* FB Reviews carousel */}
+              <div style={{ position: "relative" }}>
+                <div className="hs" style={{ display: "flex", gap: 14, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
+                  {fbReviews.map((rev, i) => (
+                    <div key={rev.id || i} style={{ minWidth: 300, maxWidth: 320, flexShrink: 0, scrollSnapAlign: "start", padding: "20px", borderRadius: 12, background: "#fafafa", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: `hsl(${(i * 67 + 200) % 360}, 45%, 55%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15, color: "#fff" }}>{rev.name[0]}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>{rev.name}</div>
+                          <div style={{ fontSize: 11, color: "#777" }}>{rev.review_date}</div>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
+                      </div>
+                      <Stars n={rev.rating} sz={14}/>
+                      <p style={{ fontSize: 13, color: "#555", lineHeight: 1.55, margin: "8px 0 0", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{rev.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+          </FadeIn>
+          )}
 
           {/* Quick FAQs */}
           <FadeIn>

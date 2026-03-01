@@ -78,5 +78,15 @@
   "portfolio.backToCategories": "← Toutes les catégories",
   "portfolio.noItems": "Aucun élément trouvé.",
 
-  "lightbox.close": "Fermer"
+  "lightbox.close": "Fermer",
+
+  "brand.subtitle": "Specialist Technician At Domestic Matters",
+  "highlights.title": "Highlights",
+  "tailoring.title": "Besoin de quelque chose de spécifique ?",
+  "tailoring.text": "Je réalise aussi des travaux sur mesure — des installations uniques aux projets personnalisés. Dites-moi votre idée et je la concrétiserai.",
+  "tailoring.button": "Contactez-moi →",
+  "fbReviews.title": "Avis Facebook",
+  "fbReviews.count": "{{count}} avis",
+  "faq.businessHours.q": "Quels sont vos horaires de travail ?",
+  "faq.businessHours.a": "Je suis disponible du lundi au samedi, de 8h00 à 18h00. Pour les urgences, je propose aussi une disponibilité le week-end — envoyez-moi simplement un message WhatsApp."
 }
