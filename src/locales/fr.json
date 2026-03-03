@@ -63,6 +63,9 @@
   "cta.description": "Envoyez-moi des photos de votre projet et recevez un devis gratuit",
   "cta.button": "Écrivez-moi sur WhatsApp",
 
+  "footer.contact": "Contact",
+  "footer.hours": "Lun–Sam · 8:00–19:00",
+  "footer.emergency": "Urgences disponibles 24/7",
   "footer.follow": "Suivez-moi, abonnez-vous ou écrivez-moi !",
   "footer.copyright": "© {{year}} Handyman Services in Zürich",
   "footer.credit": "Conçu et développé par",
@@ -76,6 +79,10 @@
   "portfolio.photos": "Photos",
   "portfolio.videos": "Vidéos",
   "portfolio.backToCategories": "← Toutes les catégories",
+  "portfolio.items": "éléments",
+  "portfolio.item": "élément",
+  "portfolio.playlists": "Listes de lecture",
+  "portfolio.viewPlaylist": "Voir la playlist →",
   "portfolio.noItems": "Aucun élément trouvé.",
 
   "lightbox.close": "Fermer",
@@ -89,5 +96,6 @@
   "fbReviews.title": "Avis Facebook",
   "fbReviews.count": "{{count}} avis",
   "faq.businessHours.q": "Quels sont vos horaires de travail ?",
-  "faq.businessHours.a": "Je suis disponible du lundi au samedi, de 8h00 à 18h00. Pour les urgences, je propose aussi une disponibilité le week-end — envoyez-moi simplement un message WhatsApp."
+  "faq.businessHours.a": "Je suis disponible du lundi au samedi, de 8h00 à 18h00. Pour les urgences, je propose aussi une disponibilité le week-end — envoyez-moi simplement un message WhatsApp.",
+  "returningCustomers.title": "Clients Fidèles"
 }

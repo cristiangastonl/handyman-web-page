@@ -13,7 +13,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
     : REVIEWS.map(r => ({ ...r, source: "google" }));
   const fReviews = fbReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.review_date, source: "facebook" }));
   const allReviews = [...gReviews, ...fReviews];
-  const avg = (allReviews.reduce((a, r) => a + r.r, 0) / allReviews.length).toFixed(1);
+  const avg = allReviews.length > 0 ? (allReviews.reduce((a, r) => a + r.r, 0) / allReviews.length).toFixed(1) : "0.0";
 
   return (
     <FadeIn>
@@ -32,7 +32,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
               <span style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400}/></span>
               <div>
                 <Stars n={Math.round(parseFloat(avg))} sz={15}/>
-                <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>
+                <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>
               </div>
             </div>
           </div>
@@ -56,8 +56,8 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
               </div>
             ))}
           </div>
-          <button onClick={() => revRef.current?.scrollBy({ left: -340, behavior: "smooth" })} style={ab("left")}>&#8249;</button>
-          <button onClick={() => revRef.current?.scrollBy({ left: 340, behavior: "smooth" })} style={ab("right")}>&#8250;</button>
+          <button onClick={() => revRef.current?.scrollBy({ left: -340, behavior: "smooth" })} style={ab("left")} aria-label="Previous">&#8249;</button>
+          <button onClick={() => revRef.current?.scrollBy({ left: 340, behavior: "smooth" })} style={ab("right")} aria-label="Next">&#8250;</button>
         </div>
       </div>
     </section>
@@ -71,7 +71,7 @@ export function ReviewsPage({ googleReviews = [] }) {
   const reviews = googleReviews.length > 0
     ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label }))
     : REVIEWS;
-  const avg = (reviews.reduce((a, r) => a + r.r, 0) / reviews.length).toFixed(1);
+  const avg = reviews.length > 0 ? (reviews.reduce((a, r) => a + r.r, 0) / reviews.length).toFixed(1) : "0.0";
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
@@ -87,7 +87,7 @@ export function ReviewsPage({ googleReviews = [] }) {
         </div>
         <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600}/></div>
         <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
-        <div style={{ fontSize: 14, color: "#aaa" }}>{t("reviews.based", { count: reviews.length })}</div>
+        <div style={{ fontSize: 14, color: "#777" }}>{t("reviews.based", { count: reviews.length })}</div>
 
         {/* Rating distribution bars */}
         <div style={{ maxWidth: 280, margin: "20px auto 0" }}>

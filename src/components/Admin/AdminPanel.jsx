@@ -82,6 +82,10 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (s) setSession(s);
     });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -365,13 +369,11 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
           </div>
         </div>
 
-        {!supabase && (
+        {!supabase ? (
           <div style={{ padding: "14px 16px", background: "#FFF3E0", borderRadius: 8, marginBottom: 20, fontSize: 12, color: "#E65100", lineHeight: 1.5 }}>
             Supabase not configured. Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in <code>.env</code> to enable persistence.
           </div>
-        )}
-
-        {supabase && !session ? (
+        ) : !session ? (
           <form onSubmit={handleLogin} style={{ maxWidth: 320, margin: "60px auto" }}>
             <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>Admin Login</h3>
             <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Email" required style={S.input}/>

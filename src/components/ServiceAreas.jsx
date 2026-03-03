@@ -9,7 +9,7 @@ export default function ServiceAreas() {
     <FadeIn>
     <section style={{ padding: "40px 24px", maxWidth: 940, margin: "0 auto" }}>
       <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{t("serviceAreas.title")}</h2>
-      <p style={{ fontSize: 12, color: "#999", marginBottom: 16 }}>{t("serviceAreas.subtitle")}</p>
+      <p style={{ fontSize: 12, color: "#666", marginBottom: 16 }}>{t("serviceAreas.subtitle")}</p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
         {SERVICE_AREAS.map(area => (
           <div key={area.name} style={{

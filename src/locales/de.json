@@ -63,6 +63,9 @@
   "cta.description": "Senden Sie mir Fotos Ihres Projekts und erhalten Sie sofort ein kostenloses Angebot",
   "cta.button": "Jetzt per WhatsApp schreiben",
 
+  "footer.contact": "Kontakt",
+  "footer.hours": "Mo–Sa · 8:00–19:00",
+  "footer.emergency": "Notdienst 24/7 verfügbar",
   "footer.follow": "Folgen, abonnieren oder schreiben Sie mir!",
   "footer.copyright": "© {{year}} Handyman Services in Zürich",
   "footer.credit": "Entworfen & entwickelt von",
@@ -76,6 +79,10 @@
   "portfolio.photos": "Fotos",
   "portfolio.videos": "Videos",
   "portfolio.backToCategories": "← Alle Kategorien",
+  "portfolio.items": "Objekte",
+  "portfolio.item": "Objekt",
+  "portfolio.playlists": "Wiedergabelisten",
+  "portfolio.viewPlaylist": "Playlist ansehen →",
   "portfolio.noItems": "Keine Einträge gefunden.",
 
   "lightbox.close": "Schliessen",
@@ -89,5 +96,6 @@
   "fbReviews.title": "Facebook Bewertungen",
   "fbReviews.count": "{{count}} Bewertungen",
   "faq.businessHours.q": "Was sind Ihre Arbeitszeiten?",
-  "faq.businessHours.a": "Ich bin von Montag bis Samstag, 8:00 bis 18:00 Uhr erreichbar. Für Notfälle biete ich auch Wochenendverfügbarkeit an — schreiben Sie mir einfach eine WhatsApp-Nachricht."
+  "faq.businessHours.a": "Ich bin von Montag bis Samstag, 8:00 bis 18:00 Uhr erreichbar. Für Notfälle biete ich auch Wochenendverfügbarkeit an — schreiben Sie mir einfach eine WhatsApp-Nachricht.",
+  "returningCustomers.title": "Stammkunden"
 }

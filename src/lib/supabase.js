@@ -6,8 +6,17 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 // ─── Image upload ───
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
 export async function uploadImage(file, folder) {
   if (!supabase) return null;
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed size is 5MB.`);
+  }
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    throw new Error(`Invalid file type "${file.type}". Allowed types: JPEG, PNG, WebP, GIF.`);
+  }
   const ext = file.name.split(".").pop();
   const name = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const { error } = await supabase.storage.from("images").upload(name, file);

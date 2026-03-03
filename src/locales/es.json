@@ -63,6 +63,9 @@
   "cta.description": "Envíame fotos de tu proyecto y recibe un presupuesto gratis",
   "cta.button": "Escríbeme por WhatsApp",
 
+  "footer.contact": "Contacto",
+  "footer.hours": "Lun–Sáb · 8:00–19:00",
+  "footer.emergency": "Emergencias disponibles 24/7",
   "footer.follow": "¡Sígueme, suscríbete o escríbeme!",
   "footer.copyright": "© {{year}} Handyman Services in Zürich",
   "footer.credit": "Diseñado y desarrollado por",
@@ -76,6 +79,10 @@
   "portfolio.photos": "Fotos",
   "portfolio.videos": "Videos",
   "portfolio.backToCategories": "← Todas las categorías",
+  "portfolio.items": "elementos",
+  "portfolio.item": "elemento",
+  "portfolio.playlists": "Listas de reproducción",
+  "portfolio.viewPlaylist": "Ver lista →",
   "portfolio.noItems": "No se encontraron elementos.",
 
   "lightbox.close": "Cerrar",
@@ -89,5 +96,6 @@
   "fbReviews.title": "Reseñas de Facebook",
   "fbReviews.count": "{{count}} reseñas",
   "faq.businessHours.q": "¿Cuáles son sus horarios de trabajo?",
-  "faq.businessHours.a": "Estoy disponible de lunes a sábado, de 8:00 a 18:00. Para emergencias, también ofrezco disponibilidad los fines de semana — solo envíame un mensaje por WhatsApp."
+  "faq.businessHours.a": "Estoy disponible de lunes a sábado, de 8:00 a 18:00. Para emergencias, también ofrezco disponibilidad los fines de semana — solo envíame un mensaje por WhatsApp.",
+  "returningCustomers.title": "Clientes Recurrentes"
 }

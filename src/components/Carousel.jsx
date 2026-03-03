@@ -1,9 +1,10 @@
 import { useRef, useEffect, useCallback } from "react";
 import { R, ab, ytThumb } from "../lib/constants";
 
-export default function Carousel({ items, onClickItem, autoPlay = true, interval = 3500 }) {
+export default function Carousel({ items, onClickItem, autoPlay = true, interval = 5000 }) {
   const ref = useRef(null);
   const timerRef = useRef(null);
+  const resumeTimerRef = useRef(null);
 
   const scrollNext = useCallback(() => {
     const el = ref.current;
@@ -26,11 +27,19 @@ export default function Carousel({ items, onClickItem, autoPlay = true, interval
 
   const stopAutoPlay = useCallback(() => {
     clearInterval(timerRef.current);
+    clearTimeout(resumeTimerRef.current);
   }, []);
+
+  const resumeAutoPlayDelayed = useCallback(() => {
+    clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => {
+      startAutoPlay();
+    }, 10000);
+  }, [startAutoPlay]);
 
   useEffect(() => {
     startAutoPlay();
-    return stopAutoPlay;
+    return () => { stopAutoPlay(); clearTimeout(resumeTimerRef.current); };
   }, [startAutoPlay, stopAutoPlay]);
 
   const scroll = (dir) => {
@@ -60,7 +69,7 @@ export default function Carousel({ items, onClickItem, autoPlay = true, interval
       onMouseEnter={stopAutoPlay}
       onMouseLeave={startAutoPlay}
       onTouchStart={stopAutoPlay}
-      onTouchEnd={startAutoPlay}>
+      onTouchEnd={resumeAutoPlayDelayed}>
       <div ref={ref} className="hs" style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
         {items.map(item => (
           <div key={item.id} onClick={() => onClickItem(item)}
@@ -79,13 +88,13 @@ export default function Carousel({ items, onClickItem, autoPlay = true, interval
             </div>
             <div style={{ padding: "9px 12px 11px" }}>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</div>
-              {item.desc && <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{item.desc}</div>}
+              {item.desc && <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{item.desc}</div>}
             </div>
           </div>
         ))}
       </div>
-      <button onClick={() => scroll(-1)} style={ab("left")}>&#8249;</button>
-      <button onClick={() => scroll(1)} style={ab("right")}>&#8250;</button>
+      <button onClick={() => scroll(-1)} style={ab("left")} aria-label="Previous">&#8249;</button>
+      <button onClick={() => scroll(1)} style={ab("right")} aria-label="Next">&#8250;</button>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { WA_LINK, svgP } from "../lib/constants";
+import useScrollY from "../hooks/useScrollY";
 
-export default function StickyBar({ scrollY, nav }) {
+export default function StickyBar({ nav }) {
+  const scrollY = useScrollY();
   const { t } = useTranslation();
   return (
     <div className="sticky-bar" style={{

@@ -48,7 +48,7 @@ export function FAQPage({ faqs }) {
             {faqText(f, "question", lang)}
             <span style={{ color: "#ccc", fontSize: 16, transform: fq === i ? "rotate(45deg)" : "none", transition: "transform .15s" }}>+</span>
           </button>
-          {fq === i && <p style={{ padding: "0 0 14px", fontSize: 13, color: "#888", lineHeight: 1.6, margin: 0 }}>{faqText(f, "answer", lang)}</p>}
+          {fq === i && <p style={{ padding: "0 0 14px", fontSize: 13, color: "#555", lineHeight: 1.6, margin: 0 }}>{faqText(f, "answer", lang)}</p>}
         </div>
       ))}
     </div>

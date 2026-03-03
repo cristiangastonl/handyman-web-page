@@ -64,8 +64,8 @@
   "cta.button": "WhatsApp me now",
 
   "footer.contact": "Contact",
-  "footer.hours": "Working Hours",
-  "footer.emergency": "Emergency service available",
+  "footer.hours": "Mon–Sat · 8:00–19:00",
+  "footer.emergency": "Emergency available 24/7",
   "footer.follow": "Why not follow, subscribe or message me?",
   "footer.copyright": "© {{year}} Handyman Services in Zürich",
   "footer.credit": "Designed & developed by",
@@ -79,6 +79,10 @@
   "portfolio.photos": "Photos",
   "portfolio.videos": "Videos",
   "portfolio.backToCategories": "← All Categories",
+  "portfolio.items": "items",
+  "portfolio.item": "item",
+  "portfolio.playlists": "Playlists",
+  "portfolio.viewPlaylist": "View Playlist →",
   "portfolio.noItems": "No items found.",
 
   "lightbox.close": "Close",
@@ -92,5 +96,6 @@
   "fbReviews.title": "Facebook Reviews",
   "fbReviews.count": "{{count}} reviews",
   "faq.businessHours.q": "What are your working hours?",
-  "faq.businessHours.a": "I'm available Monday to Saturday, 8:00 AM to 6:00 PM. For emergencies, I also offer weekend availability — just send me a WhatsApp message."
+  "faq.businessHours.a": "I'm available Monday to Saturday, 8:00 AM to 6:00 PM. For emergencies, I also offer weekend availability — just send me a WhatsApp message.",
+  "returningCustomers.title": "Returning Customers"
 }

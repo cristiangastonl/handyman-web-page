@@ -18,13 +18,13 @@ export default function Footer() {
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: "#333" }}>{t("serviceAreas.title")}</div>
-            <div style={{ fontSize: 12, color: "#888", lineHeight: 1.8 }}>
+            <div style={{ fontSize: 12, color: "#555", lineHeight: 1.8 }}>
               {SERVICE_AREAS.map(a => a.name).join(" · ")}
             </div>
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: "#333" }}>{t("footer.hours")}</div>
-            <div style={{ fontSize: 12, color: "#888", lineHeight: 1.8 }}>
+            <div style={{ fontSize: 12, color: "#555", lineHeight: 1.8 }}>
               Mon–Sat: 08:00–18:00<br/>
               {t("footer.emergency")}
             </div>

@@ -33,6 +33,10 @@ import AdminPanel from "./components/Admin/AdminPanel";
 export default function App() {
   const { i18n } = useTranslation();
 
+  useEffect(() => {
+    document.documentElement.lang = i18n.language === 'en' ? 'en-CH' : i18n.language;
+  }, [i18n.language]);
+
   // ── Navigation ──
   const [page, setPageState] = useState(() => {
     const h = window.location.hash.slice(1);
@@ -45,7 +49,6 @@ export default function App() {
 
   // ── UI state ──
   const [lb, setLb] = useState(null);
-  const [scrollY, setScrollY] = useState(0);
   const [portfolioView, setPortfolioView] = useState("categories");
 
   // ── Data ──
@@ -60,18 +63,6 @@ export default function App() {
   const [googleReviews, setGoogleReviews] = useState([]);
 
   // ── Effects ──
-  useEffect(() => {
-    let ticking = false;
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => { setScrollY(window.scrollY); ticking = false; });
-        ticking = true;
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   useEffect(() => {
     const onKey = (e) => { if (e.ctrlKey && e.shiftKey && e.key === "A") setAdmin(true); };
     window.addEventListener("keydown", onKey);
@@ -146,14 +137,13 @@ export default function App() {
     <div style={S.root}><style>{css}</style>
       <img src="/images/logo.jpeg" alt="" aria-hidden="true"
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 300, height: 300, opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 0 }}/>
-      <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>
-
       <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
+      <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>
       <main id="main-content">
 
       {page === "home" && (
         <>
-          <Hero scrollY={scrollY} nav={nav} siteConfig={siteConfig}/>
+          <Hero nav={nav} siteConfig={siteConfig}/>
           <StatsBar/>
           <About nav={nav} siteConfig={siteConfig}/>
           <ServiceAreas/>
@@ -177,7 +167,7 @@ export default function App() {
 
       </main>
       <Footer/>
-      <StickyBar scrollY={scrollY} nav={nav}/>
+      <StickyBar nav={nav}/>
       <Lightbox item={lb} onClose={() => setLb(null)}/>
       <WhatsAppFAB/>
     </div>

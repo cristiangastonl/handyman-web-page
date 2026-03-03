@@ -34,7 +34,7 @@ export default function StatsBar() {
       <FadeIn>
       <section style={{ padding: "20px 24px 0", maxWidth: 940, margin: "0 auto", position: "relative" }}>
         <div style={{ textAlign: "center", marginBottom: 14 }}>
-          <p style={{ fontSize: 13, color: "#999", fontStyle: "italic", lineHeight: 1.6, whiteSpace: "pre-line" }}>{t("social.reviewsNote")}</p>
+          <p style={{ fontSize: 13, color: "#666", fontStyle: "italic", lineHeight: 1.6, whiteSpace: "pre-line" }}>{t("social.reviewsNote")}</p>
         </div>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           {[
@@ -47,7 +47,7 @@ export default function StatsBar() {
               onMouseEnter={e => e.currentTarget.style.borderColor = "#ddd"}
               onMouseLeave={e => e.currentTarget.style.borderColor = "#f0f0f0"}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="#999" style={{ flexShrink: 0, marginTop: 1 }}><path d={s.icon}/></svg>
-              <span style={{ fontSize: 11, color: "#888", lineHeight: 1.5 }}>{s.text}</span>
+              <span style={{ fontSize: 11, color: "#555", lineHeight: 1.5 }}>{s.text}</span>
             </a>
           ))}
         </div>

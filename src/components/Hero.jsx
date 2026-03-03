@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { WA_LINK, HERO_IMG, svgP } from "../lib/constants";
+import useScrollY from "../hooks/useScrollY";
 
-export default function Hero({ scrollY, nav, siteConfig = {} }) {
+export default function Hero({ nav, siteConfig = {} }) {
+  const scrollY = useScrollY();
   const { t } = useTranslation();
   return (
     <section className="hero-section" style={{ position: "relative", height: "38vh", minHeight: 240, maxHeight: 380, overflow: "hidden" }}>

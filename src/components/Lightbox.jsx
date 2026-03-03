@@ -8,6 +8,12 @@ export default function Lightbox({ item, onClose }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [item, onClose]);
 
+  useEffect(() => {
+    if (!item) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [item]);
+
   if (!item) return null;
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
@@ -24,7 +30,7 @@ export default function Lightbox({ item, onClose }) {
           {item.desc && <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{item.desc}</div>}
         </div>
       </div>
-      <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(255,255,255,0.12)", border: "none", color: "#fff", width: 44, height: 44, borderRadius: "50%", cursor: "pointer", fontSize: 20 }}>×</button>
+      <button onClick={onClose} aria-label="Close lightbox" style={{ position: "absolute", top: 14, right: 14, background: "rgba(255,255,255,0.12)", border: "none", color: "#fff", width: 44, height: 44, borderRadius: "50%", cursor: "pointer", fontSize: 20 }}>×</button>
     </div>
   );
 }

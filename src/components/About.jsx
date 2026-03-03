@@ -11,10 +11,10 @@ export default function About({ nav, siteConfig = {} }) {
         <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 140, height: 140, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
         <div style={{ flex: 1, minWidth: 240 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{t("about.title")}</h2>
-          <p style={{ fontSize: 14, color: "#888", lineHeight: 1.6, marginBottom: 6 }}>
+          <p style={{ fontSize: 14, color: "#555", lineHeight: 1.6, marginBottom: 6 }}>
             {siteConfig.bio_text || t("about.bio")}
           </p>
-          <p style={{ fontSize: 13, color: "#999", lineHeight: 1.5, marginBottom: 12, fontStyle: "italic" }}>
+          <p style={{ fontSize: 13, color: "#666", lineHeight: 1.5, marginBottom: 12, fontStyle: "italic" }}>
             {t("about.expatNote")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -34,7 +34,7 @@ export default function About({ nav, siteConfig = {} }) {
         {[1, 2, 3].map(n => (
           <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0" }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 4 }}>{t(`about.highlight${n}.title`)}</div>
-            <div style={{ fontSize: 12, color: "#888", lineHeight: 1.55 }}>{t(`about.highlight${n}.text`)}</div>
+            <div style={{ fontSize: 12, color: "#555", lineHeight: 1.55 }}>{t(`about.highlight${n}.text`)}</div>
           </div>
         ))}
       </div>

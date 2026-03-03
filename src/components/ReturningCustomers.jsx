@@ -9,7 +9,7 @@ export default function ReturningCustomers({ returningCustomers, setLb }) {
     <FadeIn delay={0.1}>
     <section style={{ padding: "0 24px 40px", maxWidth: 940, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
-        <h2 style={{ fontSize: 17, fontWeight: 700 }}>Returning Customers</h2>
+        <h2 style={{ fontSize: 17, fontWeight: 700 }}>{t("returningCustomers.title")}</h2>
       </div>
       <Carousel
         items={returningCustomers.map(h => ({ id: h.id, type: "image", src: h.image_url, title: h.title, desc: h.description }))}

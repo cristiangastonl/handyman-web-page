@@ -6,10 +6,13 @@ export const Stars = ({ n, sz = 12 }) => (
   </span>
 );
 
+const socialLabels = { fb: "Facebook", yt: "YouTube", wa: "WhatsApp" };
+
 export const Socials = ({ sz = 14, color = "#999" }) => (
   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
     {Object.entries(svgP).map(([k, path]) => (
       <a key={k} href={socialUrls[k]} target="_blank" rel="noopener noreferrer"
+        aria-label={socialLabels[k] || k}
         style={{ color, opacity: 0.5, transition: "opacity .2s", display: "flex" }}
         onMouseEnter={e => e.currentTarget.style.opacity = 1}
         onMouseLeave={e => e.currentTarget.style.opacity = 0.5}>

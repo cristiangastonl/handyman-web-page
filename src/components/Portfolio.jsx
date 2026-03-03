@@ -27,7 +27,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }}/>
                     <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{c.label}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{catItems.length} {catItems.length === 1 ? "item" : "items"}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{catItems.length} {catItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</div>
                     </div>
                   </div>
                 </div>
@@ -60,7 +60,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
             {catSubcats.length > 0 && (
               <div style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#777", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
-                  Playlists
+                  {t("portfolio.playlists")}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
                   {catSubcats.map(sc => (
@@ -75,7 +75,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sc.name}</div>
-                        <div style={{ fontSize: 10, color: "#999" }}>View Playlist →</div>
+                        <div style={{ fontSize: 10, color: "#666" }}>{t("portfolio.viewPlaylist")}</div>
                       </div>
                     </a>
                   ))}
@@ -90,7 +90,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                   style={{
                     padding: "8px 18px", background: "none", border: "none", cursor: "pointer",
                     fontSize: 13, fontWeight: activeTab === tab ? 600 : 400,
-                    color: activeTab === tab ? R : "#999",
+                    color: activeTab === tab ? R : "#666",
                     borderBottom: activeTab === tab ? `2px solid ${R}` : "2px solid transparent",
                     marginBottom: -2,
                   }}>
