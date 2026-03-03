@@ -159,8 +159,8 @@ export default function App() {
           <ServiceAreas/>
           <RecentWork items={items} setLb={setLb} nav={nav}/>
           <Highlights highlights={highlights} setLb={setLb} siteConfig={siteConfig}/>
-          <TailoringCTA nav={nav}/>
           <ReturningCustomers returningCustomers={returningCustomers} setLb={setLb}/>
+          <TailoringCTA nav={nav}/>
           <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews}/>
           <FAQHome faqs={faqs} nav={nav}/>
           <BottomCTA/>
