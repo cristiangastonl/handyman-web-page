@@ -18,7 +18,7 @@ export function FAQHome({ faqs, nav }) {
   return (
     <FadeIn>
     <section style={{ padding: "40px 24px", maxWidth: 600, margin: "0 auto" }}>
-      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#777", marginBottom: 12, textAlign: "center" }}>{t("faq.common")}</div>
+      <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, textAlign: "center", color: "#222" }}>{t("faq.common")}</h2>
       {faqs.slice(0, 3).map((f, i) => (
         <div key={f.id || i} style={{ borderBottom: "1px solid #f0f0f0", padding: "12px 0" }}>
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{faqText(f, "question", lang)}</div>

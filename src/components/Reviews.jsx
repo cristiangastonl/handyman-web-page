@@ -38,7 +38,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
             </div>
             <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400}/></span>
+              <span style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
               <div>
                 <Stars n={Math.round(parseFloat(avg))} sz={15}/>
                 <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>
@@ -102,7 +102,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
           <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
         </div>
-        <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600}/></div>
+        <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
         <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
         <div style={{ fontSize: 14, color: "#777" }}>{t("reviews.based", { count: reviews.length })}</div>
 

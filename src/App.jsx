@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   S, css,
   DEFAULT_CATS, DEFAULT_WORK, DEFAULT_FAQS, DEFAULT_SUBCATS,
@@ -32,26 +33,36 @@ import AdminPanel from "./components/Admin/AdminPanel";
 
 export default function App() {
   const { i18n } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     document.documentElement.lang = i18n.language === 'en' ? 'en-CH' : i18n.language;
   }, [i18n.language]);
 
   // ── Navigation ──
-  const [page, setPageState] = useState(() => {
-    const h = window.location.hash.slice(1);
-    return ["portfolio","reviews","faq"].includes(h) ? h : "home";
-  });
+  // Derive page from current pathname for Nav highlighting
+  const pathname = location.pathname;
+  const page = pathname === "/" ? "home"
+    : pathname === "/portfolio" ? "portfolio"
+    : pathname === "/reviews" ? "reviews"
+    : pathname === "/faq" ? "faq"
+    : pathname === "/admin" ? "admin"
+    : "home";
+
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [admin, setAdmin] = useState(() => window.location.hash === "#admin");
-  const setPage = (p) => { setPageState(p); window.location.hash = p === "home" ? "" : p; };
-  const nav = (p) => { setPage(p); setPortfolioView("categories"); setMobileMenu(false); window.scrollTo?.(0, 0); };
+  const nav = (p) => {
+    navigate(p === "home" ? "/" : "/" + p);
+    setPortfolioView("categories");
+    setMobileMenu(false);
+    window.scrollTo?.(0, 0);
+  };
   const navToCategory = (skill) => {
     const norm = (s) => s.toLowerCase().replace(/\s+/g, "");
     const match = cats.find(c => c.id !== "all" && (
       norm(c.label) === norm(skill) || c.id === skill
     ));
-    setPage("portfolio");
+    navigate("/portfolio");
     setPortfolioView(match ? { cat: match.id, tab: "photos" } : "categories");
     setMobileMenu(false);
     window.scrollTo?.(0, 0);
@@ -74,23 +85,12 @@ export default function App() {
   const [googleReviews, setGoogleReviews] = useState([]);
 
   // ── Effects ──
+  // Admin shortcut: Ctrl+Shift+A navigates to /admin
   useEffect(() => {
-    const onKey = (e) => { if (e.ctrlKey && e.shiftKey && e.key === "A") setAdmin(true); };
+    const onKey = (e) => { if (e.ctrlKey && e.shiftKey && e.key === "A") navigate("/admin"); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
-    const onHash = () => {
-      const h = window.location.hash.slice(1);
-      if (h === "admin") { setAdmin(true); return; }
-      setAdmin(false);
-      setPageState(["portfolio","reviews","faq"].includes(h) ? h : "home");
-      window.scrollTo?.(0, 0);
-    };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
+  }, [navigate]);
 
   // Load Supabase data on mount (each fetch is independent so one failure doesn't block others)
   useEffect(() => {
@@ -126,40 +126,15 @@ export default function App() {
     localStorage.setItem("lang", code);
   };
 
-  // ── Admin panel ──
-  if (admin) return (
+  // ── Home page content ──
+  const HomePage = () => (
     <>
-      <style>{css}</style>
-      <AdminPanel
-        onBack={() => { setAdmin(false); window.location.hash = ""; }}
-        cats={cats} setCats={setCats}
-        items={items} setItems={setItems}
-        faqs={faqs} setFaqs={setFaqs}
-        subcats={subcats} setSubcats={setSubcats}
-        highlights={highlights} setHighlights={setHighlights}
-        returningCustomers={returningCustomers} setReturningCustomers={setReturningCustomers}
-        fbReviews={fbReviews} setFbReviews={setFbReviews}
-        googleReviews={googleReviews} setGoogleReviews={setGoogleReviews}
-      />
-    </>
-  );
-
-  // ── Main site ──
-  return (
-    <div style={S.root}><style>{css}</style>
-      <img src="/images/logo.jpeg" alt="" aria-hidden="true"
-        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 300, height: 300, opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 0 }}/>
-      <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
-      <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>
-      <main id="main-content">
-
-      {loading && page === "home" && (
+      {loading && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
           <div style={{ width: 40, height: 40, border: "3px solid #f0f0f0", borderTop: "3px solid #D4781F", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/>
         </div>
       )}
-
-      {!loading && page === "home" && (
+      {!loading && (
         <>
           <Hero nav={nav} siteConfig={siteConfig}/>
           <StatsBar/>
@@ -174,20 +149,52 @@ export default function App() {
           <BottomCTA/>
         </>
       )}
+    </>
+  );
 
-      {page === "portfolio" && (
-        <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={setLb}/>
-      )}
+  // ── Admin page content ──
+  const AdminPage = () => (
+    <AdminPanel
+      onBack={() => navigate("/")}
+      cats={cats} setCats={setCats}
+      items={items} setItems={setItems}
+      faqs={faqs} setFaqs={setFaqs}
+      subcats={subcats} setSubcats={setSubcats}
+      highlights={highlights} setHighlights={setHighlights}
+      returningCustomers={returningCustomers} setReturningCustomers={setReturningCustomers}
+      fbReviews={fbReviews} setFbReviews={setFbReviews}
+      googleReviews={googleReviews} setGoogleReviews={setGoogleReviews}
+    />
+  );
 
-      {page === "reviews" && <ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews}/>}
-
-      {page === "faq" && <FAQPage faqs={faqs}/>}
-
+  // ── Main site ──
+  return (
+    <div style={S.root}><style>{css}</style>
+      <img src="/images/logo.jpeg" alt="" aria-hidden="true"
+        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 300, height: 300, opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 0 }}/>
+      <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
+      {page !== "admin" && <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>}
+      <main id="main-content">
+        <Routes>
+          <Route path="/" element={<HomePage/>}/>
+          <Route path="/portfolio" element={
+            <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={setLb}/>
+          }/>
+          <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews}/>}/>
+          <Route path="/faq" element={<FAQPage faqs={faqs}/>}/>
+          <Route path="/admin" element={<AdminPage/>}/>
+          {/* Catch-all: redirect unknown routes to home */}
+          <Route path="*" element={<HomePage/>}/>
+        </Routes>
       </main>
-      <Footer/>
-      <StickyBar nav={nav}/>
-      <Lightbox item={lb} onClose={() => setLb(null)}/>
-      <WhatsAppFAB/>
+      {page !== "admin" && (
+        <>
+          <Footer/>
+          <StickyBar nav={nav}/>
+          <Lightbox item={lb} onClose={() => setLb(null)}/>
+          <WhatsAppFAB/>
+        </>
+      )}
     </div>
   );
 }

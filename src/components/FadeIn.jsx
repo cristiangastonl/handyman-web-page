@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useFadeIn } from "../hooks/useFadeIn";
 
-export function AnimatedCounter({ target, duration = 1200, decimals = 1 }) {
+export function AnimatedCounter({ target, duration = 1200, decimals = 0 }) {
   const [val, setVal] = useState(0);
   const ref = useRef(null);
   const started = useRef(false);

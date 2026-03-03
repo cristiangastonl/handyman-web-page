@@ -1,7 +1,7 @@
 import { R, svgP, socialUrls, LANGS } from "../lib/constants";
 
 export const Stars = ({ n, sz = 12 }) => (
-  <span style={{ fontSize: sz, letterSpacing: 1 }}>
+  <span role="img" aria-label={`${n} out of 5 stars`} style={{ fontSize: sz, letterSpacing: 1 }}>
     {[1,2,3,4,5].map(i => <span key={i} style={{ color: i <= n ? "#F59E0B" : "#ddd" }}>★</span>)}
   </span>
 );
@@ -47,6 +47,8 @@ export const LangSelector = ({ currentLang, onChange }) => (
     {LANGS.map(l => (
       <button key={l.code} onClick={() => onChange(l.code)}
         title={l.label}
+        aria-label={l.label}
+        aria-pressed={currentLang === l.code}
         style={{
           background: "none", border: "none", cursor: "pointer", fontSize: 16, lineHeight: 1,
           padding: "2px 3px", borderRadius: 4,
