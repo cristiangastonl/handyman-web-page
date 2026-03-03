@@ -128,6 +128,25 @@ export async function deleteHighlight(id) {
   if (error) throw error;
 }
 
+// ─── Returning customers ───
+export async function fetchReturningCustomers() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("returning_customers").select("*").order("sort_order");
+  if (error) throw error;
+  return data;
+}
+export async function addReturningCustomer(title, imageUrl, description) {
+  if (!supabase) return;
+  const { data, error } = await supabase.from("returning_customers").insert({ title, image_url: imageUrl, description }).select().single();
+  if (error) throw error;
+  return data;
+}
+export async function deleteReturningCustomer(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("returning_customers").delete().eq("id", id);
+  if (error) throw error;
+}
+
 // ─── Facebook reviews ───
 export async function fetchFbReviews() {
   if (!supabase) return null;

@@ -1,11 +1,66 @@
-import { useRef } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { R, ab, ytThumb } from "../lib/constants";
 
-export default function Carousel({ items, onClickItem }) {
+export default function Carousel({ items, onClickItem, autoPlay = true, interval = 3500 }) {
   const ref = useRef(null);
-  const scroll = (dir) => ref.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  const timerRef = useRef(null);
+
+  const scrollNext = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 0) return;
+    // If near the end, scroll back to start
+    if (el.scrollLeft >= maxScroll - 10) {
+      el.scrollTo({ left: 0, behavior: "smooth" });
+    } else {
+      el.scrollBy({ left: 320, behavior: "smooth" });
+    }
+  }, []);
+
+  const startAutoPlay = useCallback(() => {
+    if (!autoPlay || items.length <= 1) return;
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(scrollNext, interval);
+  }, [autoPlay, interval, items.length, scrollNext]);
+
+  const stopAutoPlay = useCallback(() => {
+    clearInterval(timerRef.current);
+  }, []);
+
+  useEffect(() => {
+    startAutoPlay();
+    return stopAutoPlay;
+  }, [startAutoPlay, stopAutoPlay]);
+
+  const scroll = (dir) => {
+    const el = ref.current;
+    if (!el) return;
+    if (dir === 1) {
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (el.scrollLeft >= maxScroll - 10) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: 320, behavior: "smooth" });
+      }
+    } else {
+      if (el.scrollLeft <= 10) {
+        el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: -320, behavior: "smooth" });
+      }
+    }
+    // Reset timer on manual interaction
+    stopAutoPlay();
+    startAutoPlay();
+  };
+
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative" }}
+      onMouseEnter={stopAutoPlay}
+      onMouseLeave={startAutoPlay}
+      onTouchStart={stopAutoPlay}
+      onTouchEnd={startAutoPlay}>
       <div ref={ref} className="hs" style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
         {items.map(item => (
           <div key={item.id} onClick={() => onClickItem(item)}

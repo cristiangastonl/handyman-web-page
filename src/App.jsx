@@ -7,7 +7,7 @@ import {
 } from "./lib/constants";
 import {
   supabase, fetchCategories, fetchWorkItems, fetchFaqs,
-  fetchSubcategories, fetchHighlights, fetchFbReviews, fetchSiteConfig,
+  fetchSubcategories, fetchHighlights, fetchReturningCustomers, fetchFbReviews, fetchSiteConfig,
   fetchGoogleReviews,
 } from "./lib/supabase";
 
@@ -19,6 +19,7 @@ import About from "./components/About";
 import ServiceAreas from "./components/ServiceAreas";
 import { RecentWork } from "./components/RecentWork";
 import Highlights from "./components/Highlights";
+import ReturningCustomers from "./components/ReturningCustomers";
 import { TailoringCTA, BottomCTA } from "./components/CTA";
 import { GoogleReviewsHome, ReviewsPage } from "./components/Reviews";
 import { FAQHome, FAQPage } from "./components/FAQ";
@@ -53,6 +54,7 @@ export default function App() {
   const [faqs, setFaqs] = useState(DEFAULT_FAQS);
   const [subcats, setSubcats] = useState(DEFAULT_SUBCATS);
   const [highlights, setHighlights] = useState(DEFAULT_HIGHLIGHTS);
+  const [returningCustomers, setReturningCustomers] = useState([]);
   const [fbReviews, setFbReviews] = useState(DEFAULT_FB_REVIEWS);
   const [siteConfig, setSiteConfig] = useState({});
   const [googleReviews, setGoogleReviews] = useState([]);
@@ -93,9 +95,9 @@ export default function App() {
     if (!supabase) return;
     const safe = (fn) => fn().catch(() => null);
     (async () => {
-      const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbFbReviews, dbConfig, dbGoogleReviews] = await Promise.all([
+      const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbReturning, dbFbReviews, dbConfig, dbGoogleReviews] = await Promise.all([
         safe(fetchCategories), safe(fetchWorkItems), safe(fetchFaqs),
-        safe(fetchSubcategories), safe(fetchHighlights), safe(fetchFbReviews),
+        safe(fetchSubcategories), safe(fetchHighlights), safe(fetchReturningCustomers), safe(fetchFbReviews),
         safe(fetchSiteConfig), safe(fetchGoogleReviews),
       ]);
       if (dbCats?.length > 0) setCats([{ id: "all", label: "All" }, ...dbCats.map(c => ({ id: c.id, label: c.label, header_image: c.header_image }))]);
@@ -109,6 +111,7 @@ export default function App() {
       })));
       if (dbSubcats?.length > 0) setSubcats(dbSubcats);
       if (dbHighlights?.length > 0) setHighlights(dbHighlights);
+      if (dbReturning?.length > 0) setReturningCustomers(dbReturning);
       if (dbFbReviews?.length > 0) setFbReviews(dbFbReviews);
       if (dbConfig) setSiteConfig(dbConfig);
       if (dbGoogleReviews?.length > 0) setGoogleReviews(dbGoogleReviews);
@@ -131,6 +134,7 @@ export default function App() {
         faqs={faqs} setFaqs={setFaqs}
         subcats={subcats} setSubcats={setSubcats}
         highlights={highlights} setHighlights={setHighlights}
+        returningCustomers={returningCustomers} setReturningCustomers={setReturningCustomers}
         fbReviews={fbReviews} setFbReviews={setFbReviews}
         googleReviews={googleReviews} setGoogleReviews={setGoogleReviews}
       />
@@ -156,6 +160,7 @@ export default function App() {
           <RecentWork items={items} setLb={setLb} nav={nav}/>
           <Highlights highlights={highlights} setLb={setLb} siteConfig={siteConfig}/>
           <TailoringCTA nav={nav}/>
+          <ReturningCustomers returningCustomers={returningCustomers} setLb={setLb}/>
           <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews}/>
           <FAQHome faqs={faqs} nav={nav}/>
           <BottomCTA/>

@@ -9,11 +9,12 @@ import {
   fetchSiteConfig, upsertSiteConfig,
   fetchSubcategories, addSubcategory, deleteSubcategory,
   fetchHighlights, addHighlight, deleteHighlight,
+  fetchReturningCustomers, addReturningCustomer, deleteReturningCustomer,
   fetchFbReviews, addFbReview, deleteFbReview,
   fetchGoogleReviews, addGoogleReview, deleteGoogleReview,
 } from "../../lib/supabase";
 
-export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, fbReviews, setFbReviews, googleReviews, setGoogleReviews }) {
+export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, returningCustomers, setReturningCustomers, fbReviews, setFbReviews, googleReviews, setGoogleReviews }) {
   // Auth
   const [session, setSession] = useState(null);
   const [loginEmail, setLoginEmail] = useState("");
@@ -58,6 +59,11 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [hlTitle, setHlTitle] = useState("");
   const [hlDesc, setHlDesc] = useState("");
   const [hlFile, setHlFile] = useState(null);
+
+  // Returning Customer form
+  const [rcTitle, setRcTitle] = useState("");
+  const [rcDesc, setRcDesc] = useState("");
+  const [rcFile, setRcFile] = useState(null);
 
   // FB Review form
   const [fbrName, setFbrName] = useState("");
@@ -266,6 +272,31 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     finally { setAdminLoading(false); }
   };
 
+  // ── Returning Customer CRUD ──
+  const handleAddReturningCustomer = async () => {
+    if (!rcTitle.trim()) return;
+    setAdminLoading(true);
+    try {
+      let imageUrl = null;
+      if (rcFile) imageUrl = await uploadImage(rcFile, "returning_customers");
+      const saved = await addReturningCustomer(rcTitle.trim(), imageUrl, rcDesc.trim() || null);
+      setReturningCustomers(prev => [...prev, saved]);
+      setRcTitle(""); setRcDesc(""); setRcFile(null);
+      flash("Returning customer added");
+    } catch (err) { flash("Error: " + err.message); }
+    finally { setAdminLoading(false); }
+  };
+
+  const handleDeleteReturningCustomer = async (id) => {
+    setAdminLoading(true);
+    try {
+      await deleteReturningCustomer(id);
+      setReturningCustomers(prev => prev.filter(h => h.id !== id));
+      flash("Item deleted");
+    } catch (err) { flash("Error: " + err.message); }
+    finally { setAdminLoading(false); }
+  };
+
   // ── FB Review CRUD ──
   const handleAddFbReview = async () => {
     if (!fbrName.trim() || !fbrText.trim()) return;
@@ -360,7 +391,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
 
             {/* Tabs */}
             <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0" }}>
-              {[["categories","Categories"],["work","Work"],["faqs","FAQs"],["subcategories","Subcats"],["highlights","Highlights"],["fbreview","FB Reviews"],["greview","G Reviews"],["config","Config"]].map(([k, l]) => (
+              {[["categories","Categories"],["work","Work"],["faqs","FAQs"],["subcategories","Subcats"],["highlights","Highlights"],["returning","Returning"],["fbreview","FB Reviews"],["greview","G Reviews"],["config","Config"]].map(([k, l]) => (
                 <button key={k} onClick={() => setAdminTab(k)}
                   style={{ padding: "8px 18px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: adminTab === k ? 600 : 400, color: adminTab === k ? R : "#999", borderBottom: adminTab === k ? `2px solid ${R}` : "2px solid transparent", marginBottom: -2 }}>
                   {l}
@@ -559,6 +590,37 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                       {h.description && <div style={{ fontSize: 10, color: "#777" }}>{h.description}</div>}
                     </div>
                     <button onClick={() => handleDeleteHighlight(h.id)} disabled={adminLoading}
+                      style={{ ...S.ghost, color: R, borderColor: "#fdd", fontSize: 10, padding: "2px 8px" }}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── Returning Customers Tab ── */}
+            {adminTab === "returning" && (
+              <div>
+                <p style={S.label}>Returning Customers ({returningCustomers.length})</p>
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginBottom: 20 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add Item</p>
+                  <input value={rcTitle} onChange={e => setRcTitle(e.target.value)} placeholder="Title" style={{ ...S.input, marginBottom: 8 }}/>
+                  <textarea value={rcDesc} onChange={e => setRcDesc(e.target.value)} placeholder="Description (optional)" rows={2} style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 8 }}/>
+                  <div style={{ marginBottom: 8 }}>
+                    <label style={{ fontSize: 11, color: "#888" }}>Image file</label>
+                    <input type="file" accept="image/*" onChange={e => setRcFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                  </div>
+                  <button onClick={handleAddReturningCustomer} disabled={adminLoading || !rcTitle.trim()}
+                    style={{ ...S.btnPrimary, opacity: (adminLoading || !rcTitle.trim()) ? 0.5 : 1 }}>
+                    {adminLoading ? "Adding..." : "Add Item"}
+                  </button>
+                </div>
+                {returningCustomers.map(h => (
+                  <div key={h.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f3f3f3" }}>
+                    {h.image_url && <img src={h.image_url} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5, background: "#eee" }}/>}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{h.title}</div>
+                      {h.description && <div style={{ fontSize: 10, color: "#777" }}>{h.description}</div>}
+                    </div>
+                    <button onClick={() => handleDeleteReturningCustomer(h.id)} disabled={adminLoading}
                       style={{ ...S.ghost, color: R, borderColor: "#fdd", fontSize: 10, padding: "2px 8px" }}>Remove</button>
                   </div>
                 ))}
