@@ -72,6 +72,7 @@ export const css = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   .hs::-webkit-scrollbar { display: none; }
   .hs { -ms-overflow-style: none; scrollbar-width: none; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes heroFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
   .heroContent { animation: heroFadeUp 0.8s ease 0.2s both; }
   .heroContent h1 { animation: heroFadeUp 0.8s ease 0.3s both; }

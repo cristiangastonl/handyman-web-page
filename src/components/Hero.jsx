@@ -7,7 +7,7 @@ export default function Hero({ nav, siteConfig = {} }) {
   const { t } = useTranslation();
   return (
     <section className="hero-section" style={{ position: "relative", height: "38vh", minHeight: 240, maxHeight: 380, overflow: "hidden" }}>
-      <img src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchPriority="high" style={{ width: "100%", height: "120%", objectFit: "cover", transform: `translateY(${scrollY * -0.08}px)`, willChange: "transform" }}/>
+      <img src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchPriority="high" width={1200} height={800} style={{ width: "100%", height: "120%", objectFit: "cover", transform: `translateY(${scrollY * -0.08}px)`, willChange: "transform" }}/>
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.72) 100%)" }}/>
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 20px" }}>
         <div className="heroContent" style={{ maxWidth: 940, margin: "0 auto" }}>

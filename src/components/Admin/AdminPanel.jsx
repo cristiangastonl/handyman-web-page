@@ -143,9 +143,15 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const handleDeleteCategory = async (id) => {
     setAdminLoading(true);
     try {
+      // Delete related data first
+      if (supabase) {
+        await supabase.from("subcategories").delete().eq("category_id", id);
+        await supabase.from("work_items").delete().eq("cat", id);
+      }
       await deleteCategory(id);
       setCats(prev => prev.filter(c => c.id !== id));
       setItems(prev => prev.filter(w => w.cat !== id));
+      setSubcats(prev => prev.filter(s => s.category_id !== id));
       flash("Category deleted");
     } catch (err) { flash("Error: " + err.message); }
     finally { setAdminLoading(false); }

@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { R, PROFILE_IMG } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
-export default function About({ nav, siteConfig = {} }) {
+export default function About({ nav, navToCategory, siteConfig = {} }) {
   const { t } = useTranslation();
   return (
     <FadeIn>
@@ -19,7 +19,7 @@ export default function About({ nav, siteConfig = {} }) {
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {["electricity","plumbing","assembly","fixings","gardening","wallMounting"].map(s => (
-              <button key={s} onClick={() => nav("portfolio")}
+              <button key={s} onClick={() => navToCategory ? navToCategory(s) : nav("portfolio")}
                 style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #eee", fontSize: 12, color: "#777", fontWeight: 500, background: "none", cursor: "pointer", transition: "border-color .2s, color .2s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.color = "#777"; }}>

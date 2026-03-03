@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { R, REVIEWS, svgP, socialUrls, ab } from "../lib/constants";
 import { Stars, GoogleG } from "./ui";
@@ -8,6 +8,15 @@ import { FadeIn, AnimatedCounter } from "./FadeIn";
 export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
   const { t } = useTranslation();
   const revRef = useRef(null);
+  const [expanded, setExpanded] = useState(new Set());
+  const toggleExpand = (e, i) => {
+    e.stopPropagation();
+    setExpanded(prev => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  };
   const gReviews = googleReviews.length > 0
     ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label, source: "google" }))
     : REVIEWS.map(r => ({ ...r, source: "google" }));
@@ -52,7 +61,11 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
                   {rev.source === "google" ? <GoogleG/> : <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>}
                 </div>
                 <Stars n={rev.r} sz={14}/>
-                <p style={{ fontSize: 13, color: "#555", lineHeight: 1.55, margin: "8px 0 0", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{rev.text}</p>
+                <p style={{ fontSize: 13, color: "#555", lineHeight: 1.55, margin: "8px 0 0", ...(!expanded.has(i) ? { display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" } : {}) }}>{rev.text}</p>
+                <span
+                  onClick={(e) => toggleExpand(e, i)}
+                  style={{ fontSize: 12, color: R, cursor: "pointer", fontWeight: 600, marginTop: 4, display: "inline-block" }}
+                >{expanded.has(i) ? t("reviews.readLess", "Read less") : t("reviews.readMore", "Read more")}</span>
               </div>
             ))}
           </div>
@@ -66,11 +79,13 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
 }
 
 // Full reviews page
-export function ReviewsPage({ googleReviews = [] }) {
+export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
   const { t } = useTranslation();
-  const reviews = googleReviews.length > 0
-    ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label }))
-    : REVIEWS;
+  const gReviews = googleReviews.length > 0
+    ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label, source: "google" }))
+    : REVIEWS.map(r => ({ ...r, source: "google" }));
+  const fReviews = fbReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.review_date, source: "facebook" }));
+  const reviews = [...gReviews, ...fReviews];
   const avg = reviews.length > 0 ? (reviews.reduce((a, r) => a + r.r, 0) / reviews.length).toFixed(1) : "0.0";
 
   return (
@@ -83,6 +98,8 @@ export function ReviewsPage({ googleReviews = [] }) {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
+          <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
           <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
         </div>
         <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600}/></div>
@@ -107,7 +124,7 @@ export function ReviewsPage({ googleReviews = [] }) {
           })}
         </div>
 
-        <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer"
+        <a href="https://www.google.com/maps/place/Handyman+Services+in+Zurich/" target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-block", marginTop: 20, padding: "8px 20px", border: "1px solid #ddd", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none" }}>
           {t("reviews.leaveReview")}
         </a>
@@ -123,7 +140,7 @@ export function ReviewsPage({ googleReviews = [] }) {
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{rev.name}</div>
                 <div style={{ fontSize: 11, color: "#777" }}>{rev.time}</div>
               </div>
-              <GoogleG/>
+              {rev.source === "facebook" ? <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg> : <GoogleG/>}
             </div>
             <Stars n={rev.r} sz={14}/>
             <p style={{ fontSize: 14, color: "#555", lineHeight: 1.6, margin: "8px 0 0" }}>{rev.text}</p>

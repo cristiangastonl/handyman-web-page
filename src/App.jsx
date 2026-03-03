@@ -46,10 +46,21 @@ export default function App() {
   const [admin, setAdmin] = useState(() => window.location.hash === "#admin");
   const setPage = (p) => { setPageState(p); window.location.hash = p === "home" ? "" : p; };
   const nav = (p) => { setPage(p); setPortfolioView("categories"); setMobileMenu(false); window.scrollTo?.(0, 0); };
+  const navToCategory = (skill) => {
+    const norm = (s) => s.toLowerCase().replace(/\s+/g, "");
+    const match = cats.find(c => c.id !== "all" && (
+      norm(c.label) === norm(skill) || c.id === skill
+    ));
+    setPage("portfolio");
+    setPortfolioView(match ? { cat: match.id, tab: "photos" } : "categories");
+    setMobileMenu(false);
+    window.scrollTo?.(0, 0);
+  };
 
   // ── UI state ──
   const [lb, setLb] = useState(null);
   const [portfolioView, setPortfolioView] = useState("categories");
+  const [loading, setLoading] = useState(!!supabase);
 
   // ── Data ──
   const [cats, setCats] = useState(DEFAULT_CATS);
@@ -84,7 +95,7 @@ export default function App() {
   // Load Supabase data on mount (each fetch is independent so one failure doesn't block others)
   useEffect(() => {
     if (!supabase) return;
-    const safe = (fn) => fn().catch(() => null);
+    const safe = (fn) => fn().catch(err => { console.warn('Fetch error:', err.message); return null; });
     (async () => {
       const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbReturning, dbFbReviews, dbConfig, dbGoogleReviews] = await Promise.all([
         safe(fetchCategories), safe(fetchWorkItems), safe(fetchFaqs),
@@ -106,6 +117,7 @@ export default function App() {
       if (dbFbReviews?.length > 0) setFbReviews(dbFbReviews);
       if (dbConfig) setSiteConfig(dbConfig);
       if (dbGoogleReviews?.length > 0) setGoogleReviews(dbGoogleReviews);
+      setLoading(false);
     })();
   }, []);
 
@@ -141,11 +153,17 @@ export default function App() {
       <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>
       <main id="main-content">
 
-      {page === "home" && (
+      {loading && page === "home" && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+          <div style={{ width: 40, height: 40, border: "3px solid #f0f0f0", borderTop: "3px solid #D4781F", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/>
+        </div>
+      )}
+
+      {!loading && page === "home" && (
         <>
           <Hero nav={nav} siteConfig={siteConfig}/>
           <StatsBar/>
-          <About nav={nav} siteConfig={siteConfig}/>
+          <About nav={nav} navToCategory={navToCategory} siteConfig={siteConfig}/>
           <ServiceAreas/>
           <RecentWork items={items} setLb={setLb} nav={nav}/>
           <Highlights highlights={highlights} setLb={setLb} siteConfig={siteConfig}/>
@@ -161,7 +179,7 @@ export default function App() {
         <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={setLb}/>
       )}
 
-      {page === "reviews" && <ReviewsPage googleReviews={googleReviews}/>}
+      {page === "reviews" && <ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews}/>}
 
       {page === "faq" && <FAQPage faqs={faqs}/>}
 
