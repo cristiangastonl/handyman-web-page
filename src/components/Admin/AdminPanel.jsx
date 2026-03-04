@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { R, S, ytThumb } from "../../lib/constants";
 import { translateFaq } from "../../lib/translate";
+import DragList from "./DragList";
 import {
   supabase, uploadImage,
   fetchCategories, addCategory, deleteCategory,
   fetchWorkItems, addWorkItem, deleteWorkItem,
-  fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow,
+  fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow, updateFaqOrder,
   fetchSiteConfig, upsertSiteConfig,
   fetchSubcategories, addSubcategory, deleteSubcategory,
   fetchHighlights, addHighlight, deleteHighlight,
@@ -232,6 +233,15 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     finally { setAdminLoading(false); }
   };
 
+  const handleFaqReorder = useCallback(async (reordered) => {
+    setFaqs(reordered);
+    try {
+      const ids = reordered.map(f => f.id).filter(Boolean);
+      if (ids.length) await updateFaqOrder(ids);
+      flash("Order saved");
+    } catch (err) { flash("Error saving order: " + err.message); }
+  }, [setFaqs]);
+
   // ── Subcategory CRUD ──
   const handleAddSubcategory = async () => {
     if (!scName.trim() || !scParent) return;
@@ -400,7 +410,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* Tabs */}
             <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0" }}>
               {[["categories","Categories"],["work","Work"],["faqs","FAQs"],["subcategories","Subcats"],["highlights","Highlights"],["returning","Returning"],["fbreview","FB Reviews"],["greview","G Reviews"],["config","Config"]].map(([k, l]) => (
-                <button key={k} onClick={() => setAdminTab(k)}
+                <button key={k} onClick={() => { if (window.__dragActive) return; setAdminTab(k); }}
                   style={{ padding: "8px 18px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: adminTab === k ? 600 : 400, color: adminTab === k ? R : "#999", borderBottom: adminTab === k ? `2px solid ${R}` : "2px solid transparent", marginBottom: -2 }}>
                   {l}
                 </button>
@@ -494,18 +504,12 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {adminTab === "faqs" && (
               <div>
                 <p style={S.label}>FAQs ({faqs.length})</p>
-                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginBottom: 20 }}>
-                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add FAQ</p>
-                  <input value={faqQ} onChange={e => setFaqQ(e.target.value)} placeholder="Question" style={{ ...S.input, marginBottom: 8 }}/>
-                  <textarea value={faqA} onChange={e => setFaqA(e.target.value)} placeholder="Answer" rows={3} style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}/>
-                  <button onClick={handleAddFaq} disabled={adminLoading || !faqQ.trim() || !faqA.trim()}
-                    style={{ ...S.btnPrimary, marginTop: 10, opacity: (adminLoading || !faqQ.trim() || !faqA.trim()) ? 0.5 : 1 }}>
-                    {translating ? "Translating..." : adminLoading ? "Adding..." : "Add FAQ"}
-                  </button>
-                </div>
-                {faqs.map(f => (
-                  <div key={f.id || f.q} style={{ padding: "12px 0", borderBottom: "1px solid #f0f0f0" }}>
-                    {editingFaq === (f.id || f.q) ? (
+                <DragList
+                  items={faqs}
+                  keyFn={(f) => f.id || f.q}
+                  onReorder={handleFaqReorder}
+                  renderItem={(f) => (
+                    editingFaq === (f.id || f.q) ? (
                       <div>
                         <input value={editFaqQ} onChange={e => setEditFaqQ(e.target.value)} style={{ ...S.input, marginBottom: 6, fontWeight: 600 }}/>
                         <textarea value={editFaqA} onChange={e => setEditFaqA(e.target.value)} rows={3} style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}/>
@@ -523,9 +527,18 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                           {f.id && <button onClick={() => handleDeleteFaq(f.id)} disabled={adminLoading} style={{ ...S.ghost, color: R, borderColor: "#fdd", fontSize: 10, padding: "2px 8px" }}>Delete</button>}
                         </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+                    )
+                  )}
+                />
+                <div style={{ padding: "16px", background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0", marginTop: 20 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Add FAQ</p>
+                  <input value={faqQ} onChange={e => setFaqQ(e.target.value)} placeholder="Question" style={{ ...S.input, marginBottom: 8 }}/>
+                  <textarea value={faqA} onChange={e => setFaqA(e.target.value)} placeholder="Answer" rows={3} style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}/>
+                  <button onClick={handleAddFaq} disabled={adminLoading || !faqQ.trim() || !faqA.trim()}
+                    style={{ ...S.btnPrimary, marginTop: 10, opacity: (adminLoading || !faqQ.trim() || !faqA.trim()) ? 0.5 : 1 }}>
+                    {translating ? "Translating..." : adminLoading ? "Adding..." : "Add FAQ"}
+                  </button>
+                </div>
               </div>
             )}
 
