@@ -24,7 +24,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Admin UI
-  const [adminTab, setAdminTab] = useState("categories");
+  const [adminTab, setAdminTab] = useState("faqs");
   const [adminMsg, setAdminMsg] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
   const [siteConfig, setSiteConfig] = useState({});
@@ -409,7 +409,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
 
             {/* Tabs */}
             <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0" }}>
-              {[["categories","Categories"],["work","Work"],["faqs","FAQs"],["subcategories","Subcats"],["highlights","Highlights"],["returning","Returning"],["fbreview","FB Reviews"],["greview","G Reviews"],["config","Config"]].map(([k, l]) => (
+              {[["faqs","FAQs"],["categories","Categories"],["work","Work"],["subcategories","Subcats"],["highlights","Highlights"],["returning","Returning"],["fbreview","FB Reviews"],["greview","G Reviews"],["config","Config"]].map(([k, l]) => (
                 <button key={k} onClick={() => { if (window.__dragActive) return; setAdminTab(k); }}
                   style={{ padding: "8px 18px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: adminTab === k ? 600 : 400, color: adminTab === k ? R : "#999", borderBottom: adminTab === k ? `2px solid ${R}` : "2px solid transparent", marginBottom: -2 }}>
                   {l}
