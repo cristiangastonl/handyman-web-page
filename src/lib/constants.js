@@ -78,6 +78,11 @@ export const css = `
   .heroContent h1 { animation: heroFadeUp 0.8s ease 0.3s both; }
   .heroContent p { animation: heroFadeUp 0.8s ease 0.45s both; }
   .heroContent > div:last-child { animation: heroFadeUp 0.8s ease 0.6s both; }
+  .admin-btn:hover { opacity: 0.85; }
+  .admin-tab:hover { color: #666 !important; }
+  .admin-ghost:hover { background: #f5f5f5 !important; }
+  .admin-tabs::-webkit-scrollbar { display: none; }
+  .admin-tabs { -ms-overflow-style: none; scrollbar-width: none; }
   @media (max-width: 900px) {
     .sticky-bar { display: none !important; }
   }
@@ -87,6 +92,8 @@ export const css = `
     .hero-section { height: 32vh !important; min-height: 200px !important; }
     .hero-section .heroContent { padding-bottom: 0; }
     .hero-section .heroContent h1 { font-size: 22px !important; }
+    .admin-container { padding: 20px 16px !important; }
+    .admin-container input, .admin-container textarea, .admin-container select { font-size: 16px !important; }
   }
   @media (min-width: 641px) {
     .mobile-menu { display: none !important; }
@@ -101,4 +108,9 @@ export const S = {
   label: { fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#777", marginBottom: 10 },
   input: { width: "100%", padding: "8px 11px", border: "1px solid #e0e0e0", borderRadius: 6, fontSize: 13, outline: "none", display: "block" },
   btnPrimary: { background: "#222", color: "#fff", border: "none", padding: "8px 18px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 },
+  adminCard: { padding: 16, background: "#fafafa", borderRadius: 10, border: "1px solid #f0f0f0" },
+  adminCardTitle: { fontSize: 12, fontWeight: 600, marginBottom: 10 },
+  btnDanger: { background: "none", border: "1px solid #fdd", padding: "2px 8px", borderRadius: 5, cursor: "pointer", fontSize: 10, color: R, fontWeight: 500 },
+  btnSmall: { background: "none", border: "1px solid #e5e5e5", padding: "2px 8px", borderRadius: 5, cursor: "pointer", fontSize: 10, color: "#666" },
+  listItem: { display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #f3f3f3" },
 };
