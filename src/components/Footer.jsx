@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { PHONE, WA_LINK, SERVICE_AREAS, svgP } from "../lib/constants";
 import { Socials } from "./ui";
+import ShareBar from "./ShareButton";
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -33,6 +34,10 @@ export default function Footer() {
         <div style={{ borderTop: "1px solid #eee", paddingTop: 20, textAlign: "center" }}>
           <div style={{ fontFamily: "'Dancing Script', cursive", fontSize: 16, color: "#ccc", marginBottom: 10 }}>{t("footer.follow")}</div>
           <div style={{ display: "flex", justifyContent: "center" }}><Socials sz={15} color="#bbb"/></div>
+          <div style={{ marginTop: 16, marginBottom: 4 }}>
+            <div style={{ fontSize: 11, color: "#aaa", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{t("footer.share", "Share this page")}</div>
+            <ShareBar/>
+          </div>
           <div style={{ marginTop: 12 }}>
             <span style={{ fontSize: 11, color: "#ccc" }}>{t("footer.copyright", { year: new Date().getFullYear() })}</span>
           </div>
