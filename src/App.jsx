@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -12,7 +12,7 @@ import {
   fetchGoogleReviews,
 } from "./lib/supabase";
 
-// Components
+// Components (eager — needed on home page)
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
 import StatsBar from "./components/StatsBar";
@@ -25,11 +25,13 @@ import { TailoringCTA, BottomCTA } from "./components/CTA";
 import { GoogleReviewsHome, ReviewsPage } from "./components/Reviews";
 import { FAQHome, FAQPage } from "./components/FAQ";
 import Footer from "./components/Footer";
-import Portfolio from "./components/Portfolio";
 import Lightbox from "./components/Lightbox";
 import StickyBar from "./components/StickyBar";
 import WhatsAppFAB from "./components/WhatsAppFAB";
-import AdminPanel from "./components/Admin/AdminPanel";
+
+// Lazy-loaded routes (code-split — only downloaded when user navigates)
+const Portfolio = lazy(() => import("./components/Portfolio"));
+const AdminPanel = lazy(() => import("./components/Admin/AdminPanel"));
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -175,17 +177,18 @@ export default function App() {
       <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
       {page !== "admin" && <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>}
       <main id="main-content">
-        <Routes>
-          <Route path="/" element={<HomePage/>}/>
-          <Route path="/portfolio" element={
-            <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={setLb}/>
-          }/>
-          <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews}/>}/>
-          <Route path="/faq" element={<FAQPage faqs={faqs}/>}/>
-          <Route path="/admin" element={<AdminPage/>}/>
-          {/* Catch-all: redirect unknown routes to home */}
-          <Route path="*" element={<HomePage/>}/>
-        </Routes>
+        <Suspense fallback={<div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}><div style={{ width: 40, height: 40, border: "3px solid #f0f0f0", borderTop: "3px solid #D4781F", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/></div>}>
+          <Routes>
+            <Route path="/" element={<HomePage/>}/>
+            <Route path="/portfolio" element={
+              <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={setLb}/>
+            }/>
+            <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews}/>}/>
+            <Route path="/faq" element={<FAQPage faqs={faqs}/>}/>
+            <Route path="/admin" element={<AdminPage/>}/>
+            <Route path="*" element={<HomePage/>}/>
+          </Routes>
+        </Suspense>
       </main>
       {page !== "admin" && (
         <>
