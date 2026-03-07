@@ -5,3 +5,6 @@ dist
 .env.supabase
 .vercel
 .mcp.json
+.DS_Store
+*.pdf
+test-*.mjs
