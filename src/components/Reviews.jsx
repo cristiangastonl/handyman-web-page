@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R, REVIEWS, svgP, socialUrls, ab } from "../lib/constants";
+import { R, REVIEWS, svgP, socialIcons, socialUrls, WA_LINK, ab } from "../lib/constants";
 import { Stars, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
@@ -33,7 +33,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <GoogleG/>
               <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
+              <img src={socialIcons.fb} alt="Facebook" width={20} height={20} style={{ borderRadius: 4 }}/>
               <span style={{ fontSize: 14, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
             </div>
             <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
@@ -99,7 +99,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
           <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>
+          <img src={socialIcons.fb} alt="Facebook" width={26} height={26} style={{ borderRadius: 5 }}/>
           <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
         </div>
         <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
@@ -146,6 +146,14 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
             <p style={{ fontSize: 14, color: "#555", lineHeight: 1.6, margin: "8px 0 0" }}>{rev.text}</p>
           </div>
         ))}
+      </div>
+      <div style={{ textAlign: "center", marginTop: 32, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#4A4A4A", marginBottom: 10 }}>{t("reviews.ctaTitle", "Ready to experience the same quality?")}</p>
+        <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
+          {t("cta.button")}
+        </a>
       </div>
     </div>
   );

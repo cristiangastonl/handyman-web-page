@@ -1,4 +1,4 @@
-import { R, svgP, socialUrls, LANGS } from "../lib/constants";
+import { R, svgP, socialUrls, socialIcons, LANGS } from "../lib/constants";
 
 export const Stars = ({ n, sz = 12 }) => (
   <span role="img" aria-label={`${n} out of 5 stars`} style={{ fontSize: sz, letterSpacing: 1 }}>
@@ -8,15 +8,15 @@ export const Stars = ({ n, sz = 12 }) => (
 
 const socialLabels = { fb: "Facebook", yt: "YouTube", wa: "WhatsApp" };
 
-export const Socials = ({ sz = 14, color = "#999" }) => (
-  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-    {Object.entries(svgP).map(([k, path]) => (
+export const Socials = ({ sz = 14 }) => (
+  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+    {Object.entries(socialIcons).map(([k, src]) => (
       <a key={k} href={socialUrls[k]} target="_blank" rel="noopener noreferrer"
         aria-label={socialLabels[k] || k}
-        style={{ color, opacity: 0.5, transition: "opacity .2s", display: "flex" }}
-        onMouseEnter={e => e.currentTarget.style.opacity = 1}
-        onMouseLeave={e => e.currentTarget.style.opacity = 0.5}>
-        <svg width={sz} height={sz} viewBox="0 0 24 24" fill="currentColor"><path d={path}/></svg>
+        style={{ opacity: 0.8, transition: "opacity .2s, transform .2s", display: "flex" }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = 1; e.currentTarget.style.transform = "scale(1.15)"; }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = 0.8; e.currentTarget.style.transform = "scale(1)"; }}>
+        <img src={src} alt={socialLabels[k]} width={sz * 2} height={sz * 2} style={{ borderRadius: sz * 0.4, objectFit: "cover" }}/>
       </a>
     ))}
   </div>

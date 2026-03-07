@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { svgP } from "../lib/constants";
 
-const SHARE_URL = "https://handyman-zurich.ch";
+const SHARE_URL = typeof window !== "undefined" ? window.location.origin : "https://handyman-zurich.ch";
 const SHARE_TEXT = "Check out this professional handyman service in Zurich!";
 
 export default function ShareBar() {

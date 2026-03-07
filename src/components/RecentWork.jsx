@@ -24,7 +24,7 @@ export function RecentWork({ items, setLb, nav }) {
           <div style={{ display: "flex", gap: 0, background: "#f5f5f5", borderRadius: 8, padding: 2 }}>
             <button onClick={() => setTab("all")}
               style={{ padding: "5px 14px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "all" ? "#fff" : "transparent", color: tab === "all" ? R : "#999", boxShadow: tab === "all" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
-              All ({items.length})
+              {t("portfolio.all")} ({items.length})
             </button>
             {videos.length > 0 && (
               <button onClick={() => setTab("videos")}

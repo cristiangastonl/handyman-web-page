@@ -14,7 +14,7 @@ export default function Hero({ nav, siteConfig = {} }) {
           <h1 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line" }}>
             {siteConfig.hero_title || t("hero.title")}
           </h1>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.9)", marginBottom: 3, fontStyle: "italic", fontFamily: "'Dancing Script', cursive", letterSpacing: "0.02em", textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>
+          <p style={{ fontSize: 20, color: "rgba(255,255,255,0.9)", marginBottom: 3, fontStyle: "italic", fontFamily: "'Dancing Script', cursive", letterSpacing: "0.02em", textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>
             {t("brand.subtitle")}
           </p>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", marginBottom: 3 }}>

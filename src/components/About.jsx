@@ -7,8 +7,8 @@ export default function About({ nav, navToCategory, siteConfig = {} }) {
   return (
     <FadeIn>
     <section style={{ padding: "40px 24px", maxWidth: 940, margin: "0 auto" }}>
-      <div style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
-        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 140, height: 140, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
+      <div className="about-row" style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
+        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
         <div style={{ flex: 1, minWidth: 240 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{t("about.title")}</h2>
           <p style={{ fontSize: 14, color: "#555", lineHeight: 1.6, marginBottom: 6 }}>
@@ -20,9 +20,9 @@ export default function About({ nav, navToCategory, siteConfig = {} }) {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {["electricity","plumbing","assembly","fixings","gardening","wallMounting"].map(s => (
               <button key={s} onClick={() => navToCategory ? navToCategory(s) : nav("portfolio")}
-                style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #eee", fontSize: 12, color: "#777", fontWeight: 500, background: "none", cursor: "pointer", transition: "border-color .2s, color .2s" }}
+                style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #ccc", fontSize: 12, color: "#666", fontWeight: 500, background: "none", cursor: "pointer", transition: "border-color .2s, color .2s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.color = "#777"; }}>
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.style.color = "#666"; }}>
                 {t(`about.skills.${s}`)}
               </button>
             ))}
@@ -32,7 +32,7 @@ export default function About({ nav, navToCategory, siteConfig = {} }) {
       {/* Highlight cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginTop: 28 }}>
         {[1, 2, 3].map(n => (
-          <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0" }}>
+          <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", borderLeft: "3px solid #D4781F" }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 4 }}>{t(`about.highlight${n}.title`)}</div>
             <div style={{ fontSize: 12, color: "#555", lineHeight: 1.55 }}>{t(`about.highlight${n}.text`)}</div>
           </div>

@@ -12,12 +12,12 @@ export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang }
         <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 4 }}>
           {["home","portfolio","reviews","faq"].map(p => (
             <button key={p} onClick={() => nav(p)}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 12px", fontSize: 13, fontWeight: page === p ? 600 : 400, color: page === p ? R : "#777" }}>
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 12px", fontSize: 13, fontWeight: page === p ? 600 : 400, color: page === p ? R : "#777", borderBottom: page === p ? `2px solid ${R}` : "2px solid transparent" }}>
               {t(`nav.${p}`)}
             </button>
           ))}
           <div style={{ width: 1, height: 14, background: "#e5e5e5", margin: "0 6px" }}/>
-          <Socials sz={13}/>
+          <Socials sz={10}/>
           <div style={{ width: 1, height: 14, background: "#e5e5e5", margin: "0 6px" }}/>
           <LangSelector currentLang={i18n.language} onChange={changeLang}/>
         </div>
@@ -44,7 +44,7 @@ export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang }
               {t(`nav.${p}`)}
             </button>
           ))}
-          <div style={{ paddingTop: 8, display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ paddingTop: 12, marginTop: 4, borderTop: "1px solid #f0f0f0", display: "flex", alignItems: "center", gap: 16 }}>
             <Socials sz={16}/>
             <LangSelector currentLang={i18n.language} onChange={changeLang}/>
           </div>

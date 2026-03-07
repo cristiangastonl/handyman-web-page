@@ -41,7 +41,7 @@ export function BottomCTA() {
   return (
     <FadeIn delay={0.1}>
     <section style={{ padding: "8px 24px 48px", textAlign: "center" }}>
-      <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 32px", background: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)", borderRadius: 16, color: "#fff" }}>
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 32px", background: "linear-gradient(135deg, #4A4A4A 0%, #3a3a3a 100%)", borderRadius: 16, color: "#fff" }}>
         <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{t("cta.title")}</h3>
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>{t("cta.subtitle")}</p>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "12px 28px", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,211,102,0.3)" }}>

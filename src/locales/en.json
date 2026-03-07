@@ -5,7 +5,7 @@
   "nav.faq": "FAQ",
 
   "hero.title": "Professional Handyman\nServices in Zürich",
-  "hero.subtitle": "Proudly serving Zürich's international community",
+  "hero.subtitle": "Your satisfaction, my commitment",
   "hero.whatsapp": "WhatsApp me",
   "hero.seeWork": "See my work",
 
@@ -84,6 +84,11 @@
   "portfolio.playlists": "Playlists",
   "portfolio.viewPlaylist": "View Playlist →",
   "portfolio.noItems": "No items found.",
+  "portfolio.noItemsYet": "No items yet in this section. Check out the playlists above!",
+  "portfolio.askForPhotos": "Ask me for photos of this work",
+  "portfolio.categories": "categories",
+  "portfolio.ctaTitle": "Like what you see?",
+  "portfolio.ctaButton": "Tell me about your project",
 
   "lightbox.close": "Close",
 
@@ -95,6 +100,7 @@
   "tailoring.seeWork": "See my work",
   "fbReviews.title": "Facebook Reviews",
   "fbReviews.count": "{{count}} reviews",
+  "faq.askWhatsApp": "Have another question? Ask me directly",
   "faq.businessHours.q": "What are your working hours?",
   "faq.businessHours.a": "I'm available Monday to Saturday, 8:00 AM to 6:00 PM. For emergencies, I also offer weekend availability — just send me a WhatsApp message.",
   "returningCustomers.title": "Returning Customers"

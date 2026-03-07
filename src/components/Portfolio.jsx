@@ -1,20 +1,32 @@
 import { useTranslation } from "react-i18next";
-import { R, ytThumb, svgP } from "../lib/constants";
+import { R, G, WA_LINK, ytThumb, svgP, socialIcons } from "../lib/constants";
 
 export default function Portfolio({ cats, items, subcats, portfolioView, setPortfolioView, setLb }) {
   const { t } = useTranslation();
   const activeCats = cats.filter(c => c.id !== "all" && (items.some(w => w.cat === c.id) || (subcats || []).some(s => s.category_id === c.id)));
+  const totalPhotos = items.filter(w => w.type === "image").length;
+  const totalVideos = items.filter(w => w.type === "video").length;
+  const totalPlaylists = (subcats || []).filter(s => s.playlist_id).length;
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>{t("portfolio.title")}</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("portfolio.title")}</h2>
+      {portfolioView === "categories" && (
+        <p style={{ fontSize: 12, color: "#888", marginBottom: 18 }}>
+          {activeCats.length} {t("portfolio.categories", "categories")}
+          {totalPhotos > 0 && <> · {totalPhotos} {t("portfolio.photos")}</>}
+          {totalVideos > 0 && <> · {totalVideos} {t("portfolio.videos")}</>}
+          {totalPlaylists > 0 && <> · {totalPlaylists} {t("portfolio.playlists")}</>}
+        </p>
+      )}
 
       {/* Level 1: Category Grid */}
       {portfolioView === "categories" && (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))", gap: 14 }}>
             {activeCats.map(c => {
               const catItems = items.filter(w => w.cat === c.id);
+              const catPlaylists = (subcats || []).filter(s => s.category_id === c.id && s.playlist_id).length;
               const thumb = c.header_image || (catItems[0]?.type === "video" ? ytThumb(catItems[0]) : catItems[0]?.src) || "";
               return (
                 <div key={c.id}
@@ -22,12 +34,24 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                   style={{ borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                  <div style={{ position: "relative", paddingTop: "65%", background: "#f5f5f5" }}>
-                    {thumb && <img src={thumb} alt={c.label} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }}/>
+                  <div style={{ position: "relative", paddingTop: "65%", background: G }}>
+                    {thumb ? (
+                      <img src={thumb} alt={c.label} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+                    ) : (
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                      </div>
+                    )}
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }}/>
                     <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{c.label}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{catItems.length} {catItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
+                        {catItems.length > 0 && <>{catItems.length} {catItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
+                        {catItems.length > 0 && catPlaylists > 0 && " · "}
+                        {catPlaylists > 0 && <>{catPlaylists} {t("portfolio.playlists")}</>}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -47,14 +71,28 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
         const activeTab = portfolioView.tab || "photos";
         const displayItems = activeTab === "photos" ? photos : videos;
         const catSubcats = (subcats || []).filter(s => s.category_id === portfolioView.cat);
+        const catThumb = currentCat?.header_image || (catItems[0]?.type === "video" ? ytThumb(catItems[0]) : catItems[0]?.src) || "";
 
         return (
           <>
-            <button onClick={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
-              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: R, fontWeight: 600, marginBottom: 16, padding: 0 }}>
-              {t("portfolio.backToCategories")}
-            </button>
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 14 }}>{currentCat?.label}</h3>
+            {/* Category header with image */}
+            <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", marginBottom: 20, height: 120, background: G }}>
+              {catThumb && <img src={catThumb} alt={currentCat?.label} style={{ width: "100%", height: "100%", objectFit: "cover" }}/>}
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%)" }}/>
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px" }}>
+                <button onClick={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, padding: 0, marginBottom: 6, textAlign: "left" }}
+                  onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+                  onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}>
+                  {t("portfolio.backToCategories")}
+                </button>
+                <h3 style={{ fontSize: 22, fontWeight: 800, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{currentCat?.label}</h3>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>
+                  {photos.length} {t("portfolio.photos")} · {videos.length} {t("portfolio.videos")}
+                  {catSubcats.length > 0 && <> · {catSubcats.length} {t("portfolio.playlists")}</>}
+                </div>
+              </div>
+            </div>
 
             {/* Subcategories (YouTube Playlists) */}
             {catSubcats.length > 0 && (
@@ -70,9 +108,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                       style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 10, border: "1px solid #eee", background: "#fafafa", textDecoration: "none", color: "#333", transition: "border-color .2s, box-shadow .2s" }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF0000"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,0,0,0.08)"; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "none"; }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 6, background: "#FF0000", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d={svgP.yt}/></svg>
-                      </div>
+                      <img src={socialIcons.yt} alt="YouTube" width={32} height={32} style={{ borderRadius: 6, objectFit: "cover", flexShrink: 0 }}/>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sc.name}</div>
                         <div style={{ fontSize: 10, color: "#666" }}>{t("portfolio.viewPlaylist")}</div>
@@ -123,10 +159,31 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                 </div>
               ))}
             </div>
-            {!displayItems.length && <p style={{ textAlign: "center", padding: 60, color: "#ccc", fontSize: 13 }}>{t("portfolio.noItems")}</p>}
+            {!displayItems.length && (
+              <div style={{ textAlign: "center", padding: "48px 20px" }}>
+                <p style={{ color: "#999", fontSize: 13, marginBottom: 12 }}>{t("portfolio.noItemsYet", "No items yet in this section. Check out the playlists above!")}</p>
+                <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
+                  {t("portfolio.askForPhotos", "Ask me for photos of this work")}
+                </a>
+              </div>
+            )}
           </>
         );
       })()}
+
+      {/* Bottom CTA */}
+      <div style={{ textAlign: "center", marginTop: 40, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("portfolio.ctaTitle", "Like what you see?")}</p>
+        <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
+          {t("portfolio.ctaButton", "Tell me about your project")}
+        </a>
+      </div>
     </div>
   );
 }
