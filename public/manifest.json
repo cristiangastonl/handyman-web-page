@@ -1,0 +1,21 @@
+{
+  "name": "Handyman Services in Zurich",
+  "short_name": "Handyman Zurich",
+  "description": "Professional handyman services in Zurich and surrounding areas.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#D4781F",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/og-image.jpeg",
+      "sizes": "883x883",
+      "type": "image/jpeg"
+    }
+  ]
+}

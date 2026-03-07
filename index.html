@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#D4781F" />
+    <meta name="robots" content="index, follow" />
     <meta name="description" content="Professional handyman services in Zurich and surrounding areas. Electrical work, plumbing, wall mounting, assembly, painting & gardening. Free estimates, fast response via WhatsApp." />
     <title>Handyman Zurich | Professional Home Repair & Maintenance Services</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -21,6 +23,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
 
     <link rel="canonical" href="https://handyman-web-page.vercel.app/" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Hreflang for multilingual -->
+    <link rel="alternate" hreflang="en" href="https://handyman-web-page.vercel.app/" />
+    <link rel="alternate" hreflang="de" href="https://handyman-web-page.vercel.app/" />
+    <link rel="alternate" hreflang="it" href="https://handyman-web-page.vercel.app/" />
+    <link rel="alternate" hreflang="fr" href="https://handyman-web-page.vercel.app/" />
+    <link rel="alternate" hreflang="es" href="https://handyman-web-page.vercel.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://handyman-web-page.vercel.app/" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -65,7 +76,8 @@
         { "@type": "City", "name": "Saint Gallen" },
         { "@type": "City", "name": "Zug" },
         { "@type": "City", "name": "Basel" },
-        { "@type": "City", "name": "Aarau" }
+        { "@type": "City", "name": "Aarau" },
+        { "@type": "City", "name": "Wetzikon" }
       ],
       "priceRange": "$$",
       "openingHoursSpecification": {
@@ -143,6 +155,14 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="text-align:center;padding:40px 20px;font-family:sans-serif">
+        <h1>Handyman Services in Zurich</h1>
+        <p>Professional handyman services in Zurich and surrounding areas. Electrical work, plumbing, wall mounting, assembly, painting &amp; gardening.</p>
+        <p>Contact us via WhatsApp: <a href="https://wa.me/41765949581">+41 76 594 95 81</a></p>
+        <p>Areas served: Zürich, Saint Gallen, Zug, Basel, Aarau, Wetzikon</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -24,7 +24,7 @@ export default function Footer() {
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: "#fff" }}>{t("footer.hours")}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: "#fff" }}>{t("footer.hoursTitle")}</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.8 }}>
               {t("footer.hours")}<br/>
               {t("footer.emergency")}
