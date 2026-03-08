@@ -41,7 +41,7 @@ export default function Footer() {
           <div style={{ marginTop: 12 }}>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{t("footer.copyright", { year: new Date().getFullYear() })}</span>
           </div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 6 }}>{t("footer.credit")} <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.4)" }}>Zipper</span></div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 6 }}>{t("footer.credit")} <a href="https://cristiangastonl.github.io" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>CGL</a></div>
         </div>
       </div>
     </footer>
