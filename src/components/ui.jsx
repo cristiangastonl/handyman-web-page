@@ -23,7 +23,7 @@ export const Socials = ({ sz = 14 }) => (
 );
 
 export const Logo = () => (
-  <img src="/images/logo.jpeg" alt="Handyman Services in Zurich" style={{ height: 48, width: "auto" }}/>
+  <img src="/anibal/logo_handy_bordes.jpeg" alt="Handyman Services in Zurich" style={{ height: 48, width: "auto", borderRadius: "50%" }}/>
 );
 
 export const GoogleG = () => (
