@@ -28,7 +28,7 @@ export const Logo = () => (
 
 export const GoogleG = () => (
   <div style={{ width: 16, height: 16, borderRadius: 4, overflow: "hidden", flexShrink: 0, display: "inline-flex" }}>
-    <img src="/anibal/google_icon.jpeg" alt="Google" width="22" height="22" style={{ margin: -3, objectFit: "cover" }}/>
+    <img src="/anibal/google_icon.jpeg" alt="Google" width="28" height="28" style={{ margin: -6, objectFit: "cover" }}/>
   </div>
 );
 
