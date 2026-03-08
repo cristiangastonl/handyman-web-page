@@ -27,7 +27,9 @@ export const Logo = () => (
 );
 
 export const GoogleG = () => (
-  <img src="/anibal/google_icon.jpeg" alt="Google" width="16" height="16" style={{ borderRadius: 4, objectFit: "cover", transform: "scale(1.45)" }}/>
+  <div style={{ width: 16, height: 16, borderRadius: 4, overflow: "hidden", flexShrink: 0, display: "inline-flex" }}>
+    <img src="/anibal/google_icon.jpeg" alt="Google" width="22" height="22" style={{ margin: -3, objectFit: "cover" }}/>
+  </div>
 );
 
 export const MapPin = ({ size = 18, color = "#999" }) => (
