@@ -2,7 +2,7 @@ export const R = "#D4781F";
 export const G = "#4A4A4A";
 export const PHONE = "+41 76 594 95 81";
 export const WA_LINK = "https://wa.me/41765949581?text=Hi%2C%20I%20need%20a%20handyman%20in%20Zurich";
-export const HERO_IMG = "/images/hero_collage.jpg";
+export const HERO_IMG = "/anibal/hero.jpeg";
 export const PROFILE_IMG = "/anibal/foto_perfil_colores.jpeg";
 
 export const DEFAULT_CATS = [
