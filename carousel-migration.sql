@@ -6,7 +6,7 @@
 CREATE TABLE IF NOT EXISTS carousel_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   carousel_name TEXT NOT NULL CHECK (carousel_name IN ('recent_works', 'highlights', 'returning_customers', 'tailor_jobs')),
-  work_item_id UUID NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,
+  work_item_id INTEGER NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,
   sort_order INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now()
 );

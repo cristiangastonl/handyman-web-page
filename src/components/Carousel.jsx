@@ -1,83 +1,107 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { R, ab, itemThumb } from "../lib/constants";
 
-export default function Carousel({ items, onClickItem, autoPlay = true, interval = 5000 }) {
-  const ref = useRef(null);
-  const timerRef = useRef(null);
-  const resumeTimerRef = useRef(null);
+const CARD_WIDTH = 292; // minWidth + gap
+const SPEED = 0.5; // pixels per frame (~30px/sec)
 
-  const scrollNext = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    if (maxScroll <= 0) return;
-    // If near the end, scroll back to start
-    if (el.scrollLeft >= maxScroll - 10) {
-      el.scrollTo({ left: 0, behavior: "smooth" });
-    } else {
-      el.scrollBy({ left: 320, behavior: "smooth" });
+export default function Carousel({ items, onClickItem, autoPlay = true }) {
+  const trackRef = useRef(null);
+  const animRef = useRef(null);
+  const posRef = useRef(0);
+  const [paused, setPaused] = useState(false);
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, pos: 0 });
+
+  // Duplicate items for seamless loop (need at least 2 sets)
+  const loopItems = items.length > 0 ? [...items, ...items, ...items] : [];
+  const singleSetWidth = items.length * CARD_WIDTH;
+
+  const animate = useCallback(() => {
+    if (!trackRef.current || paused || isDragging.current || singleSetWidth === 0) {
+      animRef.current = requestAnimationFrame(animate);
+      return;
     }
-  }, []);
-
-  const startAutoPlay = useCallback(() => {
-    if (!autoPlay || items.length <= 1) return;
-    clearInterval(timerRef.current);
-    timerRef.current = setInterval(scrollNext, interval);
-  }, [autoPlay, interval, items.length, scrollNext]);
-
-  const stopAutoPlay = useCallback(() => {
-    clearInterval(timerRef.current);
-    clearTimeout(resumeTimerRef.current);
-  }, []);
-
-  const resumeAutoPlayDelayed = useCallback(() => {
-    clearTimeout(resumeTimerRef.current);
-    resumeTimerRef.current = setTimeout(() => {
-      startAutoPlay();
-    }, 10000);
-  }, [startAutoPlay]);
+    posRef.current += SPEED;
+    // Reset position seamlessly when we've scrolled one full set
+    if (posRef.current >= singleSetWidth) {
+      posRef.current -= singleSetWidth;
+    }
+    trackRef.current.style.transform = `translateX(${-posRef.current}px)`;
+    animRef.current = requestAnimationFrame(animate);
+  }, [paused, singleSetWidth]);
 
   useEffect(() => {
-    startAutoPlay();
-    return () => { stopAutoPlay(); clearTimeout(resumeTimerRef.current); };
-  }, [startAutoPlay, stopAutoPlay]);
+    if (!autoPlay || items.length <= 1) return;
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [animate, autoPlay, items.length]);
 
-  const scroll = (dir) => {
-    const el = ref.current;
-    if (!el) return;
-    if (dir === 1) {
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      if (el.scrollLeft >= maxScroll - 10) {
-        el.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        el.scrollBy({ left: 320, behavior: "smooth" });
-      }
-    } else {
-      if (el.scrollLeft <= 10) {
-        el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
-      } else {
-        el.scrollBy({ left: -320, behavior: "smooth" });
-      }
-    }
-    // Reset timer on manual interaction
-    stopAutoPlay();
-    startAutoPlay();
+  // Drag/swipe support
+  const onPointerDown = (e) => {
+    isDragging.current = true;
+    dragStart.current = { x: e.clientX, pos: posRef.current };
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
+  const onPointerMove = (e) => {
+    if (!isDragging.current || !trackRef.current) return;
+    const dx = dragStart.current.x - e.clientX;
+    let newPos = dragStart.current.pos + dx;
+    if (newPos < 0) newPos += singleSetWidth;
+    if (newPos >= singleSetWidth) newPos -= singleSetWidth;
+    posRef.current = newPos;
+    trackRef.current.style.transform = `translateX(${-posRef.current}px)`;
+  };
+
+  const onPointerUp = () => {
+    isDragging.current = false;
+  };
+
+  const scroll = (dir) => {
+    if (!trackRef.current || singleSetWidth === 0) return;
+    // Smooth scroll by one card width
+    const target = posRef.current + dir * CARD_WIDTH;
+    const start = posRef.current;
+    const duration = 400;
+    const startTime = performance.now();
+
+    const step = (now) => {
+      const t = Math.min((now - startTime) / duration, 1);
+      const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // easeInOut
+      let pos = start + (target - start) * ease;
+      if (pos >= singleSetWidth) pos -= singleSetWidth;
+      if (pos < 0) pos += singleSetWidth;
+      posRef.current = pos;
+      if (trackRef.current) trackRef.current.style.transform = `translateX(${-pos}px)`;
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  if (items.length === 0) return null;
+
   return (
-    <div style={{ position: "relative" }}
-      onMouseEnter={stopAutoPlay}
-      onMouseLeave={startAutoPlay}
-      onTouchStart={stopAutoPlay}
-      onTouchEnd={resumeAutoPlayDelayed}>
-      <div ref={ref} className="hs" style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
-        {items.map(item => (
-          <div key={item.id} onClick={() => onClickItem(item)}
-            style={{ minWidth: 280, maxWidth: 320, flexShrink: 0, borderRadius: 10, overflow: "hidden", cursor: "pointer", scrollSnapAlign: "start", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
+    <div style={{ position: "relative", overflow: "hidden" }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onTouchStart={() => setPaused(true)}
+      onTouchEnd={() => { setTimeout(() => setPaused(false), 5000); }}>
+      <div
+        ref={trackRef}
+        style={{ display: "flex", gap: 12, willChange: "transform", cursor: "grab" }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}>
+        {loopItems.map((item, i) => (
+          <div key={`${item.id}-${i}`}
+            onClick={() => { if (!isDragging.current) onClickItem(item); }}
+            style={{ minWidth: 280, maxWidth: 320, flexShrink: 0, borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s", userSelect: "none" }}
             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
             <div style={{ position: "relative", paddingTop: "62%" }}>
-              <img src={itemThumb(item)} alt={item.title} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+              <img src={itemThumb(item)} alt={item.title} loading="lazy" draggable={false}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
               {(item.type === "video" || item.type === "facebook") && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.1)" }}>
                   <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>

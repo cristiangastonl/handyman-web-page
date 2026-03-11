@@ -2,7 +2,7 @@
   "nav.home": "Home",
   "nav.portfolio": "Portfolio",
   "nav.reviews": "Reviews",
-  "nav.faq": "FAQ",
+  "nav.faq": "FAQs",
 
   "hero.title": "Professional Handyman\nServices in Zürich",
   "hero.subtitle": "Your satisfaction, my commitment",
@@ -47,13 +47,13 @@
   "videos.title": "Videos",
   "videos.viewAll": "View all →",
 
-  "reviews.title": "Google Reviews",
+  "reviews.title": "Reviews",
   "reviews.based": "Based on {{count}} reviews",
   "reviews.count": "{{count}} reviews",
   "reviews.seeAll": "See all reviews →",
   "reviews.leaveReview": "Leave a review on Google",
 
-  "faq.title": "FAQ",
+  "faq.title": "FAQs",
   "faq.common": "Top Questions",
   "faq.viewAll": "View all FAQs",
 
@@ -66,8 +66,7 @@
   "footer.contact": "Contact",
   "footer.hoursTitle": "Hours",
   "footer.hours": "Mon–Sat · 8:00–19:00",
-  "footer.emergency": "Emergency available 24/7",
-  "footer.follow": "Why not follow, subscribe or message me?",
+    "footer.follow": "Why not follow, subscribe or message me?",
   "footer.copyright": "© {{year}} Handyman Services in Zürich",
   "footer.credit": "Designed & developed by",
 
@@ -105,5 +104,5 @@
   "faq.businessHours.q": "What are your working hours?",
   "faq.businessHours.a": "I'm available Monday to Saturday, 8:00 AM to 6:00 PM. For emergencies, I also offer weekend availability — just send me a WhatsApp message.",
   "returningCustomers.title": "Returning Customers",
-  "tailorJobs.title": "Tailor-Made Jobs"
+  "tailorJobs.title": "Custom Projects"
 }

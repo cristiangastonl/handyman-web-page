@@ -15,13 +15,13 @@ export default function ServiceAreas() {
           <div key={area.name} style={{
             display: "flex", alignItems: "center", gap: 6,
             padding: "10px 18px", borderRadius: 10,
-            background: area.primary ? R : "#f5f5f5",
-            color: area.primary ? "#fff" : "#555",
-            fontWeight: area.primary ? 700 : 500,
+            background: R,
+            color: "#fff",
+            fontWeight: 600,
             fontSize: 13,
-            border: area.primary ? "none" : "1px solid #eee",
+            border: "none",
           }}>
-            <MapPin size={15} color={area.primary ? "#fff" : "#bbb"}/>
+            <MapPin size={15} color="#fff"/>
             {area.name}
           </div>
         ))}

@@ -2,7 +2,7 @@
   "nav.home": "Inicio",
   "nav.portfolio": "Portfolio",
   "nav.reviews": "Reseñas",
-  "nav.faq": "FAQ",
+  "nav.faq": "FAQs",
 
   "hero.title": "Professional Handyman\nServices in Zürich",
   "hero.subtitle": "Tu satisfacción, mi compromiso",
@@ -47,15 +47,15 @@
   "videos.title": "Videos",
   "videos.viewAll": "Ver todos →",
 
-  "reviews.title": "Reseñas de Google",
+  "reviews.title": "Reseñas",
   "reviews.based": "Basado en {{count}} reseñas",
   "reviews.count": "{{count}} reseñas",
   "reviews.seeAll": "Todas las reseñas →",
   "reviews.leaveReview": "Dejar una reseña en Google",
 
-  "faq.title": "FAQ",
+  "faq.title": "FAQs",
   "faq.common": "Preguntas Principales",
-  "faq.viewAll": "Todas las FAQ",
+  "faq.viewAll": "Todas las FAQs",
 
   "cta.title": "¿Listo para empezar?",
   "cta.subtitle": "Presupuesto en el día · Respuesta en 2 horas · Calidad garantizada",
@@ -66,8 +66,7 @@
   "footer.contact": "Contacto",
   "footer.hoursTitle": "Horarios",
   "footer.hours": "Lun–Sáb · 8:00–19:00",
-  "footer.emergency": "Emergencias disponibles 24/7",
-  "footer.follow": "¡Sígueme, suscríbete o escríbeme!",
+    "footer.follow": "¡Sígueme, suscríbete o escríbeme!",
   "footer.copyright": "© {{year}} Handyman Services in Zürich",
   "footer.credit": "Diseñado y desarrollado por",
 
@@ -105,5 +104,5 @@
   "faq.businessHours.q": "¿Cuáles son sus horarios de trabajo?",
   "faq.businessHours.a": "Estoy disponible de lunes a sábado, de 8:00 a 18:00. Para emergencias, también ofrezco disponibilidad los fines de semana — solo envíame un mensaje por WhatsApp.",
   "returningCustomers.title": "Clientes Recurrentes",
-  "tailorJobs.title": "Trabajos a Medida"
+  "tailorJobs.title": "Proyectos Personalizados"
 }

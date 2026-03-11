@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { R, G, WA_LINK, itemThumb, svgP, socialIcons } from "../lib/constants";
+import { R, G, WA_LINK, itemThumb, svgP } from "../lib/constants";
+import { SocialIcon } from "./ui";
 
 export default function Portfolio({ cats, items, subcats, portfolioView, setPortfolioView, setLb }) {
   const { t } = useTranslation();
@@ -108,7 +109,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                       style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 10, border: "1px solid #eee", background: "#fafafa", textDecoration: "none", color: "#333", transition: "border-color .2s, box-shadow .2s" }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF0000"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,0,0,0.08)"; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "none"; }}>
-                      <img src={socialIcons.yt} alt="YouTube" width={32} height={32} style={{ borderRadius: 6, objectFit: "cover", flexShrink: 0 }}/>
+                      <SocialIcon type="yt" size={32}/>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sc.name}</div>
                         <div style={{ fontSize: 10, color: "#666" }}>{t("portfolio.viewPlaylist")}</div>

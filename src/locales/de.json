@@ -2,7 +2,7 @@
   "nav.home": "Startseite",
   "nav.portfolio": "Portfolio",
   "nav.reviews": "Bewertungen",
-  "nav.faq": "FAQ",
+  "nav.faq": "FAQs",
 
   "hero.title": "Professional Handyman\nServices in Zürich",
   "hero.subtitle": "Ihre Zufriedenheit, mein Engagement",
@@ -47,13 +47,13 @@
   "videos.title": "Videos",
   "videos.viewAll": "Alle ansehen →",
 
-  "reviews.title": "Google Bewertungen",
+  "reviews.title": "Bewertungen",
   "reviews.based": "Basierend auf {{count}} Bewertungen",
   "reviews.count": "{{count}} Bewertungen",
   "reviews.seeAll": "Alle Bewertungen →",
   "reviews.leaveReview": "Bewertung auf Google hinterlassen",
 
-  "faq.title": "FAQ",
+  "faq.title": "FAQs",
   "faq.common": "Top Fragen",
   "faq.viewAll": "Alle FAQs ansehen",
 
@@ -66,8 +66,7 @@
   "footer.contact": "Kontakt",
   "footer.hoursTitle": "Öffnungszeiten",
   "footer.hours": "Mo–Sa · 8:00–19:00",
-  "footer.emergency": "Notdienst 24/7 verfügbar",
-  "footer.follow": "Folgen, abonnieren oder schreiben Sie mir!",
+    "footer.follow": "Folgen, abonnieren oder schreiben Sie mir!",
   "footer.copyright": "© {{year}} Handyman Services in Zürich",
   "footer.credit": "Entworfen & entwickelt von",
 
@@ -105,5 +104,5 @@
   "faq.businessHours.q": "Was sind Ihre Arbeitszeiten?",
   "faq.businessHours.a": "Ich bin von Montag bis Samstag, 8:00 bis 18:00 Uhr erreichbar. Für Notfälle biete ich auch Wochenendverfügbarkeit an — schreiben Sie mir einfach eine WhatsApp-Nachricht.",
   "returningCustomers.title": "Stammkunden",
-  "tailorJobs.title": "Massgeschneiderte Arbeiten"
+  "tailorJobs.title": "Individuelle Projekte"
 }

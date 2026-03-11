@@ -62,11 +62,9 @@ export const REVIEWS = [
   { name: "Stefan W.", r: 5, text: "Fixed a leaking faucet and installed a new bathroom mirror. Quick, efficient, and very friendly. Recommended to all my neighbors.", time: "6 months ago" },
 ];
 
-export const socialIcons = {
-  fb: "/anibal/facebook_icon.jpeg",
-  yt: "/anibal/youtube_icon.jpeg",
-  wa: "/anibal/whatsapp_icon.jpeg",
-};
+// Legacy image paths (kept for reference)
+// fb: "/anibal/facebook_icon.jpeg", yt: "/anibal/youtube_icon.jpeg", wa: "/anibal/whatsapp_icon.jpeg"
+export const socialColors = { fb: "#1877F2", yt: "#FF0000", wa: "#25D366" };
 
 export const svgP = {
   fb: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z",
@@ -135,6 +133,8 @@ export const css = `
   @media (max-width: 640px) {
     .desktop-nav { display: none !important; }
     .mobile-hamburger { display: block !important; }
+    .logo-desktop { display: none !important; }
+    .logo-mobile { display: block !important; }
     .about-row { justify-content: center !important; text-align: center; }
     .about-row img { margin: 0 auto; }
     .hero-section { height: 32vh !important; min-height: 200px !important; }

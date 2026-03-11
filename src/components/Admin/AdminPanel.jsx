@@ -16,7 +16,7 @@ import CarouselsTab from "./CarouselsTab";
 
 const emptyMsg = (text) => <p style={{ fontSize: 12, color: "#bbb", textAlign: "center", padding: "18px 0" }}>{text}</p>;
 
-export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, returningCustomers, setReturningCustomers, fbReviews, setFbReviews, googleReviews, setGoogleReviews, carouselData, setCarouselData }) {
+export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, returningCustomers, setReturningCustomers, fbReviews, setFbReviews, googleReviews, setGoogleReviews, carouselData, setCarouselData, adminTab, setAdminTab }) {
   // Auth
   const [session, setSession] = useState(null);
   const [loginEmail, setLoginEmail] = useState("");
@@ -25,7 +25,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Admin UI
-  const [adminTab, setAdminTab] = useState("categories");
+  // adminTab and setAdminTab come from props (lifted to App.jsx to survive re-renders)
   const [adminMsg, setAdminMsg] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
   const [siteConfig, setSiteConfig] = useState({});
@@ -378,7 +378,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* Tabs — horizontal scroll */}
             <div className="admin-tabs" style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
               {TABS.map(([k, l]) => (
-                <button key={k} className="admin-tab" onClick={() => { if (window.__dragActive) return; setAdminTab(k); }}
+                <button key={k} className="admin-tab" onClick={() => { window.__dragActive = false; setAdminTab(k); }}
                   style={{ padding: "6px 14px", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: adminTab === k ? 600 : 400, color: adminTab === k ? R : "#999", borderBottom: adminTab === k ? `2px solid ${R}` : "2px solid transparent", marginBottom: -2, flexShrink: 0, whiteSpace: "nowrap" }}>
                   {l}
                 </button>
@@ -471,7 +471,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {adminTab === "work" && (
               <div>
                 <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
-                  <strong>How it works:</strong> Upload photos, YouTube videos, or Facebook reels here. Each item needs a category (required) and optionally a subcategory. These items appear in the Portfolio page and can be selected for the home page carousels.
+                  <strong>How it works:</strong> Upload photos, YouTube videos, or Facebook reels here. Each item needs a category and a subcategory (both required when subcategories exist for that category). These items appear in the Portfolio page and can be selected for the home page carousels.
                 </div>
                 <p style={S.label}>Portfolio Items ({items.length})</p>
                 <form onSubmit={prevent(handleAddWorkItem)} style={{ ...S.adminCard, marginBottom: 20 }}>
@@ -490,7 +490,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   </select>
                   {wiCat && subcats.filter(s => s.category_id === wiCat).length > 0 && (
                     <select value={wiSubcat} onChange={e => setWiSubcat(e.target.value)} style={{ ...S.input, marginBottom: 10, color: wiSubcat ? "#222" : "#aaa" }}>
-                      <option value="">No subcategory (optional)</option>
+                      <option value="" disabled>Select subcategory...</option>
                       {subcats.filter(s => s.category_id === wiCat).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                   )}
@@ -520,8 +520,8 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                       </div>
                     </>
                   )}
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !wiTitle.trim() || !wiCat}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !wiTitle.trim() || !wiCat) ? 0.5 : 1 }}>
+                  <button type="submit" className="admin-btn" disabled={adminLoading || !wiTitle.trim() || !wiCat || (subcats.filter(s => s.category_id === wiCat).length > 0 && !wiSubcat)}
+                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !wiTitle.trim() || !wiCat || (subcats.filter(s => s.category_id === wiCat).length > 0 && !wiSubcat)) ? 0.5 : 1 }}>
                     {adminLoading ? "Adding..." : "Add Item"}
                   </button>
                 </form>
@@ -679,8 +679,34 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {adminTab === "config" && (
               <div>
                 <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
-                  <strong>How it works:</strong> Customize the main texts on the site. You can change the content, font size, and font family. Leave blank to use the default. Changes appear immediately.
+                  <strong>How it works:</strong> Customize the main texts and stats on the site. Changes appear immediately.
                 </div>
+
+                {/* Hero image position */}
+                <p style={S.label}>Hero Image Position</p>
+                <div style={{ ...S.adminCard, marginBottom: 20 }}>
+                  <p style={{ fontSize: 11, color: "#888", marginBottom: 10 }}>Adjust where the image focuses. 0% = left/top, 50% = center, 100% = right/bottom.</p>
+                  <HeroPositionControl
+                    xVal={siteConfig.hero_img_x || "50"}
+                    yVal={siteConfig.hero_img_y || "50"}
+                    onSave={handleSaveConfig}
+                    loading={adminLoading}
+                  />
+                </div>
+
+                {/* Stats counters */}
+                <p style={S.label}>Stats Bar</p>
+                <div style={{ ...S.adminCard, marginBottom: 20 }}>
+                  {[
+                    { key: "stat_experience", label: "Years Experience", defaultVal: "20" },
+                    { key: "stat_videos", label: "Video Shows", defaultVal: "400" },
+                    { key: "stat_yt_views", label: "YouTube Views (in K)", defaultVal: "900" },
+                    { key: "stat_fb_followers", label: "Facebook Followers", defaultVal: "1400" },
+                  ].map(stat => (
+                    <StatRow key={stat.key} statKey={stat.key} label={stat.label} defaultVal={stat.defaultVal} currentValue={siteConfig[stat.key]} onSave={handleSaveConfig} loading={adminLoading} />
+                  ))}
+                </div>
+
                 <p style={S.label}>Site Texts</p>
                 {Object.entries(SITE_TEXTS).map(([key, def]) => (
                   <SiteTextRow key={key} configKey={key} def={def} currentValue={siteConfig[key]} onSave={handleSaveConfig} loading={adminLoading} />
@@ -712,6 +738,52 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+// Hero image position control with sliders and live preview
+function HeroPositionControl({ xVal, yVal, onSave, loading }) {
+  const [x, setX] = useState(xVal);
+  const [y, setY] = useState(yVal);
+  useEffect(() => { setX(xVal); }, [xVal]);
+  useEffect(() => { setY(yVal); }, [yVal]);
+  const HERO_IMG = "/anibal/hero.jpeg";
+  return (
+    <div>
+      <div style={{ position: "relative", width: "100%", paddingTop: "35%", borderRadius: 8, overflow: "hidden", marginBottom: 12, border: "1px solid #e0e0e0" }}>
+        <img src={HERO_IMG} alt="Hero preview" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${x}% ${y}%` }}/>
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)" }}/>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 10, height: 10, borderRadius: "50%", border: "2px solid #fff", background: "rgba(212,120,31,0.8)" }}/>
+      </div>
+      <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
+        <label style={{ fontSize: 11, fontWeight: 600, color: "#555", minWidth: 80 }}>Horizontal ({x}%)</label>
+        <input type="range" min="0" max="100" value={x} onChange={e => setX(e.target.value)} style={{ flex: 1 }}/>
+      </div>
+      <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 12 }}>
+        <label style={{ fontSize: 11, fontWeight: 600, color: "#555", minWidth: 80 }}>Vertical ({y}%)</label>
+        <input type="range" min="0" max="100" value={y} onChange={e => setY(e.target.value)} style={{ flex: 1 }}/>
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button className="admin-btn" onClick={() => { onSave("hero_img_x", x); onSave("hero_img_y", y); }} disabled={loading}
+          style={{ ...S.btnSmall, background: "#222", color: "#fff", borderColor: "#222", fontWeight: 600, opacity: loading ? 0.5 : 1 }}>Save Position</button>
+        <button className="admin-ghost" onClick={() => { setX("50"); setY("50"); }} style={S.btnSmall}>Reset</button>
+      </div>
+    </div>
+  );
+}
+
+// Stat row for stats bar editing
+function StatRow({ statKey, label, defaultVal, currentValue, onSave, loading }) {
+  const [value, setValue] = useState(currentValue || defaultVal);
+  useEffect(() => { setValue(currentValue || defaultVal); }, [currentValue, defaultVal]);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+      <label style={{ fontSize: 12, fontWeight: 600, minWidth: 160, color: "#555" }}>{label}</label>
+      <input type="number" value={value} onChange={e => setValue(e.target.value)}
+        style={{ ...S.input, flex: 1, margin: 0, maxWidth: 120 }}/>
+      <button className="admin-btn" onClick={() => onSave(statKey, value)} disabled={loading}
+        style={{ ...S.btnSmall, background: "#222", color: "#fff", borderColor: "#222", fontWeight: 600, opacity: loading ? 0.5 : 1 }}>Save</button>
     </div>
   );
 }

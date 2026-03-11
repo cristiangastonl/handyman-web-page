@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { R, S, itemThumb } from "../../lib/constants";
 import { fetchCarouselItems, addCarouselItem, removeCarouselItem, updateCarouselOrder } from "../../lib/supabase";
 import DragList from "./DragList";
@@ -27,7 +27,7 @@ const normalizeItem = (ci) => ({
 
 export default function CarouselsTab({ items, cats, carouselData, setCarouselData, flash, adminLoading, setAdminLoading }) {
   const [subTab, setSubTab] = useState("recent_works");
-  const [loaded, setLoaded] = useState({});
+  const loadedRef = useRef({});
   const [page, setPage] = useState(0);
   const [filterCat, setFilterCat] = useState("");
 
@@ -36,19 +36,20 @@ export default function CarouselsTab({ items, cats, carouselData, setCarouselDat
 
   // Load carousel items when sub-tab changes
   useEffect(() => {
-    if (loaded[subTab]) return;
+    if (loadedRef.current[subTab]) return;
+    loadedRef.current[subTab] = true;
     (async () => {
       try {
         const data = await fetchCarouselItems(subTab);
         if (data) {
           setCarouselData(prev => ({ ...prev, [subTab]: data.map(normalizeItem) }));
         }
-        setLoaded(prev => ({ ...prev, [subTab]: true }));
       } catch (err) {
         console.warn("Carousel load error:", err.message);
+        loadedRef.current[subTab] = false;
       }
     })();
-  }, [subTab, loaded, setCarouselData]);
+  }, [subTab, setCarouselData]);
 
   const currentItems = carouselData[subTab] || [];
 

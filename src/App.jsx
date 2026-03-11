@@ -22,7 +22,7 @@ import { RecentWork } from "./components/RecentWork";
 import Highlights from "./components/Highlights";
 import ReturningCustomers from "./components/ReturningCustomers";
 import TailorJobs from "./components/TailorJobs";
-import { TailoringCTA, BottomCTA } from "./components/CTA";
+import { TailoringCTA, ServiceAreasCTA, BottomCTA } from "./components/CTA";
 import { GoogleReviewsHome, ReviewsPage } from "./components/Reviews";
 import { FAQHome, FAQPage } from "./components/FAQ";
 import Footer from "./components/Footer";
@@ -89,6 +89,7 @@ export default function App() {
   const [lb, setLb] = useState(null);
   const [portfolioView, setPortfolioView] = useState("categories");
   const [loading, setLoading] = useState(!!supabase);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // ── Data ──
   const [cats, setCats] = useState(DEFAULT_CATS);
@@ -100,6 +101,7 @@ export default function App() {
   const [fbReviews, setFbReviews] = useState(DEFAULT_FB_REVIEWS);
   const [siteConfig, setSiteConfig] = useState({});
   const [googleReviews, setGoogleReviews] = useState([]);
+  const [adminTab, setAdminTab] = useState("categories");
   const [carouselData, setCarouselData] = useState({
     recent_works: [],
     highlights: [],
@@ -108,6 +110,14 @@ export default function App() {
   });
 
   // ── Effects ──
+  // Check admin session
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data: { session } }) => { if (session) setIsAdmin(true); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setIsAdmin(!!s));
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Admin shortcut: Ctrl+Shift+A navigates to /admin
   useEffect(() => {
     const onKey = (e) => { if (e.ctrlKey && e.shiftKey && e.key === "A") navigate("/admin"); };
@@ -171,15 +181,15 @@ export default function App() {
       )}
       {!loading && (
         <>
-          <Hero nav={nav} siteConfig={siteConfig}/>
-          <StatsBar/>
+          <Hero nav={nav} siteConfig={siteConfig} isAdmin={isAdmin} onConfigUpdate={setSiteConfig}/>
+          <StatsBar siteConfig={siteConfig}/>
           <About nav={nav} navToCategory={navToCategory} siteConfig={siteConfig}/>
-          <ServiceAreas/>
+          <ServiceAreasCTA/>
           <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={setLb} nav={nav}/>
           <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={setLb} siteConfig={siteConfig}/>
           <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={setLb}/>
-          <TailorJobs items={carouselData.tailor_jobs} setLb={setLb}/>
           <TailoringCTA nav={nav}/>
+          <TailorJobs items={carouselData.tailor_jobs} setLb={setLb}/>
           <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews}/>
           <FAQHome faqs={faqs} nav={nav}/>
           <BottomCTA/>
@@ -188,8 +198,8 @@ export default function App() {
     </>
   );
 
-  // ── Admin page content ──
-  const AdminPage = () => (
+  // ── Admin page content (not a component — just JSX to avoid remounting) ──
+  const adminPageContent = (
     <AdminPanel
       onBack={() => navigate("/")}
       cats={cats} setCats={setCats}
@@ -201,14 +211,15 @@ export default function App() {
       fbReviews={fbReviews} setFbReviews={setFbReviews}
       googleReviews={googleReviews} setGoogleReviews={setGoogleReviews}
       carouselData={carouselData} setCarouselData={setCarouselData}
+      adminTab={adminTab} setAdminTab={setAdminTab}
     />
   );
 
   // ── Main site ──
   return (
     <div style={S.root}><style>{css}</style>
-      <img src="/images/logo.jpeg" alt="" aria-hidden="true"
-        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 300, height: 300, opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 0 }}/>
+      <img src="/anibal/watermark.png" alt="" aria-hidden="true"
+        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 940, width: "90%", opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 9999 }}/>
       <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
       {page !== "admin" && <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>}
       <main id="main-content">
@@ -220,7 +231,7 @@ export default function App() {
             }/>
             <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews}/>}/>
             <Route path="/faq" element={<FAQPage faqs={faqs}/>}/>
-            <Route path="/admin" element={<AdminPage/>}/>
+            <Route path="/admin" element={adminPageContent}/>
             <Route path="*" element={<HomePage/>}/>
           </Routes>
         </Suspense>

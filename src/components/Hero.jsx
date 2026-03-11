@@ -1,49 +1,123 @@
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { WA_LINK, HERO_IMG, svgP, parseSiteText, SITE_TEXTS } from "../lib/constants";
+import { upsertSiteConfig } from "../lib/supabase";
 import useScrollY from "../hooks/useScrollY";
 
-export default function Hero({ nav, siteConfig = {} }) {
+export default function Hero({ nav, siteConfig = {}, isAdmin = false, onConfigUpdate }) {
   const scrollY = useScrollY();
   const { t } = useTranslation();
   const title = parseSiteText(siteConfig.hero_title);
   const subtitle = parseSiteText(siteConfig.hero_subtitle);
-  const titleDef = SITE_TEXTS.hero_title;
-  const subtitleDef = SITE_TEXTS.hero_subtitle;
+
+  const [editing, setEditing] = useState(false);
+  const [posX, setPosX] = useState(Number(siteConfig.hero_img_x) || 50);
+  const [posY, setPosY] = useState(Number(siteConfig.hero_img_y) || 50);
+  const dragging = useRef(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    setPosX(Number(siteConfig.hero_img_x) || 50);
+    setPosY(Number(siteConfig.hero_img_y) || 50);
+  }, [siteConfig.hero_img_x, siteConfig.hero_img_y]);
+
+  const handlePointerDown = useCallback((e) => {
+    if (!editing) return;
+    // Don't start drag on buttons
+    if (e.target.closest("button") || e.target.closest("div[data-controls]")) return;
+    dragging.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }, [editing]);
+
+  const handlePointerMove = useCallback((e) => {
+    if (!dragging.current || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    setPosX(Math.round(x));
+    setPosY(Math.round(y));
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    dragging.current = false;
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await upsertSiteConfig("hero_img_x", String(posX));
+      await upsertSiteConfig("hero_img_y", String(posY));
+      if (onConfigUpdate) onConfigUpdate({ ...siteConfig, hero_img_x: String(posX), hero_img_y: String(posY) });
+    } catch (err) { console.warn("Save error:", err.message); }
+    setEditing(false);
+  };
+
   return (
-    <section className="hero-section" style={{ position: "relative", height: "38vh", minHeight: 240, maxHeight: 380, overflow: "hidden" }}>
-      <img src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchPriority="high" width={1200} height={800} style={{ width: "100%", height: "120%", objectFit: "cover", transform: `translateY(${scrollY * -0.08}px)`, willChange: "transform" }}/>
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.72) 100%)" }}/>
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 20px" }}>
-        <div className="heroContent" style={{ maxWidth: 940, margin: "0 auto" }}>
-          <h1 style={{
-            fontSize: title?.fontSize ? `${title.fontSize}px` : "clamp(24px, 4vw, 36px)",
-            fontFamily: title?.fontFamily ? `'${title.fontFamily}', sans-serif` : undefined,
-            fontWeight: 800, color: "#fff", lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line"
-          }}>
-            {title?.text || t("hero.title")}
-          </h1>
-          <p style={{ fontSize: 20, color: "rgba(255,255,255,0.9)", marginBottom: 3, fontStyle: "italic", fontFamily: "'Dancing Script', cursive", letterSpacing: "0.02em", textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>
-            {t("brand.subtitle")}
-          </p>
-          <p style={{
-            fontSize: subtitle?.fontSize ? `${subtitle.fontSize}px` : 14,
-            fontFamily: subtitle?.fontFamily ? `'${subtitle.fontFamily}', sans-serif` : undefined,
-            color: "rgba(255,255,255,0.9)", marginBottom: 3
-          }}>
-            {subtitle?.text || t("hero.subtitle")}
-          </p>
-          <div style={{ marginBottom: 12 }} />
-          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#25D366", color: "#fff", border: "none", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
-              {t("hero.whatsapp")}
-            </a>
-            <button onClick={() => nav("portfolio")} style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.4)", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-              {t("hero.seeWork")}
+    <section ref={containerRef} className="hero-section" style={{ position: "relative", height: "38vh", minHeight: 240, maxHeight: 380, overflow: "hidden", cursor: editing ? "crosshair" : undefined }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}>
+      <img src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchPriority="high" width={1200} height={800} draggable={false}
+        style={{ width: "100%", height: "120%", objectFit: "cover", objectPosition: `${posX}% ${posY}%`, transform: editing ? "none" : `translateY(${scrollY * -0.08}px)`, willChange: "transform", pointerEvents: "none" }}/>
+      <div style={{ position: "absolute", inset: 0, background: editing ? "rgba(0,0,0,0.3)" : "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.72) 100%)" }}/>
+
+      {/* Admin edit controls */}
+      {isAdmin && !editing && (
+        <button onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+          style={{ position: "absolute", top: 10, right: 10, zIndex: 10, background: "rgba(0,0,0,0.6)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 8, padding: "6px 14px", fontSize: 11, fontWeight: 600, cursor: "pointer", backdropFilter: "blur(4px)" }}>
+          Adjust Image
+        </button>
+      )}
+      {editing && (
+        <div data-controls style={{ position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)", zIndex: 10, display: "flex", gap: 8, alignItems: "center" }}>
+          <div style={{ background: "rgba(0,0,0,0.7)", color: "#fff", borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 500, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: 12 }}>
+            Drag to reposition ({posX}%, {posY}%)
+            <button onClick={(e) => { e.stopPropagation(); handleSave(); }}
+              style={{ background: "#D4781F", color: "#fff", border: "none", borderRadius: 6, padding: "5px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+              Save
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); setPosX(Number(siteConfig.hero_img_x) || 50); setPosY(Number(siteConfig.hero_img_y) || 50); setEditing(false); }}
+              style={{ background: "rgba(255,255,255,0.2)", color: "#fff", border: "none", borderRadius: 6, padding: "5px 14px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+              Cancel
             </button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Content overlay */}
+      {!editing && (
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 20px" }}>
+          <div className="heroContent" style={{ maxWidth: 940, margin: "0 auto" }}>
+            <h1 style={{
+              fontSize: title?.fontSize ? `${title.fontSize}px` : "clamp(24px, 4vw, 36px)",
+              fontFamily: title?.fontFamily ? `'${title.fontFamily}', sans-serif` : undefined,
+              fontWeight: 800, color: "#fff", lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line"
+            }}>
+              {title?.text || t("hero.title")}
+            </h1>
+            <p style={{ fontSize: 20, color: "rgba(255,255,255,0.9)", marginBottom: 3, fontStyle: "italic", fontFamily: "'Dancing Script', cursive", letterSpacing: "0.02em", textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>
+              {t("brand.subtitle")}
+            </p>
+            <p style={{
+              fontSize: subtitle?.fontSize ? `${subtitle.fontSize}px` : 14,
+              fontFamily: subtitle?.fontFamily ? `'${subtitle.fontFamily}', sans-serif` : undefined,
+              color: "rgba(255,255,255,0.9)", marginBottom: 3
+            }}>
+              {subtitle?.text || t("hero.subtitle")}
+            </p>
+            <div style={{ marginBottom: 12 }} />
+            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+              <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#25D366", color: "#fff", border: "none", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
+                {t("hero.whatsapp")}
+              </a>
+              <button onClick={() => nav("portfolio")} style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.4)", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+                {t("hero.seeWork")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
