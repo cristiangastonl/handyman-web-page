@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { fbEmbedUrl } from "../lib/constants";
 
 export default function Lightbox({ item, onClose }) {
   const closeRef = useRef(null);
@@ -42,6 +43,10 @@ export default function Lightbox({ item, onClose }) {
         {item.type === "video" ? (
           <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
             <iframe src={`https://www.youtube.com/embed/${item.videoId}?autoplay=1`} title="Video player" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen/>
+          </div>
+        ) : item.type === "facebook" ? (
+          <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
+            <iframe src={fbEmbedUrl(item.src)} title="Facebook video" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }} allow="autoplay; encrypted-media" allowFullScreen/>
           </div>
         ) : (
           <img src={item.src} alt={item.title || "Handyman project in Zurich"} style={{ width: "100%", display: "block" }}/>

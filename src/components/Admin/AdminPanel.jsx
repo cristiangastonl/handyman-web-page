@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { R, S, ytThumb } from "../../lib/constants";
+import { R, S, itemThumb, SITE_TEXTS, parseSiteText } from "../../lib/constants";
 import { translateFaq } from "../../lib/translate";
 import DragList from "./DragList";
 import {
@@ -9,15 +9,14 @@ import {
   fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow, updateFaqOrder,
   fetchSiteConfig, upsertSiteConfig,
   fetchSubcategories, addSubcategory, deleteSubcategory,
-  fetchHighlights, addHighlight, deleteHighlight,
-  fetchReturningCustomers, addReturningCustomer, deleteReturningCustomer,
   fetchFbReviews, addFbReview, deleteFbReview,
   fetchGoogleReviews, addGoogleReview, deleteGoogleReview,
 } from "../../lib/supabase";
+import CarouselsTab from "./CarouselsTab";
 
 const emptyMsg = (text) => <p style={{ fontSize: 12, color: "#bbb", textAlign: "center", padding: "18px 0" }}>{text}</p>;
 
-export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, returningCustomers, setReturningCustomers, fbReviews, setFbReviews, googleReviews, setGoogleReviews }) {
+export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, returningCustomers, setReturningCustomers, fbReviews, setFbReviews, googleReviews, setGoogleReviews, carouselData, setCarouselData }) {
   // Auth
   const [session, setSession] = useState(null);
   const [loginEmail, setLoginEmail] = useState("");
@@ -26,7 +25,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Admin UI
-  const [adminTab, setAdminTab] = useState("faqs");
+  const [adminTab, setAdminTab] = useState("categories");
   const [adminMsg, setAdminMsg] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
   const [siteConfig, setSiteConfig] = useState({});
@@ -61,15 +60,8 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [scFile, setScFile] = useState(null);
   const [scPlaylistId, setScPlaylistId] = useState("");
 
-  // Highlight form
-  const [hlTitle, setHlTitle] = useState("");
-  const [hlDesc, setHlDesc] = useState("");
-  const [hlFile, setHlFile] = useState(null);
-
-  // Returning Customer form
-  const [rcTitle, setRcTitle] = useState("");
-  const [rcDesc, setRcDesc] = useState("");
-  const [rcFile, setRcFile] = useState(null);
+  // Work item subcategory (optional)
+  const [wiSubcat, setWiSubcat] = useState("");
 
   // FB Review form
   const [fbrName, setFbrName] = useState("");
@@ -179,18 +171,20 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     try {
       let src = null, thumb = null;
       if (wiType === "image" && wiFile) src = await uploadImage(wiFile, "work");
-      if (wiType === "video" && wiThumbFile) thumb = await uploadImage(wiThumbFile, "work");
+      if ((wiType === "video" || wiType === "facebook") && wiThumbFile) thumb = await uploadImage(wiThumbFile, "work");
+      if (wiType === "facebook") src = wiVideoId.trim() || null; // Store FB URL in src
       const row = {
         type: wiType, cat: wiCat, title: wiTitle.trim(),
         description: wiDesc.trim() || null, src, thumb,
         video_id: wiType === "video" ? wiVideoId.trim() || null : null,
+        subcategory_id: wiSubcat || null,
       };
       const saved = await addWorkItem(row);
       setItems(prev => [...prev, {
         id: saved.id, type: saved.type, cat: saved.cat, src: saved.src,
         thumb: saved.thumb, title: saved.title, desc: saved.description, videoId: saved.video_id,
       }]);
-      setWiTitle(""); setWiDesc(""); setWiFile(null); setWiVideoId(""); setWiThumbFile(null); resetFiles();
+      setWiTitle(""); setWiDesc(""); setWiFile(null); setWiVideoId(""); setWiThumbFile(null); setWiSubcat(""); resetFiles();
       flash("Work item added");
     } catch (err) { flash("Error: " + err.message); }
     finally { setAdminLoading(false); }
@@ -284,66 +278,14 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     finally { setAdminLoading(false); }
   };
 
-  // ── Highlight CRUD ──
-  const handleAddHighlight = async () => {
-    if (!hlTitle.trim()) return;
-    setAdminLoading(true);
-    try {
-      let imageUrl = null;
-      if (hlFile) imageUrl = await uploadImage(hlFile, "highlights");
-      const saved = await addHighlight(hlTitle.trim(), imageUrl, hlDesc.trim() || null);
-      setHighlights(prev => [...prev, saved]);
-      setHlTitle(""); setHlDesc(""); setHlFile(null); resetFiles();
-      flash("Highlight added");
-    } catch (err) { flash("Error: " + err.message); }
-    finally { setAdminLoading(false); }
-  };
-
-  const handleDeleteHighlight = async (id) => {
-    if (!window.confirm("Delete this highlight?")) return;
-    setAdminLoading(true);
-    try {
-      await deleteHighlight(id);
-      setHighlights(prev => prev.filter(h => h.id !== id));
-      flash("Highlight deleted");
-    } catch (err) { flash("Error: " + err.message); }
-    finally { setAdminLoading(false); }
-  };
-
-  // ── Returning Customer CRUD ──
-  const handleAddReturningCustomer = async () => {
-    if (!rcTitle.trim()) return;
-    setAdminLoading(true);
-    try {
-      let imageUrl = null;
-      if (rcFile) imageUrl = await uploadImage(rcFile, "returning_customers");
-      const saved = await addReturningCustomer(rcTitle.trim(), imageUrl, rcDesc.trim() || null);
-      setReturningCustomers(prev => [...prev, saved]);
-      setRcTitle(""); setRcDesc(""); setRcFile(null); resetFiles();
-      flash("Returning customer added");
-    } catch (err) { flash("Error: " + err.message); }
-    finally { setAdminLoading(false); }
-  };
-
-  const handleDeleteReturningCustomer = async (id) => {
-    if (!window.confirm("Delete this item?")) return;
-    setAdminLoading(true);
-    try {
-      await deleteReturningCustomer(id);
-      setReturningCustomers(prev => prev.filter(h => h.id !== id));
-      flash("Item deleted");
-    } catch (err) { flash("Error: " + err.message); }
-    finally { setAdminLoading(false); }
-  };
-
   // ── FB Review CRUD ──
   const handleAddFbReview = async () => {
     if (!fbrName.trim() || !fbrText.trim()) return;
     setAdminLoading(true);
     try {
-      const saved = await addFbReview(fbrName.trim(), parseInt(fbrRating), fbrText.trim(), fbrDate || null);
+      const saved = await addFbReview(fbrName.trim(), 5, fbrText.trim(), fbrDate || null);
       setFbReviews(prev => [...prev, saved]);
-      setFbrName(""); setFbrRating("5"); setFbrText(""); setFbrDate("");
+      setFbrName(""); setFbrText(""); setFbrDate("");
       flash("Facebook review added");
     } catch (err) { flash("Error: " + err.message); }
     finally { setAdminLoading(false); }
@@ -395,7 +337,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     finally { setAdminLoading(false); }
   };
 
-  const TABS = [["faqs","FAQs"],["categories","Categories"],["work","Work"],["subcategories","Subcats"],["highlights","Highlights"],["returning","Returning"],["fbreview","FB Reviews"],["greview","G Reviews"],["config","Config"]];
+  const TABS = [["categories","Categories"],["work","Portfolio"],["carousels","Carousels"],["fbreview","FB Reviews"],["greview","G Reviews"],["faqs","FAQs"],["config","Site Texts"]];
 
   const prevent = (fn) => (e) => { e.preventDefault(); fn(); };
 
@@ -443,9 +385,14 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
               ))}
             </div>
 
-            {/* ── Categories Tab ── */}
+            {/* ── Categories & Subcategories Tab ── */}
             {adminTab === "categories" && (
               <div>
+                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                  <strong>How it works:</strong> Categories organize your Portfolio page into sections (e.g. Lighting, Assembly, Painting). Visitors see them as clickable cards. Subcategories are optional groups within a category — great for linking YouTube playlists.
+                </div>
+
+                {/* Categories section */}
                 <p style={S.label}>Categories ({cats.filter(c => c.id !== "all").length})</p>
                 {cats.filter(c => c.id !== "all").length === 0
                   ? emptyMsg("No categories yet. Add one below.")
@@ -466,7 +413,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   <p style={S.adminCardTitle}>Add Category</p>
                   <input value={ncLabel} onChange={e => setNcLabel(e.target.value)} placeholder="Category name" style={{ ...S.input, marginBottom: 10 }}/>
                   <div>
-                    <label style={{ fontSize: 11, color: "#888" }}>Header image (optional)</label>
+                    <label style={{ fontSize: 11, color: "#888" }}>Header image (optional) — shown as category cover in Portfolio</label>
                     <input key={fileKey} type="file" accept="image/*" onChange={e => setNcFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
                   </div>
                   <button type="submit" className="admin-btn" disabled={adminLoading || !ncLabel.trim()}
@@ -474,27 +421,79 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                     {adminLoading ? "Adding..." : "Add Category"}
                   </button>
                 </form>
+
+                {/* Subcategories section */}
+                <div style={{ borderTop: "2px solid #f0f0f0", marginTop: 24, paddingTop: 20 }}>
+                  <p style={S.label}>Subcategories ({subcats.length}) — optional</p>
+                  {subcats.length === 0 && emptyMsg("No subcategories yet. Add one below if needed.")}
+                  {cats.filter(c => c.id !== "all").map(parentCat => {
+                    const children = subcats.filter(s => s.category_id === parentCat.id);
+                    if (children.length === 0) return null;
+                    return (
+                      <div key={parentCat.id} style={{ marginBottom: 16 }}>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: "#555", marginBottom: 6 }}>{parentCat.label}</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {children.map(sc => (
+                            <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f5f5f5", padding: "5px 12px", borderRadius: 14, fontSize: 12 }}>
+                              {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: 3, objectFit: "cover" }}/>}
+                              {sc.name}
+                              {sc.playlist_id && <span style={{ fontSize: 9, color: "#999" }}>▶</span>}
+                              <button onClick={() => handleDeleteSubcategory(sc.id)} disabled={adminLoading}
+                                style={{ background: "none", border: "none", color: R, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>×</button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <form onSubmit={prevent(handleAddSubcategory)} style={{ ...S.adminCard, marginTop: 12 }}>
+                    <p style={S.adminCardTitle}>Add Subcategory</p>
+                    <select value={scParent} onChange={e => setScParent(e.target.value)} style={{ ...S.input, marginBottom: 10, color: scParent ? "#222" : "#aaa" }}>
+                      <option value="" disabled>Select parent category...</option>
+                      {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                    </select>
+                    <input value={scName} onChange={e => setScName(e.target.value)} placeholder="Subcategory name" style={{ ...S.input, marginBottom: 10 }}/>
+                    <input value={scPlaylistId} onChange={e => setScPlaylistId(e.target.value)} placeholder="YouTube Playlist ID (optional) — links to playlist in Portfolio" style={{ ...S.input, marginBottom: 10 }}/>
+                    <div>
+                      <label style={{ fontSize: 11, color: "#888" }}>Header image (optional)</label>
+                      <input key={fileKey + 1} type="file" accept="image/*" onChange={e => setScFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                    </div>
+                    <button type="submit" className="admin-btn" disabled={adminLoading || !scName.trim() || !scParent}
+                      style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !scName.trim() || !scParent) ? 0.5 : 1 }}>
+                      {adminLoading ? "Adding..." : "Add Subcategory"}
+                    </button>
+                  </form>
+                </div>
               </div>
             )}
 
-            {/* ── Work Tab ── */}
+            {/* ── Portfolio Tab ── */}
             {adminTab === "work" && (
               <div>
-                <p style={S.label}>Work Items ({items.length})</p>
+                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                  <strong>How it works:</strong> Upload photos, YouTube videos, or Facebook reels here. Each item needs a category (required) and optionally a subcategory. These items appear in the Portfolio page and can be selected for the home page carousels.
+                </div>
+                <p style={S.label}>Portfolio Items ({items.length})</p>
                 <form onSubmit={prevent(handleAddWorkItem)} style={{ ...S.adminCard, marginBottom: 20 }}>
-                  <p style={S.adminCardTitle}>Add Work Item</p>
+                  <p style={S.adminCardTitle}>Add Item</p>
                   <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-                    {["image","video"].map(t => (
+                    {["image","video","facebook"].map(t => (
                       <button key={t} type="button" className="admin-btn" onClick={() => setWiType(t)}
                         style={{ padding: "5px 14px", borderRadius: 6, border: "none", fontSize: 12, cursor: "pointer", fontWeight: wiType === t ? 600 : 400, background: wiType === t ? "#222" : "#eee", color: wiType === t ? "#fff" : "#666" }}>
-                        {t === "image" ? "Image" : "Video"}
+                        {t === "image" ? "Image" : t === "video" ? "YouTube" : "Facebook"}
                       </button>
                     ))}
                   </div>
-                  <select value={wiCat} onChange={e => setWiCat(e.target.value)} style={{ ...S.input, marginBottom: 10, color: wiCat ? "#222" : "#aaa" }}>
+                  <select value={wiCat} onChange={e => { setWiCat(e.target.value); setWiSubcat(""); }} style={{ ...S.input, marginBottom: 10, color: wiCat ? "#222" : "#aaa" }}>
                     <option value="" disabled>Select category...</option>
                     {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
+                  {wiCat && subcats.filter(s => s.category_id === wiCat).length > 0 && (
+                    <select value={wiSubcat} onChange={e => setWiSubcat(e.target.value)} style={{ ...S.input, marginBottom: 10, color: wiSubcat ? "#222" : "#aaa" }}>
+                      <option value="">No subcategory (optional)</option>
+                      {subcats.filter(s => s.category_id === wiCat).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  )}
                   <input value={wiTitle} onChange={e => setWiTitle(e.target.value)} placeholder="Title" style={{ ...S.input, marginBottom: 10 }}/>
                   <input value={wiDesc} onChange={e => setWiDesc(e.target.value)} placeholder="Description (optional)" style={{ ...S.input, marginBottom: 10 }}/>
                   {wiType === "image" && (
@@ -512,6 +511,15 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                       </div>
                     </>
                   )}
+                  {wiType === "facebook" && (
+                    <>
+                      <input value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="Facebook reel/video URL (e.g. https://www.facebook.com/reel/123...)" style={{ ...S.input, marginBottom: 10 }}/>
+                      <div style={{ marginBottom: 10 }}>
+                        <label style={{ fontSize: 11, color: "#888" }}>Thumbnail image <span style={{ color: "#bbb" }}>(recommended)</span></label>
+                        <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                      </div>
+                    </>
+                  )}
                   <button type="submit" className="admin-btn" disabled={adminLoading || !wiTitle.trim() || !wiCat}
                     style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !wiTitle.trim() || !wiCat) ? 0.5 : 1 }}>
                     {adminLoading ? "Adding..." : "Add Item"}
@@ -520,7 +528,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 {items.length === 0 && emptyMsg("No work items yet.")}
                 {items.map(item => (
                   <div key={item.id} style={S.listItem}>
-                    <img src={item.type === "video" ? ytThumb(item) : item.src} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5, background: "#eee" }}/>
+                    <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5, background: "#eee" }}/>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
                       <div style={{ fontSize: 10, color: "#777" }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
@@ -535,6 +543,9 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* ── FAQs Tab ── */}
             {adminTab === "faqs" && (
               <div>
+                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                  <strong>How it works:</strong> FAQs appear on the home page (top 3) and the full FAQ page. They are automatically translated to all 5 languages. Drag to reorder.
+                </div>
                 <p style={S.label}>FAQs ({faqs.length})</p>
                 {faqs.length === 0 && emptyMsg("No FAQs yet. Add one below.")}
                 <DragList
@@ -575,125 +586,29 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
               </div>
             )}
 
-            {/* ── Subcategories Tab ── */}
-            {adminTab === "subcategories" && (
-              <div>
-                <p style={S.label}>Subcategories ({subcats.length})</p>
-                {subcats.length === 0 && emptyMsg("No subcategories yet. Add one below.")}
-                {cats.filter(c => c.id !== "all").map(parentCat => {
-                  const children = subcats.filter(s => s.category_id === parentCat.id);
-                  if (children.length === 0) return null;
-                  return (
-                    <div key={parentCat.id} style={{ marginBottom: 16 }}>
-                      <p style={{ fontSize: 12, fontWeight: 600, color: "#555", marginBottom: 6 }}>{parentCat.label}</p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {children.map(sc => (
-                          <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f5f5f5", padding: "5px 12px", borderRadius: 14, fontSize: 12 }}>
-                            {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: 3, objectFit: "cover" }}/>}
-                            {sc.name}
-                            {sc.playlist_id && <span style={{ fontSize: 9, color: "#999" }}>▶</span>}
-                            <button onClick={() => handleDeleteSubcategory(sc.id)} disabled={adminLoading}
-                              style={{ background: "none", border: "none", color: R, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>×</button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-                <form onSubmit={prevent(handleAddSubcategory)} style={{ ...S.adminCard, marginTop: 12 }}>
-                  <p style={S.adminCardTitle}>Add Subcategory</p>
-                  <select value={scParent} onChange={e => setScParent(e.target.value)} style={{ ...S.input, marginBottom: 10, color: scParent ? "#222" : "#aaa" }}>
-                    <option value="" disabled>Select parent category...</option>
-                    {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                  </select>
-                  <input value={scName} onChange={e => setScName(e.target.value)} placeholder="Subcategory name" style={{ ...S.input, marginBottom: 10 }}/>
-                  <input value={scPlaylistId} onChange={e => setScPlaylistId(e.target.value)} placeholder="YouTube Playlist ID (optional)" style={{ ...S.input, marginBottom: 10 }}/>
-                  <div>
-                    <label style={{ fontSize: 11, color: "#888" }}>Header image (optional)</label>
-                    <input key={fileKey} type="file" accept="image/*" onChange={e => setScFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
-                  </div>
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !scName.trim() || !scParent}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !scName.trim() || !scParent) ? 0.5 : 1 }}>
-                    {adminLoading ? "Adding..." : "Add Subcategory"}
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {/* ── Highlights Tab ── */}
-            {adminTab === "highlights" && (
-              <div>
-                <p style={S.label}>Highlights ({highlights.length})</p>
-                <form onSubmit={prevent(handleAddHighlight)} style={{ ...S.adminCard, marginBottom: 20 }}>
-                  <p style={S.adminCardTitle}>Add Highlight</p>
-                  <input value={hlTitle} onChange={e => setHlTitle(e.target.value)} placeholder="Title" style={{ ...S.input, marginBottom: 10 }}/>
-                  <textarea value={hlDesc} onChange={e => setHlDesc(e.target.value)} placeholder="Description (optional)" rows={2} style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 10 }}/>
-                  <div>
-                    <label style={{ fontSize: 11, color: "#888" }}>Image file</label>
-                    <input key={fileKey} type="file" accept="image/*" onChange={e => setHlFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
-                  </div>
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !hlTitle.trim()}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !hlTitle.trim()) ? 0.5 : 1 }}>
-                    {adminLoading ? "Adding..." : "Add Highlight"}
-                  </button>
-                </form>
-                {highlights.length === 0 && emptyMsg("No highlights yet.")}
-                {highlights.map(h => (
-                  <div key={h.id} style={S.listItem}>
-                    {h.image_url && <img src={h.image_url} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5, background: "#eee" }}/>}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{h.title}</div>
-                      {h.description && <div style={{ fontSize: 10, color: "#777" }}>{h.description}</div>}
-                    </div>
-                    <button className="admin-ghost" onClick={() => handleDeleteHighlight(h.id)} disabled={adminLoading}
-                      style={{ ...S.btnDanger, opacity: adminLoading ? 0.5 : 1 }}>Remove</button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* ── Returning Customers Tab ── */}
-            {adminTab === "returning" && (
-              <div>
-                <p style={S.label}>Returning Customers ({returningCustomers.length})</p>
-                <form onSubmit={prevent(handleAddReturningCustomer)} style={{ ...S.adminCard, marginBottom: 20 }}>
-                  <p style={S.adminCardTitle}>Add Item</p>
-                  <input value={rcTitle} onChange={e => setRcTitle(e.target.value)} placeholder="Title" style={{ ...S.input, marginBottom: 10 }}/>
-                  <textarea value={rcDesc} onChange={e => setRcDesc(e.target.value)} placeholder="Description (optional)" rows={2} style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 10 }}/>
-                  <div>
-                    <label style={{ fontSize: 11, color: "#888" }}>Image file</label>
-                    <input key={fileKey} type="file" accept="image/*" onChange={e => setRcFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
-                  </div>
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !rcTitle.trim()}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !rcTitle.trim()) ? 0.5 : 1 }}>
-                    {adminLoading ? "Adding..." : "Add Item"}
-                  </button>
-                </form>
-                {returningCustomers.length === 0 && emptyMsg("No returning customers yet.")}
-                {returningCustomers.map(h => (
-                  <div key={h.id} style={S.listItem}>
-                    {h.image_url && <img src={h.image_url} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5, background: "#eee" }}/>}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{h.title}</div>
-                      {h.description && <div style={{ fontSize: 10, color: "#777" }}>{h.description}</div>}
-                    </div>
-                    <button className="admin-ghost" onClick={() => handleDeleteReturningCustomer(h.id)} disabled={adminLoading}
-                      style={{ ...S.btnDanger, opacity: adminLoading ? 0.5 : 1 }}>Remove</button>
-                  </div>
-                ))}
-              </div>
+            {/* ── Carousels Tab ── */}
+            {adminTab === "carousels" && (
+              <CarouselsTab
+                items={items}
+                cats={cats}
+                carouselData={carouselData}
+                setCarouselData={setCarouselData}
+                flash={flash}
+                adminLoading={adminLoading}
+                setAdminLoading={setAdminLoading}
+              />
             )}
 
             {/* ── FB Reviews Tab ── */}
             {adminTab === "fbreview" && (
               <div>
+                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                  <strong>How it works:</strong> Facebook reviews show as "Recommends" (no star ratings). They appear in the Reviews section on home page and the Reviews page, mixed with Google reviews.
+                </div>
                 <p style={S.label}>Facebook Reviews ({fbReviews.length})</p>
                 <form onSubmit={prevent(handleAddFbReview)} style={{ ...S.adminCard, marginBottom: 20 }}>
                   <p style={S.adminCardTitle}>Add Facebook Review</p>
                   <input value={fbrName} onChange={e => setFbrName(e.target.value)} placeholder="Reviewer name" style={{ ...S.input, marginBottom: 10 }}/>
-                  <select value={fbrRating} onChange={e => setFbrRating(e.target.value)} style={{ ...S.input, marginBottom: 10 }}>
-                    {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} star{n !== 1 ? "s" : ""}</option>)}
-                  </select>
                   <textarea value={fbrText} onChange={e => setFbrText(e.target.value)} placeholder="Review text" rows={3} style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 10 }}/>
                   <div style={{ marginBottom: 10 }}>
                     <label style={{ fontSize: 11, color: "#888" }}>Review date (optional)</label>
@@ -710,7 +625,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
                         <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
-                        <span style={{ fontSize: 11, color: "#E8A317", marginLeft: 8 }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                        <span style={{ fontSize: 11, color: "#1877F2", marginLeft: 8 }}>👍 Recommends</span>
                         {r.review_date && <span style={{ fontSize: 10, color: "#aaa", marginLeft: 8 }}>{r.review_date}</span>}
                       </div>
                       <button className="admin-ghost" onClick={() => handleDeleteFbReview(r.id)} disabled={adminLoading}
@@ -725,6 +640,9 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* ── Google Reviews Tab ── */}
             {adminTab === "greview" && (
               <div>
+                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                  <strong>How it works:</strong> Google reviews with star ratings (1-5). They appear in the Reviews section on home page and the Reviews page. The star average is calculated only from these.
+                </div>
                 <p style={S.label}>Google Reviews ({(googleReviews || []).length})</p>
                 <form onSubmit={prevent(handleAddGoogleReview)} style={{ ...S.adminCard, marginBottom: 20 }}>
                   <p style={S.adminCardTitle}>Add Google Review</p>
@@ -757,24 +675,36 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
               </div>
             )}
 
-            {/* ── Config Tab ── */}
+            {/* ── Site Texts Tab ── */}
             {adminTab === "config" && (
               <div>
-                <p style={S.label}>Site Configuration</p>
-                {Object.keys(siteConfig).length === 0 && emptyMsg("No configuration keys found. Add one below.")}
-                {Object.entries(siteConfig).map(([key, value]) => (
-                  <ConfigRow key={key} configKey={key} initialValue={value} onSave={handleSaveConfig} loading={adminLoading} />
+                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                  <strong>How it works:</strong> Customize the main texts on the site. You can change the content, font size, and font family. Leave blank to use the default. Changes appear immediately.
+                </div>
+                <p style={S.label}>Site Texts</p>
+                {Object.entries(SITE_TEXTS).map(([key, def]) => (
+                  <SiteTextRow key={key} configKey={key} def={def} currentValue={siteConfig[key]} onSave={handleSaveConfig} loading={adminLoading} />
                 ))}
+
+                {/* Extra config keys (not in SITE_TEXTS) */}
+                {Object.entries(siteConfig).filter(([key]) => !SITE_TEXTS[key]).length > 0 && (
+                  <>
+                    <p style={{ ...S.label, marginTop: 24 }}>Other Settings</p>
+                    {Object.entries(siteConfig).filter(([key]) => !SITE_TEXTS[key]).map(([key, value]) => (
+                      <ConfigRow key={key} configKey={key} initialValue={value} onSave={handleSaveConfig} loading={adminLoading} />
+                    ))}
+                  </>
+                )}
                 <form onSubmit={prevent(() => {
                   if (!cfgKey.trim()) return;
                   handleSaveConfig(cfgKey.trim(), cfgVal.trim());
                   setCfgKey(""); setCfgVal("");
                 })} style={{ ...S.adminCard, marginTop: 16 }}>
-                  <p style={S.adminCardTitle}>Add / Update Config Key</p>
+                  <p style={S.adminCardTitle}>Add Custom Setting</p>
                   <input value={cfgKey} onChange={e => setCfgKey(e.target.value)} placeholder="Key" style={{ ...S.input, marginBottom: 10 }}/>
                   <input value={cfgVal} onChange={e => setCfgVal(e.target.value)} placeholder="Value" style={S.input}/>
                   <button type="submit" className="admin-btn" disabled={adminLoading} style={{ ...S.btnPrimary, marginTop: 12, opacity: adminLoading ? 0.5 : 1 }}>
-                    {adminLoading ? "Saving..." : "Save Config"}
+                    {adminLoading ? "Saving..." : "Save"}
                   </button>
                 </form>
               </div>
@@ -786,7 +716,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   );
 }
 
-// Controlled config row component (replaces getElementById + defaultValue)
+// Controlled config row component for extra settings
 function ConfigRow({ configKey, initialValue, onSave, loading }) {
   const [value, setValue] = useState(initialValue);
   useEffect(() => { setValue(initialValue); }, [initialValue]);
@@ -796,6 +726,73 @@ function ConfigRow({ configKey, initialValue, onSave, loading }) {
       <input value={value} onChange={e => setValue(e.target.value)} style={{ ...S.input, flex: 1, margin: 0 }}/>
       <button className="admin-btn" onClick={() => onSave(configKey, value)} disabled={loading}
         style={{ ...S.btnSmall, background: "#222", color: "#fff", borderColor: "#222", fontWeight: 600, opacity: loading ? 0.5 : 1 }}>Save</button>
+    </div>
+  );
+}
+
+const FONT_OPTIONS = ["DM Sans", "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Playfair Display", "Dancing Script", "Georgia", "Arial", "Comic Sans MS", "Comic Neue", "Patrick Hand", "Caveat", "Indie Flower"];
+
+// Site text row with text + fontSize + fontFamily
+function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
+  const parsed = parseSiteText(currentValue) || {};
+  const [text, setText] = useState(parsed.text || "");
+  const [fontSize, setFontSize] = useState(parsed.fontSize || "");
+  const [fontFamily, setFontFamily] = useState(parsed.fontFamily || "");
+
+  useEffect(() => {
+    const p = parseSiteText(currentValue) || {};
+    setText(p.text || "");
+    setFontSize(p.fontSize || "");
+    setFontFamily(p.fontFamily || "");
+  }, [currentValue]);
+
+  const handleSave = () => {
+    const val = { text: text || "", fontSize: fontSize ? Number(fontSize) : undefined, fontFamily: fontFamily || undefined };
+    // Clean undefined values
+    Object.keys(val).forEach(k => val[k] === undefined && delete val[k]);
+    onSave(configKey, JSON.stringify(val));
+  };
+
+  return (
+    <div style={{ ...S.adminCard, marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <p style={{ fontSize: 12, fontWeight: 600 }}>{def.label}</p>
+        <span style={{ fontSize: 9, color: "#bbb", fontFamily: "monospace" }}>{configKey}</span>
+      </div>
+      <textarea value={text} onChange={e => setText(e.target.value)}
+        placeholder={def.defaultText || "(uses translation default)"}
+        rows={configKey === "bio_text" ? 4 : 2}
+        style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 8 }}/>
+      <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ flex: 1 }}>
+          <label style={{ fontSize: 10, color: "#888" }}>Font size (px)</label>
+          <input type="number" value={fontSize} onChange={e => setFontSize(e.target.value)}
+            placeholder={`${def.defaultFontSize}`}
+            style={{ ...S.input, marginTop: 2 }}/>
+        </div>
+        <div style={{ flex: 2 }}>
+          <label style={{ fontSize: 10, color: "#888" }}>Font family</label>
+          <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}
+            style={{ ...S.input, marginTop: 2, color: fontFamily ? "#222" : "#aaa" }}>
+            <option value="">Default ({def.defaultFontFamily})</option>
+            {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
+      </div>
+      {/* Preview */}
+      {text && (
+        <div style={{ marginTop: 8, padding: "8px 10px", background: "#fafafa", borderRadius: 6, border: "1px dashed #e0e0e0" }}>
+          <span style={{ fontSize: 9, color: "#bbb", display: "block", marginBottom: 4 }}>Preview:</span>
+          <span style={{
+            fontSize: fontSize ? `${fontSize}px` : `${def.defaultFontSize}px`,
+            fontFamily: fontFamily ? `'${fontFamily}', sans-serif` : `'${def.defaultFontFamily}', sans-serif`,
+          }}>{text}</span>
+        </div>
+      )}
+      <button className="admin-btn" onClick={handleSave} disabled={loading}
+        style={{ ...S.btnPrimary, marginTop: 10, opacity: loading ? 0.5 : 1 }}>
+        {loading ? "Saving..." : "Save"}
+      </button>
     </div>
   );
 }

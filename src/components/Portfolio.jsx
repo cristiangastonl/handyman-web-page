@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, WA_LINK, ytThumb, svgP, socialIcons } from "../lib/constants";
+import { R, G, WA_LINK, itemThumb, svgP, socialIcons } from "../lib/constants";
 
 export default function Portfolio({ cats, items, subcats, portfolioView, setPortfolioView, setLb }) {
   const { t } = useTranslation();
@@ -27,7 +27,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
             {activeCats.map(c => {
               const catItems = items.filter(w => w.cat === c.id);
               const catPlaylists = (subcats || []).filter(s => s.category_id === c.id && s.playlist_id).length;
-              const thumb = c.header_image || (catItems[0]?.type === "video" ? ytThumb(catItems[0]) : catItems[0]?.src) || "";
+              const thumb = c.header_image || (catItems[0]?.type === "video" ? itemThumb(catItems[0]) : catItems[0]?.src) || "";
               return (
                 <div key={c.id}
                   onClick={() => { setPortfolioView({ cat: c.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
@@ -71,7 +71,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
         const activeTab = portfolioView.tab || "photos";
         const displayItems = activeTab === "photos" ? photos : videos;
         const catSubcats = (subcats || []).filter(s => s.category_id === portfolioView.cat);
-        const catThumb = currentCat?.header_image || (catItems[0]?.type === "video" ? ytThumb(catItems[0]) : catItems[0]?.src) || "";
+        const catThumb = currentCat?.header_image || (catItems[0]?.type === "video" ? itemThumb(catItems[0]) : catItems[0]?.src) || "";
 
         return (
           <>
@@ -143,7 +143,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
                   <div style={{ position: "relative", paddingTop: "62%" }}>
-                    <img src={item.type === "video" ? ytThumb(item) : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+                    <img src={item.type === "video" ? itemThumb(item) : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
                     {item.type === "video" && (
                       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.08)" }}>
                         <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>

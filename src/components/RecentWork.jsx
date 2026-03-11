@@ -4,16 +4,18 @@ import { R } from "../lib/constants";
 import Carousel from "./Carousel";
 import { FadeIn } from "./FadeIn";
 
-export function RecentWork({ items, setLb, nav }) {
+export function RecentWork({ items, curatedItems = [], setLb, nav }) {
   const { t } = useTranslation();
-  const photos = items.filter(w => w.type === "image");
-  const videos = items.filter(w => w.type === "video");
+  // Use curated items if available, otherwise fallback to latest work items
+  const source = curatedItems.length > 0 ? curatedItems : items;
+  const photos = source.filter(w => w.type === "image");
+  const videos = source.filter(w => w.type === "video");
   const [tab, setTab] = useState("all");
-  if (!items.length) return null;
+  if (!source.length) return null;
 
   const displayItems = tab === "photos" ? photos.slice(0, 8)
     : tab === "videos" ? videos.slice(0, 8)
-    : items.slice(0, 10);
+    : source.slice(0, 10);
 
   return (
     <FadeIn delay={0.1}>
@@ -24,7 +26,7 @@ export function RecentWork({ items, setLb, nav }) {
           <div style={{ display: "flex", gap: 0, background: "#f5f5f5", borderRadius: 8, padding: 2 }}>
             <button onClick={() => setTab("all")}
               style={{ padding: "5px 14px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "all" ? "#fff" : "transparent", color: tab === "all" ? R : "#999", boxShadow: tab === "all" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
-              {t("portfolio.all")} ({items.length})
+              {t("portfolio.all")} ({source.length})
             </button>
             {videos.length > 0 && (
               <button onClick={() => setTab("videos")}

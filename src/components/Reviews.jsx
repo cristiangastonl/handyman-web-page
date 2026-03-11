@@ -4,6 +4,12 @@ import { R, REVIEWS, svgP, socialIcons, socialUrls, WA_LINK, ab } from "../lib/c
 import { Stars, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
+const FbBadge = () => (
+  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "#1877F2", fontWeight: 600 }}>
+    👍 Recommends
+  </span>
+);
+
 // Unified reviews carousel for the home page (Google + Facebook)
 export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
   const { t } = useTranslation();
@@ -20,9 +26,11 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
   const gReviews = googleReviews.length > 0
     ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label, source: "google" }))
     : REVIEWS.map(r => ({ ...r, source: "google" }));
-  const fReviews = fbReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.review_date, source: "facebook" }));
+  const fReviews = fbReviews.map(r => ({ name: r.name, r: null, text: r.text, time: r.review_date, source: "facebook", recommends: true }));
   const allReviews = [...gReviews, ...fReviews];
-  const avg = allReviews.length > 0 ? (allReviews.reduce((a, r) => a + r.r, 0) / allReviews.length).toFixed(1) : "0.0";
+  // Average only from Google reviews (FB doesn't have star ratings)
+  const googleOnly = gReviews.filter(r => r.r);
+  const avg = googleOnly.length > 0 ? (googleOnly.reduce((a, r) => a + r.r, 0) / googleOnly.length).toFixed(1) : "0.0";
 
   return (
     <FadeIn>
@@ -50,7 +58,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
 
         <div style={{ position: "relative" }}>
           <div ref={revRef} className="hs" style={{ display: "flex", gap: 14, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
-            {allReviews.slice(0, 10).map((rev, i) => (
+            {allReviews.slice(0, 12).map((rev, i) => (
               <div key={i} style={{ minWidth: 280, maxWidth: 310, flexShrink: 0, scrollSnapAlign: "start", padding: "18px", borderRadius: 12, background: "#fff", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                   <div style={{ width: 36, height: 36, borderRadius: "50%", background: `hsl(${i * 47}, 45%, 65%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15, color: "#fff" }}>{rev.name[0]}</div>
@@ -60,7 +68,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
                   </div>
                   {rev.source === "google" ? <GoogleG/> : <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg>}
                 </div>
-                <Stars n={rev.r} sz={14}/>
+                {rev.source === "facebook" ? <FbBadge/> : <Stars n={rev.r} sz={14}/>}
                 <p style={{ fontSize: 13, color: "#555", lineHeight: 1.55, margin: "8px 0 0", ...(!expanded.has(i) ? { display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" } : {}) }}>{rev.text}</p>
                 <span
                   onClick={(e) => toggleExpand(e, i)}
@@ -81,12 +89,15 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
 // Full reviews page
 export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
   const { t } = useTranslation();
+  const [filter, setFilter] = useState("all");
   const gReviews = googleReviews.length > 0
     ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label, source: "google" }))
     : REVIEWS.map(r => ({ ...r, source: "google" }));
-  const fReviews = fbReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.review_date, source: "facebook" }));
-  const reviews = [...gReviews, ...fReviews];
-  const avg = reviews.length > 0 ? (reviews.reduce((a, r) => a + r.r, 0) / reviews.length).toFixed(1) : "0.0";
+  const fReviews = fbReviews.map(r => ({ name: r.name, r: null, text: r.text, time: r.review_date, source: "facebook", recommends: true }));
+  const allReviews = [...gReviews, ...fReviews];
+  const reviews = filter === "google" ? gReviews : filter === "facebook" ? fReviews : allReviews;
+  const googleOnly = gReviews.filter(r => r.r);
+  const avg = googleOnly.length > 0 ? (googleOnly.reduce((a, r) => a + r.r, 0) / googleOnly.length).toFixed(1) : "0.0";
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
@@ -104,13 +115,13 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
         </div>
         <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
         <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
-        <div style={{ fontSize: 14, color: "#777" }}>{t("reviews.based", { count: reviews.length })}</div>
+        <div style={{ fontSize: 14, color: "#777" }}>{t("reviews.based", { count: allReviews.length })}</div>
 
-        {/* Rating distribution bars */}
+        {/* Rating distribution bars (Google only) */}
         <div style={{ maxWidth: 280, margin: "20px auto 0" }}>
           {[5,4,3,2,1].map(star => {
-            const count = reviews.filter(r => r.r === star).length;
-            const pct = reviews.length ? (count / reviews.length) * 100 : 0;
+            const count = googleOnly.filter(r => r.r === star).length;
+            const pct = googleOnly.length ? (count / googleOnly.length) * 100 : 0;
             return (
               <div key={star} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                 <span style={{ fontSize: 12, color: "#666", width: 12, textAlign: "right" }}>{star}</span>
@@ -122,6 +133,16 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
               </div>
             );
           })}
+        </div>
+
+        {/* Filter tabs */}
+        <div style={{ display: "inline-flex", gap: 0, justifyContent: "center", marginTop: 20, background: "#f5f5f5", borderRadius: 8, padding: 2 }}>
+          {[["all", `All (${allReviews.length})`], ["google", `Google (${gReviews.length})`], ["facebook", `Facebook (${fReviews.length})`]].map(([key, label]) => (
+            <button key={key} onClick={() => setFilter(key)}
+              style={{ padding: "6px 16px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: filter === key ? "#fff" : "transparent", color: filter === key ? R : "#999", boxShadow: filter === key ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
+              {label}
+            </button>
+          ))}
         </div>
 
         <a href="https://www.google.com/maps/place/Handyman+Services+in+Zurich/" target="_blank" rel="noopener noreferrer"
@@ -142,7 +163,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
               </div>
               {rev.source === "facebook" ? <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d={svgP.fb}/></svg> : <GoogleG/>}
             </div>
-            <Stars n={rev.r} sz={14}/>
+            {rev.source === "facebook" ? <FbBadge/> : <Stars n={rev.r} sz={14}/>}
             <p style={{ fontSize: 14, color: "#555", lineHeight: 1.6, margin: "8px 0 0" }}>{rev.text}</p>
           </div>
         ))}

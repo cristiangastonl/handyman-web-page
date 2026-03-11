@@ -16,7 +16,19 @@ export const DEFAULT_SUBCATS = [];
 
 export const DEFAULT_HIGHLIGHTS = [];
 
-export const DEFAULT_FB_REVIEWS = [];
+export const DEFAULT_FB_REVIEWS = [
+  { id: "fb1", name: "Lidia Profir", rating: 5, text: "I totally recommend Anibal. He is very polite, he immediately responded to my request of installing lights in a new appartment, I was really happy with the work he did. He's very friendly and I appreciated his communication skills very much. For me it was a real plus he speaks English very well as I don't speak German too much. Don't hesitate to contact him, you'll be surprised by his work and the interaction with him. Thanks Anibal!", review_date: "2025" },
+  { id: "fb2", name: "Lu Mo", rating: 5, text: "Anibal fitted our Samsung frame, some lights, mounted several pictures. He was pleasant, professional and very thorough.", review_date: "2025" },
+  { id: "fb3", name: "Diana Ursachi", rating: 5, text: "Anibal installed a Tesla charging station in the garage and it worked perfectly ever since. I wholeheartedly recommend his services!", review_date: "2025" },
+  { id: "fb4", name: "Vanessa Kitić", rating: 5, text: "Anibal was such a pro in installing the Philips smart lighting fixtures in my living and dining spaces. He was able to advise on the height and created a seamless solution for a once off center wiring issue that now looks perfectly centered over my dining table. The whole service was flawless, and not a speck of dust was left behind. I recommend Anibal for truly anything you may need done in your home. He is so precise, professional, and friendly.", review_date: "2025" },
+  { id: "fb5", name: "Kamel Ghosn", rating: 5, text: "Great communication, service and price. Anibal did a great job hanging a TV and moving a light. Thank you", review_date: "2025" },
+  { id: "fb6", name: "Heather Halsey", rating: 5, text: "Aníbal did a great job. He has good attention to detail and checks with me that I was happy with the position of a hanging light. The clean up was immaculate as well. We are very happy with the work and will definitely contact him when we have more jobs around the house.", review_date: "2025" },
+  { id: "fb7", name: "Catherine Grau", rating: 5, text: "Ausgezeichnete Arbeit, ich empfehle Euch allen Herrr Handyman. Excelente trabajo 10+, recomiendo ampliamente los servicios del Sr. Handyman.", review_date: "2025" },
+  { id: "fb8", name: "Paco Olivares", rating: 5, text: "Excelente Servicio 5 estrellas y 3 diamantes! Fueron instalaciones de lámparas con problemas de conexión. Todo quedó al 100%", review_date: "2025" },
+  { id: "fb9", name: "Sissi Schulz", rating: 5, text: "I can definitely recommend the \"Handyman Services\" aka Aníbal. I needed some lights installed in my new flat, with ceiling drilling and all. He did an amazing job! Every light was precisely placed with some Laser technology which helped putting them exactly in one line as they were three lights in a row. They are also placed exactly in the centre of the ceiling as I wanted. He worked cleanly but at the same time was very efficient, it couldn't have been done better. Booking was very easy and he was very punctual. The price given was fair and he shared his knowledge of some other stuff that could help improve my flat, which I really appreciated. All in all I am super happy with the service he provided and would definitively book him again for anything else that needs doing in the flat.", review_date: "2025" },
+  { id: "fb10", name: "Natalia Lucas", rating: 5, text: "Just wanted to recommend Handyman Services in Zurich, for his truly amazing work! Today he installed two lamps (one he suggested, and I LOVE it!), fixed a poorly done wall, and mounted a super tricky wall hanger perfectly. Thank you so much! What really stands out is his precision, honesty, and great advice. He knows his craft, works with top-quality tools, and makes everything easy and stress-free. His service is his passion! He knows about the new products and technologies in the market. If you need someone, you can fully trust for electrical work or home repairs, Handyman's the one to call!", review_date: "2025" },
+  { id: "fb11", name: "Karen Orozco", rating: 5, text: "Hace unas semanas, Aníbal vino a casa e instaló los rieles para cortinas en cuatro ventanales, además de la iluminación de nuestra sala. ¡Queremos destacar su profesionalismo y la excelente calidad de su trabajo! Estamos súper contentos con el resultado! Súper recomendado 🙌🏽", review_date: "2025" },
+];
 
 export const SERVICE_AREAS = [
   { name: "Zürich", primary: true },
@@ -69,6 +81,32 @@ export const socialUrls = {
 };
 
 export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` : "");
+
+// ─── Site text definitions (known keys with defaults) ───
+export const SITE_TEXTS = {
+  hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zürich", defaultFontSize: 36, defaultFontFamily: "DM Sans" },
+  hero_subtitle: { label: "Hero Subtitle", defaultText: "Your satisfaction, my commitment", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
+  highlights_section_title: { label: "Highlights Section Title", defaultText: "Highlights", defaultFontSize: 17, defaultFontFamily: "DM Sans" },
+  bio_text: { label: "About / Bio Text", defaultText: "", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
+};
+
+// Parse a site config value — supports both plain text (legacy) and JSON {text, fontSize, fontFamily}
+export const parseSiteText = (value) => {
+  if (!value) return null;
+  if (typeof value === "object") return value;
+  try {
+    const parsed = JSON.parse(value);
+    if (parsed && typeof parsed === "object" && "text" in parsed) return parsed;
+  } catch {}
+  return { text: value }; // legacy plain text
+};
+export const fbEmbedUrl = (url) => `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
+export const itemThumb = (item) => {
+  if (item.thumb) return item.thumb;
+  if (item.type === "video") return item.videoId ? `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` : "";
+  if (item.type === "facebook") return item.thumb || "/anibal/facebook_icon.jpeg";
+  return item.src;
+};
 
 export const ab = (s) => ({
   position: "absolute", top: "33%", [s]: -4, width: 44, height: 44, borderRadius: "50%",

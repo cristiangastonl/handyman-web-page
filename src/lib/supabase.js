@@ -200,3 +200,42 @@ export async function deleteGoogleReview(id) {
   const { error } = await supabase.from("google_reviews").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ─── Carousel items (curated views of work_items) ───
+export async function fetchCarouselItems(carouselName) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("carousel_items")
+    .select("id, carousel_name, sort_order, work_item_id, work_items(*)")
+    .eq("carousel_name", carouselName)
+    .order("sort_order");
+  if (error) throw error;
+  return data;
+}
+
+export async function addCarouselItem(carouselName, workItemId, sortOrder) {
+  if (!supabase) return;
+  const { data, error } = await supabase
+    .from("carousel_items")
+    .insert({ carousel_name: carouselName, work_item_id: workItemId, sort_order: sortOrder })
+    .select("id, carousel_name, sort_order, work_item_id, work_items(*)")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function removeCarouselItem(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("carousel_items").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateCarouselOrder(orderedIds) {
+  if (!supabase) return;
+  const updates = orderedIds.map((id, i) =>
+    supabase.from("carousel_items").update({ sort_order: i }).eq("id", id)
+  );
+  const results = await Promise.all(updates);
+  const err = results.find(r => r.error);
+  if (err?.error) throw err.error;
+}

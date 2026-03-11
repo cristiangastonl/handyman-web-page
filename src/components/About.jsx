@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, PROFILE_IMG } from "../lib/constants";
+import { R, PROFILE_IMG, parseSiteText } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
 export default function About({ nav, navToCategory, siteConfig = {} }) {
@@ -11,9 +11,14 @@ export default function About({ nav, navToCategory, siteConfig = {} }) {
         <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
         <div style={{ flex: 1, minWidth: 240 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{t("about.title")}</h2>
-          <p style={{ fontSize: 14, color: "#555", lineHeight: 1.6, marginBottom: 6 }}>
-            {siteConfig.bio_text || t("about.bio")}
-          </p>
+          {(() => { const bio = parseSiteText(siteConfig.bio_text); return (
+          <p style={{
+            fontSize: bio?.fontSize ? `${bio.fontSize}px` : 14,
+            fontFamily: bio?.fontFamily ? `'${bio.fontFamily}', sans-serif` : undefined,
+            color: "#555", lineHeight: 1.6, marginBottom: 6
+          }}>
+            {bio?.text || t("about.bio")}
+          </p>); })()}
           <p style={{ fontSize: 13, color: "#666", lineHeight: 1.5, marginBottom: 12, fontStyle: "italic" }}>
             {t("about.expatNote")}
           </p>

@@ -9,7 +9,7 @@ import {
 import {
   supabase, fetchCategories, fetchWorkItems, fetchFaqs,
   fetchSubcategories, fetchHighlights, fetchReturningCustomers, fetchFbReviews, fetchSiteConfig,
-  fetchGoogleReviews,
+  fetchGoogleReviews, fetchCarouselItems,
 } from "./lib/supabase";
 
 // Components (eager — needed on home page)
@@ -21,6 +21,7 @@ import ServiceAreas from "./components/ServiceAreas";
 import { RecentWork } from "./components/RecentWork";
 import Highlights from "./components/Highlights";
 import ReturningCustomers from "./components/ReturningCustomers";
+import TailorJobs from "./components/TailorJobs";
 import { TailoringCTA, BottomCTA } from "./components/CTA";
 import { GoogleReviewsHome, ReviewsPage } from "./components/Reviews";
 import { FAQHome, FAQPage } from "./components/FAQ";
@@ -32,6 +33,20 @@ import WhatsAppFAB from "./components/WhatsAppFAB";
 // Lazy-loaded routes (code-split — only downloaded when user navigates)
 const Portfolio = lazy(() => import("./components/Portfolio"));
 const AdminPanel = lazy(() => import("./components/Admin/AdminPanel"));
+
+// Normalize carousel_items join data into the shape Carousel component expects
+const normalizeCarouselItem = (ci) => ({
+  carouselItemId: ci.id,
+  id: ci.work_items?.id,
+  type: ci.work_items?.type,
+  cat: ci.work_items?.cat,
+  src: ci.work_items?.src,
+  thumb: ci.work_items?.thumb,
+  title: ci.work_items?.title,
+  desc: ci.work_items?.description,
+  videoId: ci.work_items?.video_id,
+  sort_order: ci.sort_order,
+});
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -85,6 +100,12 @@ export default function App() {
   const [fbReviews, setFbReviews] = useState(DEFAULT_FB_REVIEWS);
   const [siteConfig, setSiteConfig] = useState({});
   const [googleReviews, setGoogleReviews] = useState([]);
+  const [carouselData, setCarouselData] = useState({
+    recent_works: [],
+    highlights: [],
+    returning_customers: [],
+    tailor_jobs: [],
+  });
 
   // ── Effects ──
   // Admin shortcut: Ctrl+Shift+A navigates to /admin
@@ -99,10 +120,15 @@ export default function App() {
     if (!supabase) return;
     const safe = (fn) => fn().catch(err => { console.warn('Fetch error:', err.message); return null; });
     (async () => {
-      const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbReturning, dbFbReviews, dbConfig, dbGoogleReviews] = await Promise.all([
+      const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbReturning, dbFbReviews, dbConfig, dbGoogleReviews,
+        dbCarRecentWorks, dbCarHighlights, dbCarReturning, dbCarTailorJobs] = await Promise.all([
         safe(fetchCategories), safe(fetchWorkItems), safe(fetchFaqs),
         safe(fetchSubcategories), safe(fetchHighlights), safe(fetchReturningCustomers), safe(fetchFbReviews),
         safe(fetchSiteConfig), safe(fetchGoogleReviews),
+        safe(() => fetchCarouselItems('recent_works')),
+        safe(() => fetchCarouselItems('highlights')),
+        safe(() => fetchCarouselItems('returning_customers')),
+        safe(() => fetchCarouselItems('tailor_jobs')),
       ]);
       if (dbCats?.length > 0) setCats([{ id: "all", label: "All" }, ...dbCats.map(c => ({ id: c.id, label: c.label, header_image: c.header_image }))]);
       if (dbItems?.length > 0) setItems(dbItems.map(w => ({ id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb, title: w.title, desc: w.description, videoId: w.video_id })));
@@ -119,6 +145,13 @@ export default function App() {
       if (dbFbReviews?.length > 0) setFbReviews(dbFbReviews);
       if (dbConfig) setSiteConfig(dbConfig);
       if (dbGoogleReviews?.length > 0) setGoogleReviews(dbGoogleReviews);
+      // Carousel curated items
+      setCarouselData({
+        recent_works: dbCarRecentWorks?.length > 0 ? dbCarRecentWorks.map(normalizeCarouselItem) : [],
+        highlights: dbCarHighlights?.length > 0 ? dbCarHighlights.map(normalizeCarouselItem) : [],
+        returning_customers: dbCarReturning?.length > 0 ? dbCarReturning.map(normalizeCarouselItem) : [],
+        tailor_jobs: dbCarTailorJobs?.length > 0 ? dbCarTailorJobs.map(normalizeCarouselItem) : [],
+      });
       setLoading(false);
     })();
   }, []);
@@ -142,9 +175,10 @@ export default function App() {
           <StatsBar/>
           <About nav={nav} navToCategory={navToCategory} siteConfig={siteConfig}/>
           <ServiceAreas/>
-          <RecentWork items={items} setLb={setLb} nav={nav}/>
-          <Highlights highlights={highlights} setLb={setLb} siteConfig={siteConfig}/>
-          <ReturningCustomers returningCustomers={returningCustomers} setLb={setLb}/>
+          <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={setLb} nav={nav}/>
+          <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={setLb} siteConfig={siteConfig}/>
+          <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={setLb}/>
+          <TailorJobs items={carouselData.tailor_jobs} setLb={setLb}/>
           <TailoringCTA nav={nav}/>
           <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews}/>
           <FAQHome faqs={faqs} nav={nav}/>
@@ -166,6 +200,7 @@ export default function App() {
       returningCustomers={returningCustomers} setReturningCustomers={setReturningCustomers}
       fbReviews={fbReviews} setFbReviews={setFbReviews}
       googleReviews={googleReviews} setGoogleReviews={setGoogleReviews}
+      carouselData={carouselData} setCarouselData={setCarouselData}
     />
   );
 
