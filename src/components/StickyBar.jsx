@@ -20,12 +20,12 @@ export default function StickyBar({ nav }) {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#25D366", color: "#fff", padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#25D366", color: "#fff", padding: "6px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
             {t("sticky.whatsapp")}
           </a>
           <button onClick={() => nav("portfolio")}
-            style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)", padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
+            style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)", padding: "6px 14px", borderRadius: 10, fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
             {t("sticky.seeWork")}
           </button>
         </div>

@@ -178,7 +178,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
       <div style={{ textAlign: "center", marginTop: 40, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("portfolio.ctaTitle", "Like what you see?")}</p>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
           onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
           onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>

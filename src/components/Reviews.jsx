@@ -136,17 +136,17 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
         </div>
 
         {/* Filter tabs */}
-        <div style={{ display: "inline-flex", gap: 0, justifyContent: "center", marginTop: 20, background: "#f5f5f5", borderRadius: 8, padding: 2 }}>
+        <div style={{ display: "inline-flex", gap: 0, justifyContent: "center", marginTop: 20, background: "#f5f5f5", borderRadius: 10, padding: 2 }}>
           {[["all", `All (${allReviews.length})`], ["google", `Google (${gReviews.length})`], ["facebook", `Facebook (${fReviews.length})`]].map(([key, label]) => (
             <button key={key} onClick={() => setFilter(key)}
-              style={{ padding: "6px 16px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: filter === key ? "#fff" : "transparent", color: filter === key ? R : "#999", boxShadow: filter === key ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
+              style={{ padding: "6px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: filter === key ? "#fff" : "transparent", color: filter === key ? R : "#999", boxShadow: filter === key ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
               {label}
             </button>
           ))}
         </div>
 
         <a href="https://www.google.com/maps/place/Handyman+Services+in+Zurich/" target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-block", marginTop: 20, padding: "8px 20px", border: "1px solid #ddd", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none" }}>
+          style={{ display: "inline-block", marginTop: 20, padding: "8px 20px", border: "1px solid #ddd", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none" }}>
           {t("reviews.leaveReview")}
         </a>
       </div>
@@ -171,7 +171,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
       <div style={{ textAlign: "center", marginTop: 32, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: "#4A4A4A", marginBottom: 10 }}>{t("reviews.ctaTitle", "Ready to experience the same quality?")}</p>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
           {t("cta.button")}
         </a>

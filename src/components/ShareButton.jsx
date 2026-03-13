@@ -27,7 +27,7 @@ export default function ShareBar() {
 
   const btnStyle = {
     display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-    padding: "9px 18px", borderRadius: 8, border: "none", cursor: "pointer",
+    padding: "9px 18px", borderRadius: 10, border: "none", cursor: "pointer",
     fontSize: 12, fontWeight: 600, color: "#fff", textDecoration: "none",
     transition: "opacity .2s",
   };

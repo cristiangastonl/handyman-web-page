@@ -58,7 +58,7 @@ export default function Footer() {
 
           {/* Subtle copy link */}
           <button onClick={copyLink}
-            style={{ background: "none", border: `1px solid ${copied ? "#4CAF50" : R}`, borderRadius: 8, padding: "6px 16px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, transition: "border-color .2s, background .2s", color: copied ? "#4CAF50" : R, fontSize: 11, fontWeight: 600 }}
+            style={{ background: "none", border: `1px solid ${copied ? "#4CAF50" : R}`, borderRadius: 10, padding: "6px 16px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, transition: "border-color .2s, background .2s", color: copied ? "#4CAF50" : R, fontSize: 11, fontWeight: 600 }}
             onMouseEnter={e => { if (!copied) { e.currentTarget.style.background = "rgba(212,120,31,0.12)"; }}}
             onMouseLeave={e => { e.currentTarget.style.background = "none"; }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

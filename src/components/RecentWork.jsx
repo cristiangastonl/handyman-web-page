@@ -23,20 +23,20 @@ export function RecentWork({ items, curatedItems = [], setLb, nav }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700 }}>{t("recentWork.title")}</h2>
-          <div style={{ display: "flex", gap: 0, background: "#f5f5f5", borderRadius: 8, padding: 2 }}>
+          <div style={{ display: "flex", gap: 0, background: "#f5f5f5", borderRadius: 10, padding: 2 }}>
             <button onClick={() => setTab("all")}
-              style={{ padding: "5px 14px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "all" ? "#fff" : "transparent", color: tab === "all" ? R : "#999", boxShadow: tab === "all" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
+              style={{ padding: "5px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "all" ? "#fff" : "transparent", color: tab === "all" ? R : "#999", boxShadow: tab === "all" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
               {t("portfolio.all")} ({source.length})
             </button>
             {videos.length > 0 && (
               <button onClick={() => setTab("videos")}
-                style={{ padding: "5px 14px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "videos" ? "#fff" : "transparent", color: tab === "videos" ? R : "#999", boxShadow: tab === "videos" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
+                style={{ padding: "5px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "videos" ? "#fff" : "transparent", color: tab === "videos" ? R : "#999", boxShadow: tab === "videos" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
                 {t("portfolio.videos")} ({videos.length})
               </button>
             )}
             {photos.length > 0 && (
               <button onClick={() => setTab("photos")}
-                style={{ padding: "5px 14px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "photos" ? "#fff" : "transparent", color: tab === "photos" ? R : "#999", boxShadow: tab === "photos" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
+                style={{ padding: "5px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "photos" ? "#fff" : "transparent", color: tab === "photos" ? R : "#999", boxShadow: tab === "photos" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
                 {t("portfolio.photos")} ({photos.length})
               </button>
             )}
