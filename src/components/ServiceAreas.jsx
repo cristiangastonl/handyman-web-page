@@ -25,6 +25,18 @@ export default function ServiceAreas() {
             {area.name}
           </div>
         ))}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          padding: "10px 18px", borderRadius: 10,
+          background: R,
+          color: "#fff",
+          fontWeight: 600,
+          fontSize: 13,
+          border: "none",
+          fontStyle: "italic",
+        }}>
+          … {t("serviceAreas.surroundingCanton")}
+        </div>
       </div>
     </section>
     </FadeIn>

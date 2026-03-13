@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PHONE, WA_LINK, SERVICE_AREAS, svgP, socialUrls } from "../lib/constants";
+import { R, PHONE, WA_LINK, SERVICE_AREAS, svgP, socialUrls } from "../lib/constants";
 import { SocialIcon } from "./ui";
 
 export default function Footer() {
@@ -58,9 +58,9 @@ export default function Footer() {
 
           {/* Subtle copy link */}
           <button onClick={copyLink}
-            style={{ background: "none", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "6px 16px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, transition: "border-color .2s, background .2s", color: copied ? "#4CAF50" : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 500 }}
-            onMouseEnter={e => { if (!copied) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.background = "none"; }}>
+            style={{ background: "none", border: `1px solid ${copied ? "#4CAF50" : R}`, borderRadius: 8, padding: "6px 16px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, transition: "border-color .2s, background .2s", color: copied ? "#4CAF50" : R, fontSize: 11, fontWeight: 600 }}
+            onMouseEnter={e => { if (!copied) { e.currentTarget.style.background = "rgba(212,120,31,0.12)"; }}}
+            onMouseLeave={e => { e.currentTarget.style.background = "none"; }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>

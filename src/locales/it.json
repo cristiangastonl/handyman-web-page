@@ -4,7 +4,7 @@
   "nav.reviews": "Recensioni",
   "nav.faq": "FAQs",
 
-  "hero.title": "Professional Handyman\nServices in Zürich",
+  "hero.title": "Professional Handyman\nServices in Zurich",
   "hero.subtitle": "La tua soddisfazione, il mio impegno",
   "hero.whatsapp": "Scrivimi su WhatsApp",
   "hero.seeWork": "Vedi i miei lavori",
@@ -23,14 +23,14 @@
   "social.reviewsNote": "+100 recensioni e menzioni genuine da persone reali 🤝 (con tanti clienti abituali 🙂)\nSempre un piacere 😌 aiutare tutti 🌍🌎🌏 in Svizzera 🇨🇭 nella nostra comunità di expat ✨🥰",
 
   "about.title": "Incontra il tuo handyman",
-  "about.bio": "Dopo oltre 20 anni di esperienza edilizia in tutto il mondo 🌍🌎🌏, ora sono basato a Zürich 🇨🇭 e offro un'ampia gamma di servizi professionali — dai lavori elettrici, montaggio e scaffalature, all'installazione di mobili, pittura e ristrutturazione dell'arredamento 🏡.",
+  "about.bio": "Dopo oltre 20 anni di esperienza edilizia in tutto il mondo 🌍🌎🌏, ora sono basato a Zurich 🇨🇭 e offro un'ampia gamma di servizi professionali — dai lavori elettrici, montaggio e scaffalature, all'installazione di mobili, pittura e ristrutturazione dell'arredamento 🏡.",
   "about.expatNote": "Parlo inglese fluentemente — al servizio della comunità locale e degli expat 🤗.",
   "about.highlight1.title": "Cosa aspettarsi 🤔",
   "about.highlight1.text": "Idee fresche che ti fanno risparmiare tempo e stress, puntando alla tua piena soddisfazione, il mio impegno principale 😊.",
   "about.highlight2.title": "Cosa ottieni davvero 🤩",
   "about.highlight2.text": "Lavoro di qualità professionale ✨ a prezzi accessibili 👌 — risultati eccellenti, una finitura impeccabile 🤝, e la tranquillità + garanzia che tutti cercano 😌.",
   "about.highlight3.title": "Chi servo 🤗",
-  "about.highlight3.text": "Sempre felice di assistere sia la comunità locale che quella internazionale a Zürich e dintorni.",
+  "about.highlight3.text": "Sempre felice di assistere sia la comunità locale che quella internazionale a Zurich e dintorni.",
   "about.skills.electricity": "Elettricità",
   "about.skills.plumbing": "Idraulica",
   "about.skills.assembly": "Montaggio",
@@ -39,7 +39,8 @@
   "about.skills.wallMounting": "Montaggio a parete",
 
   "serviceAreas.title": "Aree di servizio",
-  "serviceAreas.subtitle": "Zürich e la regione circostante",
+  "serviceAreas.subtitle": "Zurich e la regione circostante",
+  "serviceAreas.surroundingCanton": "e il cantone circostante",
 
   "recentWork.title": "Lavori recenti",
   "recentWork.viewAll": "Vedi tutti →",
@@ -59,7 +60,7 @@
 
   "cta.title": "Pronto per iniziare?",
   "cta.subtitle": "Preventivi in giornata · Risposta entro 2 ore · Qualità garantita",
-  "cta.multilingual": "Servizio multilingue per la comunità diversificata di Zürich",
+  "cta.multilingual": "Servizio multilingue per la comunità diversificata di Zurich",
   "cta.description": "Inviami le foto del tuo progetto e ricevi un preventivo gratuito",
   "cta.button": "Scrivimi su WhatsApp",
 
@@ -67,7 +68,7 @@
   "footer.hoursTitle": "Orari",
   "footer.hours": "Lun–Sab · 8:00–19:00",
     "footer.follow": "Seguimi, iscriviti o scrivimi!",
-  "footer.copyright": "© {{year}} Handyman Services in Zürich",
+  "footer.copyright": "© {{year}} Handyman Services in Zurich",
   "footer.credit": "Progettato e sviluppato da",
 
   "sticky.tagline": "La tua soddisfazione, il mio impegno",

@@ -31,12 +31,12 @@ export const DEFAULT_FB_REVIEWS = [
 ];
 
 export const SERVICE_AREAS = [
-  { name: "Zürich", primary: true },
+  { name: "Zurich", primary: true },
   { name: "Saint Gallen", primary: false },
   { name: "Zug", primary: false },
   { name: "Basel", primary: false },
+  { name: "Schwyz", primary: false },
   { name: "Aarau", primary: false },
-  { name: "Wetzikon", primary: false },
 ];
 
 export const LANGS = [
@@ -82,7 +82,7 @@ export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.yout
 
 // ─── Site text definitions (known keys with defaults) ───
 export const SITE_TEXTS = {
-  hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zürich", defaultFontSize: 36, defaultFontFamily: "DM Sans" },
+  hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zurich", defaultFontSize: 36, defaultFontFamily: "DM Sans" },
   hero_subtitle: { label: "Hero Subtitle", defaultText: "Your satisfaction, my commitment", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
   highlights_section_title: { label: "Highlights Section Title", defaultText: "Highlights", defaultFontSize: 17, defaultFontFamily: "DM Sans" },
   bio_text: { label: "About / Bio Text", defaultText: "", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
