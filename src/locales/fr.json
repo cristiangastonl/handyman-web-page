@@ -8,6 +8,7 @@
   "hero.subtitle": "Votre satisfaction, mon engagement",
   "hero.whatsapp": "Écrivez-moi sur WhatsApp",
   "hero.seeWork": "Voir mes travaux",
+  "hero.reviews": "avis",
 
   "stats.experience": "Années d'expérience",
   "stats.reviews": "Avis réels 🤝",
@@ -53,6 +54,8 @@
   "reviews.count": "{{count}} avis",
   "reviews.seeAll": "Tous les avis →",
   "reviews.leaveReview": "Laisser un avis sur Google",
+
+  "carousel.cta": "Intéressé ? Écrivez-moi sur WhatsApp",
 
   "faq.title": "FAQs",
   "faq.common": "Questions Principales",

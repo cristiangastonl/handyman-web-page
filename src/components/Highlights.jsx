@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
+import { WA_LINK, svgP, parseSiteText } from "../lib/constants";
 import Carousel from "./Carousel";
 import { FadeIn } from "./FadeIn";
-import { parseSiteText } from "../lib/constants";
 
 export default function Highlights({ highlights, curatedItems = [], setLb, siteConfig = {} }) {
   const { t } = useTranslation();
@@ -16,7 +16,7 @@ export default function Highlights({ highlights, curatedItems = [], setLb, siteC
     <section style={{ padding: "0 24px 40px", maxWidth: 940, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
         <h2 style={{
-          fontSize: titleCfg?.fontSize ? `${titleCfg.fontSize}px` : 17,
+          fontSize: titleCfg?.fontSize ? `${titleCfg.fontSize}px` : 18,
           fontFamily: titleCfg?.fontFamily ? `'${titleCfg.fontFamily}', sans-serif` : undefined,
           fontWeight: 700
         }}>{titleCfg?.text || t("highlights.title")}</h2>
@@ -25,6 +25,13 @@ export default function Highlights({ highlights, curatedItems = [], setLb, siteC
         items={displayItems}
         onClickItem={item => setLb(item)}
       />
+      <div style={{ textAlign: "center", marginTop: 12 }}>
+        <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+          style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
+          {t("carousel.cta", "Interested? Ask me via WhatsApp")}
+        </a>
+      </div>
     </section>
     </FadeIn>
   );

@@ -11,7 +11,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("portfolio.title")}</h2>
+      <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("portfolio.title")}</h1>
       {portfolioView === "categories" && (
         <p style={{ fontSize: 12, color: "#888", marginBottom: 18 }}>
           {activeCats.length} {t("portfolio.categories", "categories")}

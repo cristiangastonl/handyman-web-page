@@ -8,6 +8,7 @@
   "hero.subtitle": "Your satisfaction, my commitment",
   "hero.whatsapp": "WhatsApp me",
   "hero.seeWork": "See my work",
+  "hero.reviews": "reviews",
 
   "stats.experience": "Years Experience",
   "stats.reviews": "Real Reviews 🤝",
@@ -53,6 +54,8 @@
   "reviews.count": "{{count}} reviews",
   "reviews.seeAll": "See all reviews →",
   "reviews.leaveReview": "Leave a review on Google",
+
+  "carousel.cta": "Interested? Ask me via WhatsApp",
 
   "faq.title": "FAQs",
   "faq.common": "Top Questions",

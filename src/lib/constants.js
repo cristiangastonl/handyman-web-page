@@ -2,6 +2,14 @@ export const R = "#D4781F";
 export const G = "#4A4A4A";
 export const PHONE = "+41 76 594 95 81";
 export const WA_LINK = "https://wa.me/41765949581?text=Hi%2C%20I%20need%20a%20handyman%20in%20Zurich";
+const WA_MSGS = {
+  en: "Hi, I need a handyman in Zurich",
+  de: "Hallo, ich brauche einen Handyman in Zurich",
+  es: "Hola, necesito un handyman en Zurich",
+  fr: "Bonjour, j'ai besoin d'un handyman à Zurich",
+  it: "Ciao, ho bisogno di un handyman a Zurich",
+};
+export const getWALink = (lang = "en") => `https://wa.me/41765949581?text=${encodeURIComponent(WA_MSGS[lang] || WA_MSGS.en)}`;
 export const HERO_IMG = "/anibal/hero.jpeg";
 export const PROFILE_IMG = "/anibal/foto_perfil_colores.jpeg";
 
@@ -145,6 +153,10 @@ export const css = `
   }
   @media (min-width: 641px) {
     .mobile-menu { display: none !important; }
+  }
+  button:focus-visible, a:focus-visible { outline: 2px solid #D4781F; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
 `;
 

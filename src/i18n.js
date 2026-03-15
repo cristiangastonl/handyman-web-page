@@ -15,7 +15,7 @@ i18n.use(initReactI18next).init({
     fr: { translation: fr },
     es: { translation: es },
   },
-  lng: localStorage.getItem("lang") || "en",
+  lng: new URLSearchParams(window.location.search).get("lang") || localStorage.getItem("lang") || "en",
   fallbackLng: "en",
   interpolation: { escapeValue: false },
 });

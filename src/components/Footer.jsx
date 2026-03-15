@@ -21,20 +21,29 @@ export default function Footer() {
     <footer style={{ borderTop: "none", padding: "40px 24px 28px", background: "#3a3a3a" }}>
       <div style={{ maxWidth: 940, margin: "0 auto" }}>
 
-        {/* Top: Contact + Areas */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: 36 }}>
+        {/* Top: Contact + Hours + Areas */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 32, marginBottom: 36 }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>{t("footer.contact")}</div>
-            <a href={`tel:${PHONE.replace(/\s/g, "")}`} style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,0.8)", textDecoration: "none", marginBottom: 8 }}>{PHONE}</a>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#25D366", textDecoration: "none" }}>
+            <a href={`tel:${PHONE.replace(/\s/g, "")}`} style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,0.85)", textDecoration: "none", marginBottom: 8 }}>{PHONE}</a>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#25D366", textDecoration: "none", marginBottom: 8 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
               WhatsApp
             </a>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>{t("footer.hours")}</div>
           </div>
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>{t("serviceAreas.title")}</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.8 }}>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.8 }}>
               {SERVICE_AREAS.map(a => a.name).join(" · ")}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>{t("footer.quickLinks", "Quick Links")}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {["home", "portfolio", "reviews", "faq"].map(p => (
+                <span key={p} style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", cursor: "pointer" }}>{t(`nav.${p}`)}</span>
+              ))}
             </div>
           </div>
         </div>
@@ -69,11 +78,11 @@ export default function Footer() {
           </button>
 
           {/* Copyright */}
-          <div style={{ marginTop: 24, fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
+          <div style={{ marginTop: 24, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
             {t("footer.copyright", { year: new Date().getFullYear() })}
           </div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.18)", marginTop: 4 }}>
-            {t("footer.credit")} <a href="https://weekly-code-stream.vercel.app/es" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>CGL</a>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 4 }}>
+            {t("footer.credit")} <a href="https://weekly-code-stream.vercel.app/es" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, color: "rgba(255,255,255,0.45)", textDecoration: "none" }}>CGL</a>
           </div>
         </div>
       </div>

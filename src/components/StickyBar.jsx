@@ -9,8 +9,8 @@ export default function StickyBar({ nav }) {
     <div className="sticky-bar" style={{
       position: "fixed", top: 52, left: 0, right: 0, zIndex: 99,
       background: "rgba(74,74,74,0.95)", backdropFilter: "blur(10px)",
-      transform: scrollY > 500 ? "translateY(0)" : "translateY(-100%)",
-      opacity: scrollY > 500 ? 1 : 0,
+      transform: scrollY > 300 ? "translateY(0)" : "translateY(-100%)",
+      opacity: scrollY > 300 ? 1 : 0,
       transition: "transform 0.35s ease, opacity 0.35s ease",
       borderBottom: "1px solid rgba(255,255,255,0.08)",
     }}>
