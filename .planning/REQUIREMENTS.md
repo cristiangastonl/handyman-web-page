@@ -18,9 +18,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Navigation & Feedback
 
 - [ ] **NAVF-01**: Empty states show guidance text with a clear call-to-action (e.g., "Add your first category") instead of faint gray text
-- [ ] **NAVF-02**: Flash messages are color-coded — green with checkmark for success, red with X for errors — with smooth fade-out
-- [ ] **NAVF-03**: Tab bar is sticky at the top of the admin panel when scrolling
-- [ ] **NAVF-04**: Async operations show a spinner next to the submit button (not just opacity reduction)
+- [x] **NAVF-02**: Flash messages are color-coded — green with checkmark for success, red with X for errors — with smooth fade-out
+- [x] **NAVF-03**: Tab bar is sticky at the top of the admin panel when scrolling
+- [x] **NAVF-04**: Async operations show a spinner next to the submit button (not just opacity reduction)
 
 ## v2 Requirements
 
@@ -70,9 +70,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSGN-04 | Phase 3: Tab Content | Pending |
 | DSGN-05 | Phase 1: Design System | Complete |
 | NAVF-01 | Phase 3: Tab Content | Pending |
-| NAVF-02 | Phase 2: Shell and Feedback | Pending |
-| NAVF-03 | Phase 2: Shell and Feedback | Pending |
-| NAVF-04 | Phase 2: Shell and Feedback | Pending |
+| NAVF-02 | Phase 2: Shell and Feedback | Complete |
+| NAVF-03 | Phase 2: Shell and Feedback | Complete |
+| NAVF-04 | Phase 2: Shell and Feedback | Complete |
 
 **Coverage:**
 - v1 requirements: 9 total

@@ -13,7 +13,7 @@ Transform the functional-but-rough admin panel into a polished, self-explanatory
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Design System** - Create adminStyles.js tokens and ui.jsx primitives with typography, button, and input foundations (completed 2026-03-16)
-- [ ] **Phase 2: Shell and Feedback** - Restyle admin header, tab bar, flash messages, and loading indicators
+- [x] **Phase 2: Shell and Feedback** - Restyle admin header, tab bar, flash messages, and loading indicators (completed 2026-03-16)
 - [ ] **Phase 3: Tab Content** - Apply card layouts, empty states, and styled forms across all 7 tabs
 
 ## Phase Details
@@ -40,7 +40,7 @@ Plans:
   1. Tab bar stays visible (sticky) at the top when scrolling down within any tab's content
   2. Success flash messages appear green with a checkmark icon and error messages appear red with an X icon, both with smooth fade-out
   3. Clicking a submit button during an async operation shows a spinner adjacent to the button text (not just reduced opacity)
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 02-01-PLAN.md -- AdminFlash component, sticky tab bar, token-based header/login, AdminButton replacements throughout
@@ -66,5 +66,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design System | 0/1 | Complete    | 2026-03-16 |
-| 2. Shell and Feedback | 0/1 | Not started | - |
+| 2. Shell and Feedback | 1/1 | Complete   | 2026-03-16 |
 | 3. Tab Content | 0/0 | Not started | - |
