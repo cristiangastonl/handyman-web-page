@@ -1,7 +1,7 @@
 # Requirements: Admin Panel UX Overhaul
 
 **Defined:** 2026-03-16
-**Core Value:** Anibal can manage his website content confidently — every section is self-explanatory, visually clear, and pleasant to use.
+**Core Value:** Anibal can manage his website content confidently -- every section is self-explanatory, visually clear, and pleasant to use.
 
 ## v1.0 Requirements (Complete)
 
@@ -86,24 +86,40 @@ Requirements for Site Texts Redesign milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TYPO-01 | — | Pending |
-| TYPO-02 | — | Pending |
-| TYPO-03 | — | Pending |
-| TYPO-04 | — | Pending |
-| TYPO-05 | — | Pending |
-| TYPO-06 | — | Pending |
-| TYPO-07 | — | Pending |
-| KEEP-01 | — | Pending |
-| KEEP-02 | — | Pending |
-| KEEP-03 | — | Pending |
-| UXRD-01 | — | Pending |
-| UXRD-02 | — | Pending |
+| DSGN-01 | Phase 1 | Complete |
+| DSGN-02 | Phase 1 | Complete |
+| DSGN-03 | Phase 1 | Complete |
+| DSGN-04 | Phase 3 | Complete |
+| DSGN-05 | Phase 1 | Complete |
+| NAVF-01 | Phase 3 | Complete |
+| NAVF-02 | Phase 2 | Complete |
+| NAVF-03 | Phase 2 | Complete |
+| NAVF-04 | Phase 2 | Complete |
+| FILT-01 | Phase 4 | Complete |
+| FILT-02 | Phase 4 | Complete |
+| FILT-03 | Phase 4 | Complete |
+| PAGE-01 | Phase 4 | Complete |
+| PAGE-02 | Phase 4 | Complete |
+| PREV-01 | Phase 5 | Complete |
+| PREV-02 | Phase 5 | Complete |
+| TYPO-01 | Phase 7 | Pending |
+| TYPO-02 | Phase 7 | Pending |
+| TYPO-03 | Phase 7 | Pending |
+| TYPO-04 | Phase 7 | Pending |
+| TYPO-05 | Phase 7 | Pending |
+| TYPO-06 | Phase 7 | Pending |
+| TYPO-07 | Phase 7 | Pending |
+| KEEP-01 | Phase 6 | Pending |
+| KEEP-02 | Phase 6 | Pending |
+| KEEP-03 | Phase 6 | Pending |
+| UXRD-01 | Phase 6 | Pending |
+| UXRD-02 | Phase 6 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12
+- Mapped to phases: 12
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after v1.2 milestone definition*
+*Last updated: 2026-03-17 after v1.2 roadmap creation*

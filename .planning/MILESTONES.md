@@ -26,3 +26,14 @@
 **Requirements delivered:** 7/7 (FILT-01..03, PAGE-01..02, PREV-01..02)
 **Duration:** 1 day (2026-03-16 to 2026-03-17)
 **Last phase number:** 5
+
+## v1.2 — Site Texts Redesign (in progress)
+
+**Goal:** Redesign the admin Site Texts tab into a comprehensive typography control center, organized by site section, covering all visible text areas.
+
+**Phases:**
+- Phase 6: Section Layout and Preservation — Restructure from flat list to section-based layout, preserve existing features
+- Phase 7: Typography Controls — Font size + font family controls for all text areas
+
+**Requirements:** 12 (TYPO-01..07, KEEP-01..03, UXRD-01..02)
+**Last phase number:** 7
