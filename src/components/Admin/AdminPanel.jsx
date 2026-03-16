@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { itemThumb, SITE_TEXTS, parseSiteText } from "../../lib/constants";
 import { colors, spacing, typography, shadows, radii, A } from "../../lib/adminStyles";
-import { AdminButton, AdminInput, AdminFlash, AdminStyles } from "./adminUI";
+import { AdminButton, AdminInput, AdminTextarea, AdminCard, AdminLabel, AdminSelect, AdminFlash, AdminStyles } from "./adminUI";
 import { translateFaq } from "../../lib/translate";
 import DragList from "./DragList";
 import {
@@ -435,67 +435,73 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 </div>
 
                 {/* Categories section */}
-                <p style={typography.label}>Categories ({cats.filter(c => c.id !== "all").length})</p>
-                {cats.filter(c => c.id !== "all").length === 0
-                  ? emptyMsg("No categories yet. Add one below.")
-                  : (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.lg }}>
-                      {cats.filter(c => c.id !== "all").map(c => (
-                        <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
-                          {c.header_image && <img src={c.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
-                          {c.label}
-                          <button onClick={() => handleDeleteCategory(c.id)} disabled={adminLoading}
-                            style={{ background: "none", border: "none", color: colors.danger, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>x</button>
-                        </span>
-                      ))}
+                <AdminCard title="Add Category">
+                  <form onSubmit={prevent(handleAddCategory)}>
+                    <AdminInput label="Category name" value={ncLabel} onChange={e => setNcLabel(e.target.value)} placeholder="Category name" />
+                    <div>
+                      <label style={typography.caption}>Header image (optional) — shown as category cover in Portfolio</label>
+                      <input key={fileKey} type="file" accept="image/*" onChange={e => setNcFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
                     </div>
-                  )
-                }
-                <form onSubmit={prevent(handleAddCategory)} style={A.card}>
-                  <p style={A.cardTitle}>Add Category</p>
-                  <input value={ncLabel} onChange={e => setNcLabel(e.target.value)} placeholder="Category name" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                  <div>
-                    <label style={typography.caption}>Header image (optional) — shown as category cover in Portfolio</label>
-                    <input key={fileKey} type="file" accept="image/*" onChange={e => setNcFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
-                  </div>
-                  <AdminButton type="submit" loading={adminLoading} disabled={!ncLabel.trim()}
-                    style={{ marginTop: spacing.md }}>
-                    Add Category
-                  </AdminButton>
-                </form>
+                    <AdminButton type="submit" loading={adminLoading} disabled={!ncLabel.trim()}
+                      style={{ marginTop: spacing.md }}>
+                      Add Category
+                    </AdminButton>
+                  </form>
+                </AdminCard>
+
+                <AdminCard title={`Categories (${cats.filter(c => c.id !== "all").length})`} style={{ marginTop: spacing.xl }}>
+                  {cats.filter(c => c.id !== "all").length === 0
+                    ? emptyMsg("No categories yet. Add your first category above to organize your Portfolio.")
+                    : (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm }}>
+                        {cats.filter(c => c.id !== "all").map(c => (
+                          <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
+                            {c.header_image && <img src={c.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
+                            {c.label}
+                            <button onClick={() => handleDeleteCategory(c.id)} disabled={adminLoading}
+                              style={{ background: "none", border: "none", color: colors.danger, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>x</button>
+                          </span>
+                        ))}
+                      </div>
+                    )
+                  }
+                </AdminCard>
 
                 {/* Subcategories section */}
-                <div style={{ borderTop: `2px solid ${colors.gray200}`, marginTop: spacing["2xl"], paddingTop: spacing.xl }}>
-                  <p style={typography.label}>Subcategories ({subcats.length}) — optional</p>
-                  {subcats.length === 0 && emptyMsg("No subcategories yet. Add one below if needed.")}
-                  {cats.filter(c => c.id !== "all").map(parentCat => {
-                    const children = subcats.filter(s => s.category_id === parentCat.id);
-                    if (children.length === 0) return null;
-                    return (
-                      <div key={parentCat.id} style={{ marginBottom: spacing.lg }}>
-                        <p style={{ ...typography.body, fontWeight: 600, marginBottom: spacing.sm }}>{parentCat.label}</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm }}>
-                          {children.map(sc => (
-                            <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
-                              {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
-                              {sc.name}
-                              {sc.playlist_id && <span style={{ fontSize: 9, color: colors.gray500 }}>&#9654;</span>}
-                              <button onClick={() => handleDeleteSubcategory(sc.id)} disabled={adminLoading}
-                                style={{ background: "none", border: "none", color: colors.danger, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>x</button>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <form onSubmit={prevent(handleAddSubcategory)} style={{ ...A.card, marginTop: spacing.md }}>
-                    <p style={A.cardTitle}>Add Subcategory</p>
-                    <select value={scParent} onChange={e => setScParent(e.target.value)} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm, color: scParent ? colors.gray900 : colors.gray400 }}>
+                <AdminCard title={`Subcategories (${subcats.length})`} style={{ marginTop: spacing.xl }}>
+                  {subcats.length === 0
+                    ? emptyMsg("No subcategories yet. These are optional — use them to group items within a category.")
+                    : cats.filter(c => c.id !== "all").map(parentCat => {
+                        const children = subcats.filter(s => s.category_id === parentCat.id);
+                        if (children.length === 0) return null;
+                        return (
+                          <div key={parentCat.id} style={{ marginBottom: spacing.lg }}>
+                            <p style={{ ...typography.body, fontWeight: 600, marginBottom: spacing.sm }}>{parentCat.label}</p>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm }}>
+                              {children.map(sc => (
+                                <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
+                                  {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
+                                  {sc.name}
+                                  {sc.playlist_id && <span style={{ fontSize: 9, color: colors.gray500 }}>&#9654;</span>}
+                                  <button onClick={() => handleDeleteSubcategory(sc.id)} disabled={adminLoading}
+                                    style={{ background: "none", border: "none", color: colors.danger, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>x</button>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })
+                  }
+                </AdminCard>
+
+                <AdminCard title="Add Subcategory" style={{ marginTop: spacing.xl }}>
+                  <form onSubmit={prevent(handleAddSubcategory)}>
+                    <AdminSelect label="Parent category" value={scParent} onChange={e => setScParent(e.target.value)} style={{ color: scParent ? colors.gray900 : colors.gray400 }}>
                       <option value="" disabled>Select parent category...</option>
                       {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                    </select>
-                    <input value={scName} onChange={e => setScName(e.target.value)} placeholder="Subcategory name" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                    <input value={scPlaylistId} onChange={e => setScPlaylistId(e.target.value)} placeholder="YouTube Playlist ID (optional) — links to playlist in Portfolio" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                    </AdminSelect>
+                    <AdminInput label="Subcategory name" value={scName} onChange={e => setScName(e.target.value)} placeholder="Subcategory name" />
+                    <AdminInput label="YouTube Playlist ID (optional)" value={scPlaylistId} onChange={e => setScPlaylistId(e.target.value)} placeholder="Links to playlist in Portfolio" />
                     <div>
                       <label style={typography.caption}>Header image (optional)</label>
                       <input key={fileKey + 1} type="file" accept="image/*" onChange={e => setScFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
@@ -505,7 +511,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                       Add Subcategory
                     </AdminButton>
                   </form>
-                </div>
+                </AdminCard>
               </div>
             )}
 
@@ -515,78 +521,83 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> Upload photos, YouTube videos, or Facebook reels here. Each item needs a category and a subcategory (both required when subcategories exist for that category). These items appear in the Portfolio page and can be selected for the home page carousels.
                 </div>
-                <p style={typography.label}>Portfolio Items ({items.length})</p>
-                <form onSubmit={prevent(handleAddWorkItem)} style={{ ...A.card, marginBottom: spacing.xl }}>
-                  <p style={A.cardTitle}>Add Item</p>
-                  <div style={{ display: "flex", gap: spacing.sm, marginBottom: spacing.sm }}>
-                    {["image","video","facebook"].map(t => (
-                      <button key={t} type="button" onClick={() => setWiType(t)}
-                        style={{
-                          ...A.btnSmall,
-                          background: wiType === t ? colors.brand : "none",
-                          color: wiType === t ? colors.white : colors.gray600,
-                          border: wiType === t ? "none" : `1px solid ${colors.gray300}`,
-                          borderRadius: radii.md,
-                          cursor: "pointer",
-                        }}>
-                        {t === "image" ? "Image" : t === "video" ? "YouTube" : "Facebook"}
-                      </button>
-                    ))}
-                  </div>
-                  <select value={wiCat} onChange={e => { setWiCat(e.target.value); setWiSubcat(""); }} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm, color: wiCat ? colors.gray900 : colors.gray400 }}>
-                    <option value="" disabled>Select category...</option>
-                    {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                  </select>
-                  {wiCat && subcats.filter(s => s.category_id === wiCat).length > 0 && (
-                    <select value={wiSubcat} onChange={e => setWiSubcat(e.target.value)} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm, color: wiSubcat ? colors.gray900 : colors.gray400 }}>
-                      <option value="" disabled>Select subcategory...</option>
-                      {subcats.filter(s => s.category_id === wiCat).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                  )}
-                  <input value={wiTitle} onChange={e => setWiTitle(e.target.value)} placeholder="Title" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                  <input value={wiDesc} onChange={e => setWiDesc(e.target.value)} placeholder="Description (optional)" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                  {wiType === "image" && (
-                    <div style={{ marginBottom: spacing.sm }}>
-                      <label style={typography.caption}>Image file</label>
-                      <input key={fileKey} type="file" accept="image/*" onChange={e => setWiFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
+                <AdminCard title="Add Item" style={{ marginBottom: spacing.xl }}>
+                  <form onSubmit={prevent(handleAddWorkItem)}>
+                    <div style={{ display: "flex", gap: spacing.sm, marginBottom: spacing.sm }}>
+                      {["image","video","facebook"].map(t => (
+                        <button key={t} type="button" onClick={() => setWiType(t)}
+                          style={{
+                            ...A.btnSmall,
+                            background: wiType === t ? colors.brand : "none",
+                            color: wiType === t ? colors.white : colors.gray600,
+                            border: wiType === t ? "none" : `1px solid ${colors.gray300}`,
+                            borderRadius: radii.md,
+                            cursor: "pointer",
+                          }}>
+                          {t === "image" ? "Image" : t === "video" ? "YouTube" : "Facebook"}
+                        </button>
+                      ))}
                     </div>
-                  )}
-                  {wiType === "video" && (
-                    <>
-                      <input value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="YouTube video ID" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                    <AdminSelect label="Category" value={wiCat} onChange={e => { setWiCat(e.target.value); setWiSubcat(""); }} style={{ color: wiCat ? colors.gray900 : colors.gray400 }}>
+                      <option value="" disabled>Select category...</option>
+                      {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                    </AdminSelect>
+                    {wiCat && subcats.filter(s => s.category_id === wiCat).length > 0 && (
+                      <AdminSelect label="Subcategory" value={wiSubcat} onChange={e => setWiSubcat(e.target.value)} style={{ color: wiSubcat ? colors.gray900 : colors.gray400 }}>
+                        <option value="" disabled>Select subcategory...</option>
+                        {subcats.filter(s => s.category_id === wiCat).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </AdminSelect>
+                    )}
+                    <AdminInput label="Title" value={wiTitle} onChange={e => setWiTitle(e.target.value)} placeholder="Title" />
+                    <AdminInput label="Description (optional)" value={wiDesc} onChange={e => setWiDesc(e.target.value)} placeholder="Description" />
+                    {wiType === "image" && (
                       <div style={{ marginBottom: spacing.sm }}>
-                        <label style={typography.caption}>Thumbnail image <span style={{ color: colors.gray400 }}>(optional)</span></label>
-                        <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
+                        <label style={typography.caption}>Image file</label>
+                        <input key={fileKey} type="file" accept="image/*" onChange={e => setWiFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
                       </div>
-                    </>
-                  )}
-                  {wiType === "facebook" && (
-                    <>
-                      <input value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="Facebook reel/video URL (e.g. https://www.facebook.com/reel/123...)" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                      <div style={{ marginBottom: spacing.sm }}>
-                        <label style={typography.caption}>Thumbnail image <span style={{ color: colors.gray400 }}>(recommended)</span></label>
-                        <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
-                      </div>
-                    </>
-                  )}
-                  <AdminButton type="submit" loading={adminLoading} disabled={!wiTitle.trim() || !wiCat || (subcats.filter(s => s.category_id === wiCat).length > 0 && !wiSubcat)}
-                    style={{ marginTop: spacing.md }}>
-                    Add Item
-                  </AdminButton>
-                </form>
-                {items.length === 0 && emptyMsg("No work items yet.")}
-                {items.map(item => (
-                  <div key={item.id} style={A.listItem}>
-                    <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
-                      <div style={{ fontSize: 10, color: colors.gray500 }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
-                    </div>
-                    <AdminButton variant="danger" size="small" onClick={() => handleDeleteWorkItem(item.id)} loading={adminLoading}>
-                      Remove
+                    )}
+                    {wiType === "video" && (
+                      <>
+                        <AdminInput label="YouTube video ID" value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="YouTube video ID" />
+                        <div style={{ marginBottom: spacing.sm }}>
+                          <label style={typography.caption}>Thumbnail image <span style={{ color: colors.gray400 }}>(optional)</span></label>
+                          <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
+                        </div>
+                      </>
+                    )}
+                    {wiType === "facebook" && (
+                      <>
+                        <AdminInput label="Facebook reel/video URL" value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="https://www.facebook.com/reel/123..." />
+                        <div style={{ marginBottom: spacing.sm }}>
+                          <label style={typography.caption}>Thumbnail image <span style={{ color: colors.gray400 }}>(recommended)</span></label>
+                          <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
+                        </div>
+                      </>
+                    )}
+                    <AdminButton type="submit" loading={adminLoading} disabled={!wiTitle.trim() || !wiCat || (subcats.filter(s => s.category_id === wiCat).length > 0 && !wiSubcat)}
+                      style={{ marginTop: spacing.md }}>
+                      Add Item
                     </AdminButton>
-                  </div>
-                ))}
+                  </form>
+                </AdminCard>
+
+                <AdminCard title={`Portfolio Items (${items.length})`}>
+                  {items.length === 0
+                    ? emptyMsg("No portfolio items yet. Add photos, YouTube videos, or Facebook reels above.")
+                    : items.map(item => (
+                        <div key={item.id} style={A.listItem}>
+                          <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
+                            <div style={{ fontSize: 10, color: colors.gray500 }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
+                          </div>
+                          <AdminButton variant="danger" size="small" onClick={() => handleDeleteWorkItem(item.id)} loading={adminLoading}>
+                            Remove
+                          </AdminButton>
+                        </div>
+                      ))
+                  }
+                </AdminCard>
               </div>
             )}
 
@@ -596,47 +607,52 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> FAQs appear on the home page (top 3) and the full FAQ page. They are automatically translated to all 5 languages. Drag to reorder.
                 </div>
-                <p style={typography.label}>FAQs ({faqs.length})</p>
-                {faqs.length === 0 && emptyMsg("No FAQs yet. Add one below.")}
-                <DragList
-                  items={faqs}
-                  keyFn={(f) => f.id || f.q}
-                  onReorder={handleFaqReorder}
-                  renderItem={(f) => (
-                    editingFaq === (f.id || f.q) ? (
-                      <div>
-                        <input value={editFaqQ} onChange={e => setEditFaqQ(e.target.value)} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm, fontWeight: 600 }}/>
-                        <textarea value={editFaqA} onChange={e => setEditFaqA(e.target.value)} rows={3} className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
-                        <div style={{ display: "flex", gap: spacing.sm }}>
-                          <AdminButton size="small" loading={adminLoading || translating} onClick={() => handleUpdateFaq(f.id)}>
-                            Save
-                          </AdminButton>
-                          <AdminButton variant="secondary" size="small" onClick={() => setEditingFaq(null)}>
-                            Cancel
-                          </AdminButton>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>{f.q}</div>
-                        <div style={{ fontSize: 12, color: colors.gray600, lineHeight: 1.5, marginBottom: spacing.sm }}>{f.a}</div>
-                        <div style={{ display: "flex", gap: spacing.sm }}>
-                          {f.id && <AdminButton variant="secondary" size="small" onClick={() => { setEditingFaq(f.id); setEditFaqQ(f.q); setEditFaqA(f.a); }}>Edit</AdminButton>}
-                          {f.id && <AdminButton variant="danger" size="small" onClick={() => handleDeleteFaq(f.id)} loading={adminLoading}>Delete</AdminButton>}
-                        </div>
-                      </div>
-                    )
-                  )}
-                />
-                <form onSubmit={prevent(handleAddFaq)} style={{ ...A.card, marginTop: spacing.xl }}>
-                  <p style={A.cardTitle}>Add FAQ</p>
-                  <input value={faqQ} onChange={e => setFaqQ(e.target.value)} placeholder="Question" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                  <textarea value={faqA} onChange={e => setFaqA(e.target.value)} placeholder="Answer" rows={3} className="admin-input" style={A.textarea}/>
-                  <AdminButton type="submit" loading={adminLoading || translating} disabled={!faqQ.trim() || !faqA.trim()}
-                    style={{ marginTop: spacing.md }}>
-                    Add FAQ
-                  </AdminButton>
-                </form>
+                <AdminCard title="Add FAQ">
+                  <form onSubmit={prevent(handleAddFaq)}>
+                    <AdminInput label="Question" value={faqQ} onChange={e => setFaqQ(e.target.value)} placeholder="Question" />
+                    <AdminTextarea label="Answer" value={faqA} onChange={e => setFaqA(e.target.value)} placeholder="Answer" rows={3} />
+                    <AdminButton type="submit" loading={adminLoading || translating} disabled={!faqQ.trim() || !faqA.trim()}
+                      style={{ marginTop: spacing.md }}>
+                      Add FAQ
+                    </AdminButton>
+                  </form>
+                </AdminCard>
+
+                <AdminCard title={`FAQs (${faqs.length})`} style={{ marginTop: spacing.xl }}>
+                  {faqs.length === 0
+                    ? emptyMsg("No FAQs yet. Add your first question and answer above — they'll be auto-translated to all 5 languages.")
+                    : <DragList
+                        items={faqs}
+                        keyFn={(f) => f.id || f.q}
+                        onReorder={handleFaqReorder}
+                        renderItem={(f) => (
+                          editingFaq === (f.id || f.q) ? (
+                            <div>
+                              <AdminInput value={editFaqQ} onChange={e => setEditFaqQ(e.target.value)} style={{ fontWeight: 600 }} />
+                              <AdminTextarea value={editFaqA} onChange={e => setEditFaqA(e.target.value)} rows={3} />
+                              <div style={{ display: "flex", gap: spacing.sm }}>
+                                <AdminButton size="small" loading={adminLoading || translating} onClick={() => handleUpdateFaq(f.id)}>
+                                  Save
+                                </AdminButton>
+                                <AdminButton variant="secondary" size="small" onClick={() => setEditingFaq(null)}>
+                                  Cancel
+                                </AdminButton>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>{f.q}</div>
+                              <div style={{ fontSize: 12, color: colors.gray600, lineHeight: 1.5, marginBottom: spacing.sm }}>{f.a}</div>
+                              <div style={{ display: "flex", gap: spacing.sm }}>
+                                {f.id && <AdminButton variant="secondary" size="small" onClick={() => { setEditingFaq(f.id); setEditFaqQ(f.q); setEditFaqA(f.a); }}>Edit</AdminButton>}
+                                {f.id && <AdminButton variant="danger" size="small" onClick={() => handleDeleteFaq(f.id)} loading={adminLoading}>Delete</AdminButton>}
+                              </div>
+                            </div>
+                          )
+                        )}
+                      />
+                  }
+                </AdminCard>
               </div>
             )}
 
