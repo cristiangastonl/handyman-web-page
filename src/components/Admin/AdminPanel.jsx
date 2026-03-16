@@ -352,7 +352,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   return (
     <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: colors.gray50, minHeight: "100vh", color: colors.gray900 }}>
       <AdminStyles />
-      <div className="admin-container" style={{ maxWidth: 620, width: "100%", margin: "0 auto", padding: "28px 20px" }}>
+      <div className="admin-container" style={{ maxWidth: 900, width: "100%", margin: "0 auto", padding: "28px 20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing["2xl"] }}>
           <h2 style={typography.pageTitle}>Admin Panel</h2>
           <div style={{ display: "flex", gap: spacing.sm }}>
