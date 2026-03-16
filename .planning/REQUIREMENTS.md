@@ -64,21 +64,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DSGN-01 | TBD | Pending |
-| DSGN-02 | TBD | Pending |
-| DSGN-03 | TBD | Pending |
-| DSGN-04 | TBD | Pending |
-| DSGN-05 | TBD | Pending |
-| NAVF-01 | TBD | Pending |
-| NAVF-02 | TBD | Pending |
-| NAVF-03 | TBD | Pending |
-| NAVF-04 | TBD | Pending |
+| DSGN-01 | Phase 1: Design System | Pending |
+| DSGN-02 | Phase 1: Design System | Pending |
+| DSGN-03 | Phase 1: Design System | Pending |
+| DSGN-04 | Phase 3: Tab Content | Pending |
+| DSGN-05 | Phase 1: Design System | Pending |
+| NAVF-01 | Phase 3: Tab Content | Pending |
+| NAVF-02 | Phase 2: Shell and Feedback | Pending |
+| NAVF-03 | Phase 2: Shell and Feedback | Pending |
+| NAVF-04 | Phase 2: Shell and Feedback | Pending |
 
 **Coverage:**
 - v1 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9 ⚠️
+- Mapped to phases: 9
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation*
