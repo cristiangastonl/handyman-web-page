@@ -26,14 +26,14 @@ Requirements for Admin Portfolio UX milestone. Each maps to roadmap phases.
 
 ### Portfolio Filtering
 
-- [ ] **FILT-01**: Admin can filter portfolio items by category via dropdown
-- [ ] **FILT-02**: Admin can filter portfolio items by subcategory (appears when category is selected)
-- [ ] **FILT-03**: Filter shows item count matching current selection (e.g., "Showing 42 of 312")
+- [x] **FILT-01**: Admin can filter portfolio items by category via dropdown
+- [x] **FILT-02**: Admin can filter portfolio items by subcategory (appears when category is selected)
+- [x] **FILT-03**: Filter shows item count matching current selection (e.g., "Showing 42 of 312")
 
 ### Portfolio Pagination
 
-- [ ] **PAGE-01**: Portfolio item list displays a fixed number of items per page (e.g., 20-30)
-- [ ] **PAGE-02**: Admin can navigate between pages (previous/next + page numbers)
+- [x] **PAGE-01**: Portfolio item list displays a fixed number of items per page (e.g., 20-30)
+- [x] **PAGE-02**: Admin can navigate between pages (previous/next + page numbers)
 
 ### Portfolio Preview
 
@@ -67,11 +67,11 @@ Deferred to future release.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FILT-01 | Phase 4 | Pending |
-| FILT-02 | Phase 4 | Pending |
-| FILT-03 | Phase 4 | Pending |
-| PAGE-01 | Phase 4 | Pending |
-| PAGE-02 | Phase 4 | Pending |
+| FILT-01 | Phase 4 | Complete |
+| FILT-02 | Phase 4 | Complete |
+| FILT-03 | Phase 4 | Complete |
+| PAGE-01 | Phase 4 | Complete |
+| PAGE-02 | Phase 4 | Complete |
 | PREV-01 | Phase 5 | Pending |
 | PREV-02 | Phase 5 | Pending |
 
