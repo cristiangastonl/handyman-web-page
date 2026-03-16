@@ -12,12 +12,12 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DSGN-01**: Admin panel uses a consistent typography scale — page titles (18px), section headers (14px), body text (13px), captions (11px)
 - [x] **DSGN-02**: Buttons have clear visual hierarchy — primary (filled orange), secondary (outlined/ghost), danger (red for destructive actions)
 - [x] **DSGN-03**: Form inputs have 40px height, clear borders, brand-color focus ring, and persistent labels above each field
-- [ ] **DSGN-04**: Related content is grouped in cards with subtle borders/shadows (add form in one card, existing items list in another)
+- [x] **DSGN-04**: Related content is grouped in cards with subtle borders/shadows (add form in one card, existing items list in another)
 - [x] **DSGN-05**: Design tokens live in a dedicated `adminStyles.js` file, separate from the public site's `constants.js`
 
 ### Navigation & Feedback
 
-- [ ] **NAVF-01**: Empty states show guidance text with a clear call-to-action (e.g., "Add your first category") instead of faint gray text
+- [x] **NAVF-01**: Empty states show guidance text with a clear call-to-action (e.g., "Add your first category") instead of faint gray text
 - [x] **NAVF-02**: Flash messages are color-coded — green with checkmark for success, red with X for errors — with smooth fade-out
 - [x] **NAVF-03**: Tab bar is sticky at the top of the admin panel when scrolling
 - [x] **NAVF-04**: Async operations show a spinner next to the submit button (not just opacity reduction)
@@ -67,9 +67,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSGN-01 | Phase 1: Design System | Complete |
 | DSGN-02 | Phase 1: Design System | Complete |
 | DSGN-03 | Phase 1: Design System | Complete |
-| DSGN-04 | Phase 3: Tab Content | Pending |
+| DSGN-04 | Phase 3: Tab Content | Complete |
 | DSGN-05 | Phase 1: Design System | Complete |
-| NAVF-01 | Phase 3: Tab Content | Pending |
+| NAVF-01 | Phase 3: Tab Content | Complete |
 | NAVF-02 | Phase 2: Shell and Feedback | Complete |
 | NAVF-03 | Phase 2: Shell and Feedback | Complete |
 | NAVF-04 | Phase 2: Shell and Feedback | Complete |
