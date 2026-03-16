@@ -131,11 +131,6 @@ export const css = `
   .heroContent h1 { animation: heroFadeUp 0.8s ease 0.3s both; }
   .heroContent p { animation: heroFadeUp 0.8s ease 0.45s both; }
   .heroContent > div:last-child { animation: heroFadeUp 0.8s ease 0.6s both; }
-  .admin-btn:hover { opacity: 0.85; }
-  .admin-tab:hover { color: #666 !important; }
-  .admin-ghost:hover { background: #f5f5f5 !important; }
-  .admin-tabs::-webkit-scrollbar { display: none; }
-  .admin-tabs { -ms-overflow-style: none; scrollbar-width: none; }
   @media (max-width: 900px) {
     .sticky-bar { display: none !important; }
   }

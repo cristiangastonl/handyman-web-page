@@ -206,4 +206,18 @@ export const adminCss = `
 .admin-btn-primary:hover { opacity: 0.88 !important; }
 .admin-btn-danger:hover { background: #FEF2F2 !important; color: #D64545 !important; }
 .admin-btn-secondary:hover { background: #F5F3F0 !important; }
+.admin-tab:hover { background: #F5F3F0 !important; }
+.admin-tabs::-webkit-scrollbar { display: none; }
+.admin-tabs { -ms-overflow-style: none; scrollbar-width: none; }
+@keyframes admin-flash-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes admin-flash-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-flash { animation: none !important; }
+}
 `;

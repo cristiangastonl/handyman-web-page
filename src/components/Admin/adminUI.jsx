@@ -2,7 +2,7 @@
 // Reusable admin UI primitive components.
 // Thin wrappers that apply design tokens from adminStyles.js.
 
-import { A, colors, spacing, typography, adminCss } from "../../lib/adminStyles";
+import { A, colors, spacing, typography, radii, adminCss } from "../../lib/adminStyles";
 
 /**
  * AdminButton -- Three variants (primary, secondary, danger) with loading and disabled states.
@@ -109,6 +109,61 @@ export function AdminCard({ title, children, style, ...props }) {
  */
 export function AdminLabel({ children, style }) {
   return <div style={{ ...A.inputLabel, ...style }}>{children}</div>;
+}
+
+/**
+ * AdminFlash -- Color-coded flash message with icon, auto-detect error type, close button for errors.
+ * Uses admin-flash CSS class for slide-down/fade-out animation.
+ */
+export function AdminFlash({ message, onDismiss }) {
+  if (!message) return null;
+  const isError = message.startsWith("Error");
+  const icon = isError ? "\u2715" : "\u2713";
+  const bg = isError ? colors.dangerLight : colors.successLight;
+  const fg = isError ? colors.danger : colors.success;
+  const borderColor = isError ? colors.danger : colors.success;
+
+  return (
+    <div
+      className="admin-flash"
+      style={{
+        position: "sticky",
+        top: 48,
+        zIndex: 101,
+        display: "flex",
+        alignItems: "center",
+        gap: spacing.sm,
+        padding: `${spacing.sm}px ${spacing.lg}px`,
+        background: bg,
+        border: `1px solid ${borderColor}30`,
+        borderRadius: radii.md,
+        marginBottom: spacing.md,
+        ...typography.body,
+        color: fg,
+        fontWeight: 500,
+        animation: "admin-flash-in 0.3s ease-out",
+      }}
+    >
+      <span style={{ fontSize: 16, lineHeight: 1 }}>{icon}</span>
+      <span style={{ flex: 1 }}>{message}</span>
+      {isError && (
+        <button
+          onClick={onDismiss}
+          style={{
+            background: "none",
+            border: "none",
+            color: fg,
+            cursor: "pointer",
+            fontSize: 16,
+            lineHeight: 1,
+            padding: 0,
+          }}
+        >
+          {"\u2715"}
+        </button>
+      )}
+    </div>
+  );
 }
 
 /**
