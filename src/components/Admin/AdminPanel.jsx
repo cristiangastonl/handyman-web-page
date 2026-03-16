@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { itemThumb, SITE_TEXTS, parseSiteText } from "../../lib/constants";
+import { itemThumb, fbEmbedUrl, SITE_TEXTS, parseSiteText } from "../../lib/constants";
 import { colors, spacing, typography, shadows, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminTextarea, AdminCard, AdminLabel, AdminSelect, AdminFlash, AdminStyles } from "./adminUI";
 import { translateFaq } from "../../lib/translate";
@@ -82,7 +82,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [filterSubcat, setFilterSubcat] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(30);
-  const [previewId, setPreviewId] = useState(null);
+  const [previewItem, setPreviewItem] = useState(null);
 
   // FB Review form
   const [fbrName, setFbrName] = useState("");
@@ -656,82 +656,65 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                           ? emptyMsg("No portfolio items yet. Add photos, YouTube videos, or Facebook reels above.")
                           : filteredItems.length === 0
                             ? emptyMsg("No items match the current filters.")
-                            : pagedItems.map(item => (
-                                <React.Fragment key={item.id}>
+                            : (
+                              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: spacing.md }}>
+                                {pagedItems.map(item => (
                                   <div
-                                    style={{ ...A.listItem, cursor: "pointer", background: previewId === item.id ? colors.gray50 : "transparent" }}
-                                    onClick={() => setPreviewId(prev => prev === item.id ? null : item.id)}
+                                    key={item.id}
+                                    onClick={() => setPreviewItem(item)}
+                                    style={{
+                                      cursor: "pointer",
+                                      borderRadius: radii.md,
+                                      overflow: "hidden",
+                                      border: `1px solid ${colors.gray200}`,
+                                      background: colors.white,
+                                      transition: "box-shadow 0.15s",
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.boxShadow = shadows.md}
+                                    onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}
                                   >
-                                    <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                      <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
-                                      <div style={{ fontSize: 10, color: colors.gray500 }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
-                                    </div>
-                                    <AdminButton variant="danger" size="small" onClick={(e) => { e.stopPropagation(); handleDeleteWorkItem(item.id); }} loading={adminLoading}>
-                                      Remove
-                                    </AdminButton>
-                                  </div>
-                                  {previewId === item.id && (
-                                    <div style={{
-                                      padding: `${spacing.lg}px ${spacing.xl}px`,
-                                      background: colors.gray50,
-                                      borderBottom: `1px solid ${colors.gray200}`,
-                                      display: "flex",
-                                      gap: spacing.xl,
-                                      alignItems: "flex-start",
-                                    }}>
+                                    <div style={{ position: "relative", paddingTop: "75%", background: colors.gray100 }}>
                                       <img
                                         src={itemThumb(item)}
                                         alt={item.title || ""}
+                                        loading="lazy"
                                         style={{
-                                          width: 320,
-                                          maxWidth: "50%",
-                                          height: "auto",
-                                          objectFit: "contain",
-                                          borderRadius: radii.md,
-                                          background: colors.gray200,
+                                          position: "absolute",
+                                          inset: 0,
+                                          width: "100%",
+                                          height: "100%",
+                                          objectFit: "cover",
                                         }}
                                       />
-                                      <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                                          <div>
-                                            <div style={{ fontSize: 14, fontWeight: 600, color: colors.gray900, marginBottom: spacing.xs }}>
-                                              {item.title || "(untitled)"}
-                                            </div>
-                                            <div style={{ ...typography.caption, marginBottom: spacing.sm }}>
-                                              {cats.find(c => c.id === item.cat)?.label || "Unknown category"}
-                                            </div>
-                                          </div>
-                                          <button
-                                            type="button"
-                                            onClick={() => setPreviewId(null)}
-                                            style={{
-                                              background: "none",
-                                              border: "none",
-                                              cursor: "pointer",
-                                              fontSize: 18,
-                                              color: colors.gray400,
-                                              padding: spacing.xs,
-                                              lineHeight: 1,
-                                            }}
-                                            title="Close preview"
-                                          >
-                                            x
-                                          </button>
-                                        </div>
-                                        {item.desc && (
-                                          <div style={{ ...typography.caption, color: colors.gray500, marginTop: spacing.xs }}>
-                                            {item.desc}
-                                          </div>
-                                        )}
-                                        <div style={{ ...typography.caption, marginTop: spacing.md, color: colors.gray400 }}>
-                                          Type: {item.type === "image" ? "Photo" : item.type === "video" ? "YouTube" : "Facebook"}
-                                        </div>
+                                      {item.type !== "image" && (
+                                        <span style={{
+                                          position: "absolute",
+                                          top: 4,
+                                          right: 4,
+                                          background: "rgba(0,0,0,0.6)",
+                                          color: "#fff",
+                                          fontSize: 9,
+                                          fontWeight: 600,
+                                          padding: "2px 5px",
+                                          borderRadius: radii.sm,
+                                          textTransform: "uppercase",
+                                        }}>
+                                          {item.type === "video" ? "YT" : "FB"}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div style={{ padding: `${spacing.xs}px ${spacing.sm}px` }}>
+                                      <div style={{ fontSize: 11, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: colors.gray800 }}>
+                                        {item.title || "(untitled)"}
+                                      </div>
+                                      <div style={{ fontSize: 9, color: colors.gray400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        {cats.find(c => c.id === item.cat)?.label}
                                       </div>
                                     </div>
-                                  )}
-                                </React.Fragment>
-                              ))
+                                  </div>
+                                ))}
+                              </div>
+                            )
                         }
                         {/* Pagination controls */}
                         {totalPages > 1 && (
@@ -783,6 +766,98 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                     );
                   })()}
                 </AdminCard>
+
+                {/* Preview Modal */}
+                {previewItem && (
+                  <div
+                    onClick={() => setPreviewItem(null)}
+                    style={{
+                      position: "fixed",
+                      inset: 0,
+                      zIndex: 1000,
+                      background: "rgba(0,0,0,0.75)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 24,
+                    }}
+                  >
+                    <div
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        background: colors.white,
+                        borderRadius: radii.lg,
+                        overflow: "hidden",
+                        maxWidth: 700,
+                        width: "100%",
+                        maxHeight: "90vh",
+                        display: "flex",
+                        flexDirection: "column",
+                        boxShadow: shadows.lg,
+                      }}
+                    >
+                      {/* Media */}
+                      {previewItem.type === "video" ? (
+                        <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
+                          <iframe
+                            src={`https://www.youtube.com/embed/${previewItem.videoId}?autoplay=1`}
+                            title="Video preview"
+                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+                            frameBorder="0"
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : previewItem.type === "facebook" ? (
+                        <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
+                          <iframe
+                            src={fbEmbedUrl(previewItem.videoId || previewItem.src)}
+                            title="Facebook video preview"
+                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : (
+                        <img
+                          src={previewItem.src}
+                          alt={previewItem.title || ""}
+                          style={{ width: "100%", display: "block", maxHeight: "70vh", objectFit: "contain", background: colors.gray100 }}
+                        />
+                      )}
+                      {/* Info bar */}
+                      <div style={{ padding: `${spacing.md}px ${spacing.lg}px`, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `1px solid ${colors.gray200}` }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: colors.gray900 }}>{previewItem.title || "(untitled)"}</div>
+                          <div style={{ ...typography.caption, marginTop: 2 }}>
+                            {cats.find(c => c.id === previewItem.cat)?.label}
+                            {previewItem.desc && ` — ${previewItem.desc}`}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: spacing.sm, alignItems: "center", marginLeft: spacing.md }}>
+                          <AdminButton variant="danger" size="small" onClick={() => { handleDeleteWorkItem(previewItem.id); setPreviewItem(null); }} loading={adminLoading}>
+                            Remove
+                          </AdminButton>
+                          <button
+                            onClick={() => setPreviewItem(null)}
+                            style={{
+                              background: "none",
+                              border: `1px solid ${colors.gray300}`,
+                              borderRadius: radii.sm,
+                              cursor: "pointer",
+                              fontSize: 13,
+                              color: colors.gray600,
+                              height: 28,
+                              padding: "0 12px",
+                            }}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
