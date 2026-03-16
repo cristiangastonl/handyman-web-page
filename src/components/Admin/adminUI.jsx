@@ -93,6 +93,24 @@ export function AdminTextarea({ label, style, ...props }) {
 }
 
 /**
+ * AdminSelect -- Select dropdown with optional label and focus ring via CSS class.
+ */
+export function AdminSelect({ label, children, style, ...props }) {
+  return (
+    <div style={{ marginBottom: spacing.lg }}>
+      {label && <label style={A.inputLabel}>{label}</label>}
+      <select
+        className="admin-input"
+        style={{ ...A.input, ...style }}
+        {...props}
+      >
+        {children}
+      </select>
+    </div>
+  );
+}
+
+/**
  * AdminCard -- Card container with optional title.
  */
 export function AdminCard({ title, children, style, ...props }) {
