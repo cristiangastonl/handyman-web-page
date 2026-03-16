@@ -40,10 +40,10 @@ Plans:
   1. Tab bar stays visible (sticky) at the top when scrolling down within any tab's content
   2. Success flash messages appear green with a checkmark icon and error messages appear red with an X icon, both with smooth fade-out
   3. Clicking a submit button during an async operation shows a spinner adjacent to the button text (not just reduced opacity)
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md -- AdminFlash component, sticky tab bar, token-based header/login, AdminButton replacements throughout
 
 ### Phase 3: Tab Content
 **Goal**: All 7 tabs use consistent card layouts, form styling, empty states, and item lists -- the admin feels cohesive from tab to tab
@@ -66,5 +66,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design System | 0/1 | Complete    | 2026-03-16 |
-| 2. Shell and Feedback | 0/0 | Not started | - |
+| 2. Shell and Feedback | 0/1 | Not started | - |
 | 3. Tab Content | 0/0 | Not started | - |
