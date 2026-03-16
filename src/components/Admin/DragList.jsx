@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { colors, spacing, radii } from "../../lib/adminStyles";
 
 /**
  * Smooth drag-and-drop reorderable list.
@@ -161,12 +162,12 @@ export default function DragList({ items, keyFn, renderItem, onReorder }) {
             onPointerDown={(e) => handlePointerDown(e, originalIdx)}
             style={{
               display: "flex",
-              gap: 10,
+              gap: spacing.md,
               alignItems: "flex-start",
-              padding: "10px 8px",
-              borderBottom: "1px solid #f0f0f0",
-              borderRadius: isBeingDragged ? 8 : 0,
-              background: isBeingDragged ? "#FFF8F0" : "transparent",
+              padding: `${spacing.md}px ${spacing.sm}px`,
+              borderBottom: `1px solid ${colors.gray100}`,
+              borderRadius: isBeingDragged ? radii.md : 0,
+              background: isBeingDragged ? colors.brandLight : "transparent",
               boxShadow: isBeingDragged ? "0 2px 12px rgba(0,0,0,.1)" : "none",
               transform: isBeingDragged ? "scale(1.01)" : "scale(1)",
               transition: isBeingDragged ? "none" : "transform .2s ease, background .15s ease, box-shadow .15s ease",
@@ -181,11 +182,11 @@ export default function DragList({ items, keyFn, renderItem, onReorder }) {
                 flexDirection: "column",
                 justifyContent: "center",
                 flexShrink: 0,
-                color: isBeingDragged ? "#999" : "#ccc",
+                color: isBeingDragged ? colors.gray400 : colors.gray300,
                 fontSize: 16,
                 lineHeight: 1,
                 userSelect: "none",
-                padding: "4px 2px",
+                padding: `${spacing.xs}px 2px`,
               }}
             >
               ⠿

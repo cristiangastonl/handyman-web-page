@@ -153,7 +153,7 @@ export default function CarouselsTab({ items, cats, carouselData, setCarouselDat
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: spacing.xl, gap: spacing.sm, flexWrap: "wrap" }}>
         <p style={{ ...typography.label, margin: 0 }}>Select from Portfolio ({filteredPortfolio.length})</p>
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
-          className="admin-input" style={{ padding: `${spacing.xs}px ${spacing.sm}px`, border: `1px solid ${colors.gray200}`, borderRadius: radii.md, fontSize: 11, color: filterCat ? colors.gray900 : colors.gray400 }}>
+          className="admin-input" style={{ ...A.input, width: "auto", height: "auto", padding: `${spacing.xs}px ${spacing.sm}px`, fontSize: 11, color: filterCat ? colors.gray900 : colors.gray400 }}>
           <option value="">All categories</option>
           {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
         </select>
