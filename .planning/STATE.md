@@ -1,65 +1,45 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Admin Portfolio UX
-status: completed
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-16T23:23:45.310Z"
-last_activity: 2026-03-16 -- Completed phase 4 plan 1 (filter and paginate)
+milestone: v1.2
+milestone_name: Site Texts Redesign
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-17"
+last_activity: 2026-03-17 -- Milestone v1.2 started
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-16)
+See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Anibal can manage his website content confidently -- every section is self-explanatory, visually clear, and pleasant to use.
-**Current focus:** Phase 4 - Filter and Paginate
+**Current focus:** Defining requirements for v1.2
 
 ## Current Position
 
-Phase: 4 of 5 (Filter and Paginate)
-Plan: 1 of 1 -- COMPLETE
-Status: Phase 4 complete
-Last activity: 2026-03-16 -- Completed phase 4 plan 1 (filter and paginate)
-
-Progress: [██████████] 100%
-
-## Performance Metrics
-
-**Velocity:**
-- Total plans completed: 5 (4 v1.0 + 1 v1.1)
-- Average duration: --
-- Total execution time: --
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 1. Design System | 1 | -- | -- |
-| 2. Shell and Feedback | 1 | -- | -- |
-| 3. Tab Content | 2 | -- | -- |
-| 4. Filter and Paginate | 1 | 2min | 2min |
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-17 — Milestone v1.2 started
 
 ## Accumulated Context
 
 ### Decisions
 
 - [v1.0]: Design system with tokens in adminStyles.js, primitives in adminUI.jsx
-- [v1.0]: AdminCard single-style, no variant prop (YAGNI)
-- [v1.0]: Error flash messages persist until user dismisses; success auto-dismiss after 4s
 - [v1.0]: Two-card pattern: form card first (Add X), list card second (Xs with count)
-
-- [Phase 4]: IIFE pattern for computed filtered+paginated items in JSX
-- [Phase 4]: Page size options 20/30/50 with 30 as default
-- [Phase 4]: generatePageNumbers helper outside component as pure utility
+- [v1.1]: Grid layout for portfolio items, modal preview for images/videos
+- [v1.1]: Inline editing pattern for categories/subcategories (click name to edit)
+- [v1.2]: Font size + font family controls only (no text editing for i18n texts)
+- [v1.2]: Keep existing editable texts (hero titles, bio, highlights title)
 
 ### Pending Todos
 
@@ -71,6 +51,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T22:05:29Z
-Stopped at: Completed 04-01-PLAN.md
-Resume file: .planning/phases/04-filter-and-paginate/04-01-SUMMARY.md
+Last session: 2026-03-17
+Stopped at: Starting milestone v1.2
+Resume file: None

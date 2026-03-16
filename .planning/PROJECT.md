@@ -8,14 +8,15 @@ A visual and UX redesign of the Handyman Zurich admin panel (`/admin`). The admi
 
 Anibal can manage his website content confidently — every section is self-explanatory, visually clear, and pleasant to use.
 
-## Current Milestone: v1.1 Admin Portfolio UX
+## Current Milestone: v1.2 Site Texts Redesign
 
-**Goal:** Make the admin Portfolio tab usable at scale (1000+ items) with filtering, pagination, and quick preview.
+**Goal:** Redesign the admin Site Texts tab into a comprehensive typography control center, organized by site section, covering all visible text areas.
 
 **Target features:**
-- Filter portfolio items by category and subcategory
-- Paginated item list instead of infinite scroll
-- Quick preview of photos/videos without leaving the admin
+- Font size + font family control for every text section of the site (Hero, About, Stats, Carousels, CTAs, Footer, etc.)
+- Keep existing editable texts (hero title/subtitle/brand subtitle, bio, highlights title) — brand content that doesn't depend on language
+- Keep stats counters and hero image position control
+- Intuitive UX organized by site section, not flat list
 
 ## Requirements
 
@@ -42,21 +43,20 @@ Anibal can manage his website content confidently — every section is self-expl
 
 ### Active
 
-<!-- v1.1 scope -->
+<!-- v1.2 scope -->
 
-- [ ] Portfolio tab: filter items by category
-- [ ] Portfolio tab: filter items by subcategory (when category selected)
-- [ ] Portfolio tab: paginated item list (not infinite scroll)
-- [ ] Portfolio tab: quick preview of photo/video from the item list
+- [ ] Site Texts tab: redesigned UI organized by site sections
+- [ ] Font size + font family controls for all text areas across the site
+- [ ] Existing text editing preserved (hero titles, bio, highlights title)
+- [ ] Stats counters and hero image position control preserved
 
 ### Out of Scope
 
-- New functionality beyond portfolio filtering/preview — focus is portfolio UX
+- Text content editing for i18n-driven texts — language system handles those
+- Multi-language support for site_config texts — too complex for now
 - Mobile responsiveness — Anibal uses desktop only
 - Admin internationalization — stays in English
-- Backend changes — Supabase schema stays as-is
-- Public-facing portfolio changes — admin only
-- Bulk operations (multi-select, bulk delete) — single user, one at a time
+- New Supabase tables — use existing site_config key-value store
 
 ## Context
 
@@ -84,4 +84,4 @@ Anibal can manage his website content confidently — every section is self-expl
 | Design system (tokens + primitives) | Foundation-first approach from v1.0 | ✓ Good |
 
 ---
-*Last updated: 2026-03-16 after milestone v1.1 started*
+*Last updated: 2026-03-17 after milestone v1.2 started*
