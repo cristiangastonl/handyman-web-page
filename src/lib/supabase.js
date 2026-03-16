@@ -37,6 +37,11 @@ export async function addCategory(id, label, headerImage) {
   const { error } = await supabase.from("categories").insert({ id, label, header_image: headerImage });
   if (error) throw error;
 }
+export async function updateCategory(id, label) {
+  if (!supabase) return;
+  const { error } = await supabase.from("categories").update({ label }).eq("id", id);
+  if (error) throw error;
+}
 export async function deleteCategory(id) {
   if (!supabase) return;
   const { error } = await supabase.from("categories").delete().eq("id", id);
@@ -119,6 +124,11 @@ export async function addSubcategory(categoryId, name, headerImage, playlistId) 
   if (error) throw error;
   return data;
 }
+export async function updateSubcategory(id, name) {
+  if (!supabase) return;
+  const { error } = await supabase.from("subcategories").update({ name }).eq("id", id);
+  if (error) throw error;
+}
 export async function deleteSubcategory(id) {
   if (!supabase) return;
   const { error } = await supabase.from("subcategories").delete().eq("id", id);
@@ -175,6 +185,11 @@ export async function addFbReview(name, rating, text, reviewDate) {
   const { data, error } = await supabase.from("facebook_reviews").insert({ name, rating, text, review_date: reviewDate }).select().single();
   if (error) throw error;
   return data;
+}
+export async function updateFbReview(id, fields) {
+  if (!supabase) return;
+  const { error } = await supabase.from("facebook_reviews").update(fields).eq("id", id);
+  if (error) throw error;
 }
 export async function deleteFbReview(id) {
   if (!supabase) return;

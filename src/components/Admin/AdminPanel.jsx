@@ -6,12 +6,12 @@ import { translateFaq } from "../../lib/translate";
 import DragList from "./DragList";
 import {
   supabase, uploadImage,
-  fetchCategories, addCategory, deleteCategory,
+  fetchCategories, addCategory, updateCategory, deleteCategory,
   fetchWorkItems, addWorkItem, deleteWorkItem,
   fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow, updateFaqOrder,
   fetchSiteConfig, upsertSiteConfig,
-  fetchSubcategories, addSubcategory, deleteSubcategory,
-  fetchFbReviews, addFbReview, deleteFbReview,
+  fetchSubcategories, addSubcategory, updateSubcategory, deleteSubcategory,
+  fetchFbReviews, addFbReview, updateFbReview, deleteFbReview,
   fetchGoogleReviews, addGoogleReview, deleteGoogleReview,
 } from "../../lib/supabase";
 import CarouselsTab from "./CarouselsTab";
@@ -83,6 +83,9 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(30);
   const [previewItem, setPreviewItem] = useState(null);
+
+  // Inline editing state: { type: "cat"|"subcat"|"fbr", id, value, ... }
+  const [editing, setEditing] = useState(null);
 
   // FB Review form
   const [fbrName, setFbrName] = useState("");
@@ -329,6 +332,29 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     finally { setAdminLoading(false); }
   };
 
+  // ── Inline edit handlers ──
+  const handleSaveEdit = async () => {
+    if (!editing) return;
+    setAdminLoading(true);
+    try {
+      if (editing.type === "cat") {
+        await updateCategory(editing.id, editing.value.trim());
+        setCats(prev => prev.map(c => c.id === editing.id ? { ...c, label: editing.value.trim() } : c));
+        flash("Category updated");
+      } else if (editing.type === "subcat") {
+        await updateSubcategory(editing.id, editing.value.trim());
+        setSubcats(prev => prev.map(s => s.id === editing.id ? { ...s, name: editing.value.trim() } : s));
+        flash("Subcategory updated");
+      } else if (editing.type === "fbr") {
+        await updateFbReview(editing.id, { name: editing.name.trim(), text: editing.text.trim() });
+        setFbReviews(prev => prev.map(r => r.id === editing.id ? { ...r, name: editing.name.trim(), text: editing.text.trim() } : r));
+        flash("Review updated");
+      }
+      setEditing(null);
+    } catch (err) { flash("Error: " + err.message); }
+    finally { setAdminLoading(false); }
+  };
+
   // ── Google Review CRUD ──
   const handleAddGoogleReview = async () => {
     if (!grName.trim() || !grText.trim()) return;
@@ -476,7 +502,22 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                         {cats.filter(c => c.id !== "all").map(c => (
                           <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
                             {c.header_image && <img src={c.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
-                            {c.label}
+                            {editing?.type === "cat" && editing.id === c.id ? (
+                              <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                <input
+                                  autoFocus
+                                  value={editing.value}
+                                  onChange={e => setEditing({ ...editing, value: e.target.value })}
+                                  onBlur={handleSaveEdit}
+                                  onKeyDown={e => e.key === "Escape" && setEditing(null)}
+                                  style={{ width: 120, fontSize: 12, border: `1px solid ${colors.brand}`, borderRadius: radii.sm, padding: "2px 6px", outline: "none" }}
+                                />
+                              </form>
+                            ) : (
+                              <span onClick={() => setEditing({ type: "cat", id: c.id, value: c.label })} style={{ cursor: "pointer" }} title="Click to edit">
+                                {c.label}
+                              </span>
+                            )}
                             <button onClick={() => handleDeleteCategory(c.id)} disabled={adminLoading}
                               style={{ background: "none", border: "none", color: colors.danger, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>x</button>
                           </span>
@@ -500,7 +541,22 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                               {children.map(sc => (
                                 <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
                                   {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
-                                  {sc.name}
+                                  {editing?.type === "subcat" && editing.id === sc.id ? (
+                                    <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                      <input
+                                        autoFocus
+                                        value={editing.value}
+                                        onChange={e => setEditing({ ...editing, value: e.target.value })}
+                                        onBlur={handleSaveEdit}
+                                        onKeyDown={e => e.key === "Escape" && setEditing(null)}
+                                        style={{ width: 120, fontSize: 12, border: `1px solid ${colors.brand}`, borderRadius: radii.sm, padding: "2px 6px", outline: "none" }}
+                                      />
+                                    </form>
+                                  ) : (
+                                    <span onClick={() => setEditing({ type: "subcat", id: sc.id, value: sc.name })} style={{ cursor: "pointer" }} title="Click to edit">
+                                      {sc.name}
+                                    </span>
+                                  )}
                                   {sc.playlist_id && <span style={{ fontSize: 9, color: colors.gray500 }}>&#9654;</span>}
                                   <button onClick={() => handleDeleteSubcategory(sc.id)} disabled={adminLoading}
                                     style={{ background: "none", border: "none", color: colors.danger, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>x</button>
@@ -953,17 +1009,35 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                     ? emptyMsg("No Facebook reviews yet. Add reviews from your Facebook page above.")
                     : fbReviews.map(r => (
                         <div key={r.id} style={A.listItem}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div>
-                              <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
-                              <span style={{ fontSize: 11, color: "#1877F2", marginLeft: spacing.sm }}>&#128077; Recommends</span>
-                              {r.review_date && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.review_date}</span>}
-                            </div>
-                            <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
-                          </div>
-                          <AdminButton variant="danger" size="small" onClick={() => handleDeleteFbReview(r.id)} loading={adminLoading}>
-                            Remove
-                          </AdminButton>
+                          {editing?.type === "fbr" && editing.id === r.id ? (
+                            <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ flex: 1, minWidth: 0 }}>
+                              <AdminInput label="Name" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
+                              <AdminTextarea label="Review text" value={editing.text} onChange={e => setEditing({ ...editing, text: e.target.value })} rows={3} />
+                              <div style={{ display: "flex", gap: spacing.sm, marginTop: spacing.sm }}>
+                                <AdminButton type="submit" loading={adminLoading} disabled={!editing.name.trim() || !editing.text.trim()}>Save</AdminButton>
+                                <AdminButton variant="secondary" onClick={() => setEditing(null)}>Cancel</AdminButton>
+                              </div>
+                            </form>
+                          ) : (
+                            <>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div>
+                                  <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
+                                  <span style={{ fontSize: 11, color: "#1877F2", marginLeft: spacing.sm }}>&#128077; Recommends</span>
+                                  {r.review_date && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.review_date}</span>}
+                                </div>
+                                <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
+                              </div>
+                              <div style={{ display: "flex", gap: spacing.sm, alignItems: "center" }}>
+                                <AdminButton variant="secondary" size="small" onClick={() => setEditing({ type: "fbr", id: r.id, name: r.name, text: r.text })}>
+                                  Edit
+                                </AdminButton>
+                                <AdminButton variant="danger" size="small" onClick={() => handleDeleteFbReview(r.id)} loading={adminLoading}>
+                                  Remove
+                                </AdminButton>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))
                   }
