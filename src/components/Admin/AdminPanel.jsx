@@ -827,6 +827,9 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 {previewItem && (
                   <div
                     onClick={() => setPreviewItem(null)}
+                    onKeyDown={e => e.key === "Escape" && setPreviewItem(null)}
+                    tabIndex={-1}
+                    ref={el => el && el.focus()}
                     style={{
                       position: "fixed",
                       inset: 0,
@@ -887,8 +890,10 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                           <div style={{ fontSize: 14, fontWeight: 600, color: colors.gray900 }}>{previewItem.title || "(untitled)"}</div>
                           <div style={{ ...typography.caption, marginTop: 2 }}>
                             {cats.find(c => c.id === previewItem.cat)?.label}
-                            {previewItem.desc && ` — ${previewItem.desc}`}
+                            {previewItem.subcategory_id && subcats.find(s => s.id === previewItem.subcategory_id)?.name && ` / ${subcats.find(s => s.id === previewItem.subcategory_id).name}`}
+                            {" · "}{previewItem.type === "image" ? "Photo" : previewItem.type === "video" ? "YouTube" : "Facebook"}
                           </div>
+                          {previewItem.desc && <div style={{ ...typography.caption, color: colors.gray400, marginTop: 2 }}>{previewItem.desc}</div>}
                         </div>
                         <div style={{ display: "flex", gap: spacing.sm, alignItems: "center", marginLeft: spacing.md }}>
                           <AdminButton variant="danger" size="small" onClick={() => { handleDeleteWorkItem(previewItem.id); setPreviewItem(null); }} loading={adminLoading}>
