@@ -8,11 +8,20 @@ A visual and UX redesign of the Handyman Zurich admin panel (`/admin`). The admi
 
 Anibal can manage his website content confidently — every section is self-explanatory, visually clear, and pleasant to use.
 
+## Current Milestone: v1.1 Admin Portfolio UX
+
+**Goal:** Make the admin Portfolio tab usable at scale (1000+ items) with filtering, pagination, and quick preview.
+
+**Target features:**
+- Filter portfolio items by category and subcategory
+- Paginated item list instead of infinite scroll
+- Quick preview of photos/videos without leaving the admin
+
 ## Requirements
 
 ### Validated
 
-<!-- Existing functionality that works and must be preserved -->
+<!-- Shipped and confirmed valuable -->
 
 - ✓ Login/logout with Supabase auth — existing
 - ✓ Category CRUD (add, delete, with header image) — existing
@@ -27,54 +36,52 @@ Anibal can manage his website content confidently — every section is self-expl
 - ✓ Hero image position control with sliders — existing
 - ✓ Stats bar number editing — existing
 - ✓ Flash messages for success/error feedback — existing
+- ✓ Professional design system (tokens + primitives) — v1.0
+- ✓ Sticky tab bar, color-coded flash messages, spinner buttons — v1.0
+- ✓ Card layouts, empty states, styled forms across all tabs — v1.0
 
 ### Active
 
-<!-- UX and visual improvements -->
+<!-- v1.1 scope -->
 
-- [ ] Professional, modern visual design for the entire admin panel
-- [ ] Clear section labels and descriptions so every area is self-explanatory
-- [ ] Better visual hierarchy — headings, spacing, grouping of related elements
-- [ ] Improved form layouts — clearer inputs, better placeholder text, visual feedback
-- [ ] Better tab navigation — icons or visual cues to help find things quickly
-- [ ] Consistent button styles with clear primary/secondary/danger distinction
-- [ ] Better item lists — clearer display of existing items with key info visible
-- [ ] Improved empty states — helpful guidance when sections have no content yet
-- [ ] Loading and disabled states that feel polished, not broken
+- [ ] Portfolio tab: filter items by category
+- [ ] Portfolio tab: filter items by subcategory (when category selected)
+- [ ] Portfolio tab: paginated item list (not infinite scroll)
+- [ ] Portfolio tab: quick preview of photo/video from the item list
 
 ### Out of Scope
 
-- New functionality (search, bulk operations, edit existing reviews, etc.) — focus is purely UX/visual
+- New functionality beyond portfolio filtering/preview — focus is portfolio UX
 - Mobile responsiveness — Anibal uses desktop only
 - Admin internationalization — stays in English
-- Refactoring into multiple component files — only if needed for the visual work
 - Backend changes — Supabase schema stays as-is
+- Public-facing portfolio changes — admin only
+- Bulk operations (multi-select, bulk delete) — single user, one at a time
 
 ## Context
 
-- The admin is a single ~870-line React component (`AdminPanel.jsx`) plus `CarouselsTab.jsx` and `DragList.jsx`
-- All styling is inline React style objects + a global `<style>` tag (project convention, no Tailwind/CSS modules)
+- Admin panel: `AdminPanel.jsx` (~870 lines) + `CarouselsTab.jsx` + `DragList.jsx` + `adminUI.jsx` + `adminStyles.js`
+- All styling is inline React style objects (project convention)
+- Design system from v1.0: tokens in `adminStyles.js`, primitives in `adminUI.jsx`
+- Portfolio tab currently shows ALL items in a flat list with 52x36px thumbnails — unusable at scale
 - 7 tabs: Categories, Portfolio, Carousels, FB Reviews, G Reviews, FAQs, Site Texts
-- Each tab has "How it works" info boxes already — these help but could be improved
-- Brand color is `R = "#D4781F"` (orange), used throughout
-- The current design is functional but looks like a developer prototype — small fonts, cramped spacing, minimal visual hierarchy
 
 ## Constraints
 
-- **Styling**: Inline styles only (project convention — no CSS modules, Tailwind, or external stylesheets)
-- **Stack**: React + Vite, no new dependencies for styling
-- **Scope**: Visual/UX only — all CRUD logic stays identical
+- **Styling**: Inline styles only (project convention)
+- **Stack**: React + Vite, no new dependencies
 - **User**: Single desktop user (Anibal), not tech-savvy
 - **Brand**: Keep `R = "#D4781F"` as accent color
+- **Existing design system**: Use adminStyles.js tokens and adminUI.jsx primitives
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Inline styles only | Project convention, consistency with rest of codebase | — Pending |
-| Desktop-first (no mobile) | Only user is on desktop | — Pending |
-| English UI | User preference | — Pending |
-| No new features | Keep scope focused on UX polish | — Pending |
+| Inline styles only | Project convention, consistency with rest of codebase | ✓ Good |
+| Desktop-first (no mobile) | Only user is on desktop | ✓ Good |
+| English UI | User preference | ✓ Good |
+| Design system (tokens + primitives) | Foundation-first approach from v1.0 | ✓ Good |
 
 ---
-*Last updated: 2026-03-16 after initialization*
+*Last updated: 2026-03-16 after milestone v1.1 started*
