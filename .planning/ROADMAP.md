@@ -95,10 +95,10 @@ Plans:
   1. Clicking a portfolio item opens an inline preview showing the full-size photo or video thumbnail
   2. The preview displays the item's title, category, subcategory, and media type (photo/YouTube/Facebook)
   3. The preview can be dismissed to return to the list without losing the current filter or page position
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md -- Inline preview toggle on portfolio item rows with image, title, category, and media type
 
 ## Progress
 
@@ -111,4 +111,4 @@ Phases execute in numeric order: 4 -> 5
 | 2. Shell and Feedback | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 3. Tab Content | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 4. Filter and Paginate | v1.1 | 0/1 | Not started | - |
-| 5. Quick Preview | v1.1 | 0/? | Not started | - |
+| 5. Quick Preview | v1.1 | 0/1 | Not started | - |
