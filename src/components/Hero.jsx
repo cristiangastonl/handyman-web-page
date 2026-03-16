@@ -1,14 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { PHONE, HERO_IMG, svgP, parseSiteText, SITE_TEXTS, getWALink } from "../lib/constants";
+import { HERO_IMG, svgP, parseSiteText, getWALink } from "../lib/constants";
 import { upsertSiteConfig } from "../lib/supabase";
 import useScrollY from "../hooks/useScrollY";
 
-export default function Hero({ nav, siteConfig = {}, isAdmin = false, onConfigUpdate, reviewCount = 0, reviewAvg = 0 }) {
+export default function Hero({ nav, siteConfig = {}, isAdmin = false, onConfigUpdate, fbReviewCount = 120 }) {
   const scrollY = useScrollY();
   const { t, i18n } = useTranslation();
   const waLink = getWALink(i18n.language?.slice(0, 2));
   const title = parseSiteText(siteConfig.hero_title);
+  const brandSubtitle = parseSiteText(siteConfig.hero_brand_subtitle);
   const subtitle = parseSiteText(siteConfig.hero_subtitle);
 
   const [editing, setEditing] = useState(false);
@@ -96,33 +97,33 @@ export default function Hero({ nav, siteConfig = {}, isAdmin = false, onConfigUp
             }}>
               {title?.text || t("hero.title")}
             </h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.9)", marginBottom: 3, fontStyle: "italic", fontFamily: "'Dancing Script', cursive", letterSpacing: "0.02em", textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>
-              {t("brand.subtitle")}
+            <p className="hero-brand" style={{
+              fontSize: brandSubtitle?.fontSize ? `${brandSubtitle.fontSize}px` : 15,
+              fontFamily: brandSubtitle?.fontFamily ? `'${brandSubtitle.fontFamily}', cursive` : "'Dancing Script', cursive",
+              color: "rgba(255,255,255,0.9)", marginBottom: 3, fontStyle: "italic", letterSpacing: "0.02em", textShadow: "0 1px 6px rgba(0,0,0,0.5)"
+            }}>
+              {brandSubtitle?.text || "Specialist Technician At Domestic Matters"}
             </p>
-            <p style={{
+            <p className="hero-subtitle" style={{
               fontSize: subtitle?.fontSize ? `${subtitle.fontSize}px` : 14,
               fontFamily: subtitle?.fontFamily ? `'${subtitle.fontFamily}', sans-serif` : undefined,
               color: "rgba(255,255,255,0.9)", marginBottom: 3
             }}>
               {subtitle?.text || t("hero.subtitle")}
             </p>
-            {/* Rating badge */}
-            {reviewAvg > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <span style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>{reviewAvg}</span>
-                <span style={{ color: "#F59E0B", fontSize: 14 }}>{"★".repeat(Math.round(reviewAvg))}</span>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>{reviewCount}+ {t("hero.reviews", "reviews")}</span>
-              </div>
-            )}
-            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            {/* Trust strip */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+              <span style={{ color: "#4CAF50", fontSize: 13, fontWeight: 700 }}>✓ 100% Recommended</span>
+            </div>
+            <div className="hero-buttons" style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
               <a href={waLink} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#25D366", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
                 {t("hero.whatsapp")}
               </a>
-              <a href={`tel:${PHONE.replace(/\s/g, "")}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.4)", padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500, textDecoration: "none" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.12.96.35 1.9.68 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.33 1.85.56 2.81.68A2 2 0 0122 16.92z"/></svg>
-                {PHONE}
-              </a>
+              <span onClick={() => nav("portfolio")} role="button" tabIndex={0} onKeyDown={e => e.key === "Enter" && nav("portfolio")}
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3 }}>
+                {t("hero.seeWork", "See My Work")} →
+              </span>
             </div>
           </div>
         </div>

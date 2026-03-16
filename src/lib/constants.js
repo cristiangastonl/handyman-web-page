@@ -92,6 +92,7 @@ export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.yout
 export const SITE_TEXTS = {
   hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zurich", defaultFontSize: 36, defaultFontFamily: "DM Sans" },
   hero_subtitle: { label: "Hero Subtitle", defaultText: "Your satisfaction, my commitment", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
+  hero_brand_subtitle: { label: "Hero Brand Subtitle", defaultText: "Specialist Technician At Domestic Matters", defaultFontSize: 15, defaultFontFamily: "Dancing Script" },
   highlights_section_title: { label: "Highlights Section Title", defaultText: "Highlights", defaultFontSize: 17, defaultFontFamily: "DM Sans" },
   bio_text: { label: "About / Bio Text", defaultText: "", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
 };
@@ -145,16 +146,38 @@ export const css = `
     .logo-mobile { display: block !important; }
     .about-row { justify-content: center !important; text-align: center; }
     .about-row img { margin: 0 auto; }
-    .hero-section { height: 32vh !important; min-height: 200px !important; }
+    .hero-section { height: auto !important; min-height: 42vh !important; }
     .hero-section .heroContent { padding-bottom: 0; }
-    .hero-section .heroContent h1 { font-size: 22px !important; }
+    .hero-section .heroContent h1 { font-size: 31px !important; margin-bottom: 2px !important; }
+    .hero-section .heroContent .hero-brand { font-size: 20px !important; }
+    .hero-section .heroContent .hero-subtitle { font-size: 18px !important; }
+    .hero-buttons { align-items: center !important; }
+    .hero-buttons a { padding: 12px 24px !important; font-size: 14px !important; min-height: 44px !important; justify-content: center !important; width: 100% !important; }
+    .hero-buttons span { font-size: 12px !important; }
+    .mobile-menu-item { min-height: 44px !important; display: flex !important; align-items: center !important; }
+    .skill-tag { padding: 8px 14px !important; font-size: 13px !important; min-height: 36px !important; }
     .admin-container { padding: 20px 16px !important; }
     .admin-container input, .admin-container textarea, .admin-container select { font-size: 16px !important; }
+    .stats-section { padding: 10px 12px !important; }
+    .stats-grid { display: flex !important; flex-wrap: nowrap !important; justify-content: space-evenly !important; gap: 0 !important; }
+    .stats-grid > div { min-width: unset !important; text-align: center !important; flex: 1 !important; }
+    .stats-grid > div > div:first-child { font-size: 14px !important; font-weight: 800 !important; }
+    .stats-grid > div > div:last-child { font-size: 8px !important; margin-top: 1px !important; letter-spacing: 0 !important; }
+    .social-cards { padding: 10px 16px 14px !important; }
+    .social-card { padding: 8px 6px !important; gap: 4px !important; flex: 1 1 0 !important; min-width: 0 !important; }
+    .social-card svg { width: 18px !important; height: 18px !important; }
+    .social-card span { font-size: 9px !important; line-height: 1.3 !important; }
+    .brand-marquee { gap: 28px !important; }
+    .brand-fade-left, .brand-fade-right { width: 30px !important; }
+    .review-card { min-width: 240px !important; }
   }
   @media (min-width: 641px) {
     .mobile-menu { display: none !important; }
   }
   button:focus-visible, a:focus-visible { outline: 2px solid #D4781F; outline-offset: 2px; }
+  .brand-marquee { display: flex; gap: 48px; align-items: center; width: max-content; animation: marquee 25s linear infinite; }
+  .brand-marquee:hover { animation-play-state: paused; }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }

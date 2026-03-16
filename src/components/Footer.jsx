@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { R, PHONE, WA_LINK, SERVICE_AREAS, svgP, socialUrls } from "../lib/constants";
 import { SocialIcon } from "./ui";
 
-export default function Footer() {
+export default function Footer({ nav }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
@@ -42,7 +42,7 @@ export default function Footer() {
             <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>{t("footer.quickLinks", "Quick Links")}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {["home", "portfolio", "reviews", "faq"].map(p => (
-                <span key={p} style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", cursor: "pointer" }}>{t(`nav.${p}`)}</span>
+                <span key={p} onClick={() => nav(p)} role="link" tabIndex={0} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") nav(p); }} style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", cursor: "pointer" }}>{t(`nav.${p}`)}</span>
               ))}
             </div>
           </div>

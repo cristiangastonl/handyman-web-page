@@ -22,6 +22,7 @@ import { RecentWork } from "./components/RecentWork";
 import Highlights from "./components/Highlights";
 import ReturningCustomers from "./components/ReturningCustomers";
 import TailorJobs from "./components/TailorJobs";
+import BrandStrip from "./components/BrandStrip";
 import { TailoringCTA, ServiceAreasCTA, BottomCTA } from "./components/CTA";
 import { GoogleReviewsHome, ReviewsPage } from "./components/Reviews";
 import { FAQHome, FAQPage } from "./components/FAQ";
@@ -181,17 +182,17 @@ export default function App() {
       )}
       {!loading && (
         <>
-          <Hero nav={nav} siteConfig={siteConfig} isAdmin={isAdmin} onConfigUpdate={setSiteConfig}
-            reviewCount={googleReviews.length || 118} reviewAvg={googleReviews.length > 0 ? parseFloat((googleReviews.reduce((a, r) => a + r.rating, 0) / googleReviews.length).toFixed(1)) : 4.8}/>
+          <Hero nav={nav} siteConfig={siteConfig} isAdmin={isAdmin} onConfigUpdate={setSiteConfig} fbReviewCount={fbReviews.length || 120}/>
           <StatsBar siteConfig={siteConfig}/>
           <About nav={nav} navToCategory={navToCategory} siteConfig={siteConfig}/>
           <ServiceAreasCTA/>
           <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={setLb} nav={nav}/>
-          <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews}/>
           <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={setLb} siteConfig={siteConfig}/>
           <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={setLb}/>
           <TailoringCTA nav={nav}/>
           <TailorJobs items={carouselData.tailor_jobs} setLb={setLb}/>
+          <BrandStrip/>
+          <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews}/>
           <FAQHome faqs={faqs} nav={nav}/>
           <BottomCTA/>
         </>
@@ -239,7 +240,7 @@ export default function App() {
       </main>
       {page !== "admin" && (
         <>
-          <Footer/>
+          <Footer nav={nav}/>
           <StickyBar nav={nav}/>
           <Lightbox item={lb} items={items} onClose={() => setLb(null)} onNavigate={setLb}/>
           <WhatsAppFAB/>

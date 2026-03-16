@@ -24,7 +24,7 @@ export default function About({ nav, navToCategory, siteConfig = {} }) {
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {["electricity","plumbing","assembly","fixings","gardening","wallMounting"].map(s => (
-              <button key={s} onClick={() => navToCategory ? navToCategory(s) : nav("portfolio")}
+              <button key={s} className="skill-tag" onClick={() => navToCategory ? navToCategory(s) : nav("portfolio")}
                 style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #ccc", fontSize: 12, color: "#666", fontWeight: 500, background: "none", cursor: "pointer", transition: "border-color .2s, color .2s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.style.color = "#666"; }}>

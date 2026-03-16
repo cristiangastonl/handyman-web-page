@@ -39,7 +39,7 @@ export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang }
       {mobileMenu && (
         <div className="mobile-menu" style={{ position: "relative", zIndex: 99, padding: "8px 24px 16px", borderTop: "1px solid #f0f0f0", display: "flex", flexDirection: "column", gap: 4, background: "rgba(255,255,255,0.98)" }}>
           {["home","portfolio","reviews","faq"].map(p => (
-            <button key={p} onClick={() => nav(p)}
+            <button key={p} className="mobile-menu-item" onClick={() => nav(p)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 0", fontSize: 15, fontWeight: page === p ? 600 : 400, color: page === p ? R : "#666", textAlign: "left" }}>
               {t(`nav.${p}`)}
             </button>

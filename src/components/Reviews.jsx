@@ -59,7 +59,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
         <div style={{ position: "relative" }}>
           <div ref={revRef} className="hs" style={{ display: "flex", gap: 14, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
             {allReviews.slice(0, 12).map((rev, i) => (
-              <div key={i} style={{ minWidth: 280, maxWidth: 310, flexShrink: 0, scrollSnapAlign: "start", padding: "18px", borderRadius: 12, background: "#fff", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+              <div key={i} className="review-card" style={{ minWidth: 280, maxWidth: 310, flexShrink: 0, scrollSnapAlign: "start", padding: "18px", borderRadius: 12, background: "#fff", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                   <div style={{ width: 36, height: 36, borderRadius: "50%", background: `hsl(${i * 47}, 45%, 65%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15, color: "#fff" }}>{rev.name[0]}</div>
                   <div style={{ flex: 1 }}>

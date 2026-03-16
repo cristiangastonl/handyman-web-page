@@ -11,8 +11,8 @@ export default function StatsBar({ siteConfig = {} }) {
 
       {/* Stats counters */}
       <FadeIn>
-      <section style={{ padding: "28px 24px", background: G }}>
-        <div style={{ maxWidth: 940, margin: "0 auto", display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
+      <section className="stats-section" style={{ padding: "28px 24px", background: G }}>
+        <div className="stats-grid" style={{ maxWidth: 940, margin: "0 auto", display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
           {[
             { val: stat("stat_experience", 20), label: t("stats.experience"), suffix: "+", decimals: 0 },
             { val: stat("stat_videos", 400), label: t("stats.videos"), suffix: "+", decimals: 0 },
@@ -32,14 +32,14 @@ export default function StatsBar({ siteConfig = {} }) {
 
       {/* Social proof cards */}
       <FadeIn>
-      <section style={{ padding: "20px 24px 28px", maxWidth: 940, margin: "0 auto", position: "relative" }}>
+      <section className="social-cards" style={{ padding: "20px 24px 28px", maxWidth: 940, margin: "0 auto", position: "relative" }}>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           {[
             { type: "fb", url: socialUrls.fb, text: t("social.fb"), label: "Facebook" },
             { type: "yt", url: socialUrls.yt, text: t("social.yt"), label: "YouTube" },
             { type: "wa", url: WA_LINK, text: t("social.wa"), label: "WhatsApp" },
           ].map((s, i) => (
-            <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
+            <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="social-card"
               style={{ flex: "1 1 200px", maxWidth: 300, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "14px 14px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", textDecoration: "none", transition: "border-color .2s", textAlign: "center" }}
               onMouseEnter={e => e.currentTarget.style.borderColor = R}
               onMouseLeave={e => e.currentTarget.style.borderColor = "#f0f0f0"}>
