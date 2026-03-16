@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { R, S, itemThumb, SITE_TEXTS, parseSiteText } from "../../lib/constants";
+import { itemThumb, SITE_TEXTS, parseSiteText } from "../../lib/constants";
+import { colors, spacing, typography, shadows, radii, A } from "../../lib/adminStyles";
+import { AdminButton, AdminInput, AdminFlash, AdminStyles } from "./adminUI";
 import { translateFaq } from "../../lib/translate";
 import DragList from "./DragList";
 import {
@@ -14,7 +16,7 @@ import {
 } from "../../lib/supabase";
 import CarouselsTab from "./CarouselsTab";
 
-const emptyMsg = (text) => <p style={{ fontSize: 12, color: "#bbb", textAlign: "center", padding: "18px 0" }}>{text}</p>;
+const emptyMsg = (text) => <p style={{ ...A.emptyState, padding: `${spacing.lg}px 0` }}>{text}</p>;
 
 export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, returningCustomers, setReturningCustomers, fbReviews, setFbReviews, googleReviews, setGoogleReviews, carouselData, setCarouselData, adminTab, setAdminTab }) {
   // Auth
@@ -102,7 +104,13 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     })();
   }, []);
 
-  const flash = (msg) => { setAdminMsg(msg); setTimeout(() => setAdminMsg(""), 4000); };
+  const flash = (msg) => {
+    setAdminMsg(msg);
+    if (!msg.startsWith("Error")) {
+      setTimeout(() => setAdminMsg(""), 4000);
+    }
+  };
+  const dismissFlash = () => setAdminMsg("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -342,44 +350,78 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const prevent = (fn) => (e) => { e.preventDefault(); fn(); };
 
   return (
-    <div style={S.root}>
+    <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: colors.gray50, minHeight: "100vh", color: colors.gray900 }}>
+      <AdminStyles />
       <div className="admin-container" style={{ maxWidth: 620, width: "100%", margin: "0 auto", padding: "28px 20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 700 }}>Admin Panel</h2>
-          <div style={{ display: "flex", gap: 8 }}>
-            {session && <button className="admin-ghost" onClick={handleLogout} style={{ ...S.btnDanger }}>Logout</button>}
-            <button className="admin-ghost" onClick={onBack} style={S.ghost}>← Back</button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing["2xl"] }}>
+          <h2 style={typography.pageTitle}>Admin Panel</h2>
+          <div style={{ display: "flex", gap: spacing.sm }}>
+            {session && (
+              <AdminButton variant="danger" size="small" onClick={handleLogout}>
+                Logout
+              </AdminButton>
+            )}
+            <AdminButton variant="secondary" size="small" onClick={onBack}>
+              Back
+            </AdminButton>
           </div>
         </div>
 
         {!supabase ? (
-          <div style={{ padding: "14px 16px", background: "#FFF3E0", borderRadius: 8, marginBottom: 20, fontSize: 12, color: "#E65100", lineHeight: 1.5 }}>
+          <div style={{ padding: `${spacing.md}px ${spacing.lg}px`, background: colors.brandLight, borderRadius: radii.md, marginBottom: spacing.xl, fontSize: 12, color: colors.brandDark, lineHeight: 1.5 }}>
             Supabase not configured. Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in <code>.env</code> to enable persistence.
           </div>
         ) : !session ? (
           <form onSubmit={handleLogin} style={{ maxWidth: 320, margin: "60px auto" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>Admin Login</h3>
-            <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Email" required style={{ ...S.input, marginBottom: 10 }}/>
-            <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} placeholder="Password" required style={S.input}/>
-            {loginErr && <div style={{ color: R, fontSize: 11, marginTop: 6 }}>{loginErr}</div>}
-            <button type="submit" className="admin-btn" disabled={loginLoading} style={{ ...S.btnPrimary, marginTop: 12, width: "100%", opacity: loginLoading ? 0.5 : 1 }}>
-              {loginLoading ? "Signing in..." : "Sign In"}
-            </button>
+            <h3 style={{ ...typography.sectionHeader, fontSize: 15, marginBottom: spacing.lg, textAlign: "center" }}>
+              Admin Login
+            </h3>
+            <AdminInput label="Email" type="email" value={loginEmail}
+              onChange={e => setLoginEmail(e.target.value)} required />
+            <AdminInput label="Password" type="password" value={loginPass}
+              onChange={e => setLoginPass(e.target.value)} required />
+            {loginErr && <div style={{ color: colors.danger, fontSize: 11, marginTop: spacing.xs }}>{loginErr}</div>}
+            <AdminButton type="submit" loading={loginLoading} style={{ marginTop: spacing.md, width: "100%" }}>
+              Sign In
+            </AdminButton>
           </form>
         ) : (
           <>
-            {/* Sticky flash message */}
-            {adminMsg && (
-              <div style={{ position: "sticky", top: 52, zIndex: 50, padding: "8px 14px", background: adminMsg.startsWith("Error") ? "#FFEBEE" : "#E8F5E9", borderRadius: 6, marginBottom: 14, fontSize: 12, color: adminMsg.startsWith("Error") ? R : "#2E7D32", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
-                {adminMsg}
-              </div>
-            )}
+            <AdminFlash message={adminMsg} onDismiss={dismissFlash} />
 
-            {/* Tabs — horizontal scroll */}
-            <div className="admin-tabs" style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            {/* Tabs — horizontal scroll, sticky */}
+            <div className="admin-tabs" style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 100,
+              background: colors.white,
+              boxShadow: shadows.sm,
+              display: "flex",
+              gap: 0,
+              borderBottom: `2px solid ${colors.gray200}`,
+              overflowX: "auto",
+              WebkitOverflowScrolling: "touch",
+              marginBottom: spacing.xl,
+            }}>
               {TABS.map(([k, l]) => (
-                <button key={k} className="admin-tab" onClick={() => { window.__dragActive = false; setAdminTab(k); }}
-                  style={{ padding: "6px 14px", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: adminTab === k ? 600 : 400, color: adminTab === k ? R : "#999", borderBottom: adminTab === k ? `2px solid ${R}` : "2px solid transparent", marginBottom: -2, flexShrink: 0, whiteSpace: "nowrap" }}>
+                <button
+                  key={k}
+                  className="admin-tab"
+                  onClick={() => { window.__dragActive = false; setAdminTab(k); }}
+                  style={{
+                    padding: `${spacing.sm}px ${spacing.lg}px`,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    ...typography.body,
+                    fontWeight: adminTab === k ? 600 : 400,
+                    color: adminTab === k ? colors.brand : colors.gray400,
+                    borderBottom: adminTab === k ? `3px solid ${colors.brand}` : "3px solid transparent",
+                    marginBottom: -2,
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {l}
                 </button>
               ))}
@@ -388,80 +430,80 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* ── Categories & Subcategories Tab ── */}
             {adminTab === "categories" && (
               <div>
-                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> Categories organize your Portfolio page into sections (e.g. Lighting, Assembly, Painting). Visitors see them as clickable cards. Subcategories are optional groups within a category — great for linking YouTube playlists.
                 </div>
 
                 {/* Categories section */}
-                <p style={S.label}>Categories ({cats.filter(c => c.id !== "all").length})</p>
+                <p style={typography.label}>Categories ({cats.filter(c => c.id !== "all").length})</p>
                 {cats.filter(c => c.id !== "all").length === 0
                   ? emptyMsg("No categories yet. Add one below.")
                   : (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.lg }}>
                       {cats.filter(c => c.id !== "all").map(c => (
-                        <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f5f5f5", padding: "5px 12px", borderRadius: 14, fontSize: 12 }}>
-                          {c.header_image && <img src={c.header_image} alt="" style={{ width: 18, height: 18, borderRadius: 3, objectFit: "cover" }}/>}
+                        <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
+                          {c.header_image && <img src={c.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
                           {c.label}
                           <button onClick={() => handleDeleteCategory(c.id)} disabled={adminLoading}
-                            style={{ background: "none", border: "none", color: R, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>×</button>
+                            style={{ background: "none", border: "none", color: colors.danger, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>x</button>
                         </span>
                       ))}
                     </div>
                   )
                 }
-                <form onSubmit={prevent(handleAddCategory)} style={S.adminCard}>
-                  <p style={S.adminCardTitle}>Add Category</p>
-                  <input value={ncLabel} onChange={e => setNcLabel(e.target.value)} placeholder="Category name" style={{ ...S.input, marginBottom: 10 }}/>
+                <form onSubmit={prevent(handleAddCategory)} style={A.card}>
+                  <p style={A.cardTitle}>Add Category</p>
+                  <input value={ncLabel} onChange={e => setNcLabel(e.target.value)} placeholder="Category name" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
                   <div>
-                    <label style={{ fontSize: 11, color: "#888" }}>Header image (optional) — shown as category cover in Portfolio</label>
-                    <input key={fileKey} type="file" accept="image/*" onChange={e => setNcFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                    <label style={typography.caption}>Header image (optional) — shown as category cover in Portfolio</label>
+                    <input key={fileKey} type="file" accept="image/*" onChange={e => setNcFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
                   </div>
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !ncLabel.trim()}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !ncLabel.trim()) ? 0.5 : 1 }}>
-                    {adminLoading ? "Adding..." : "Add Category"}
-                  </button>
+                  <AdminButton type="submit" loading={adminLoading} disabled={!ncLabel.trim()}
+                    style={{ marginTop: spacing.md }}>
+                    Add Category
+                  </AdminButton>
                 </form>
 
                 {/* Subcategories section */}
-                <div style={{ borderTop: "2px solid #f0f0f0", marginTop: 24, paddingTop: 20 }}>
-                  <p style={S.label}>Subcategories ({subcats.length}) — optional</p>
+                <div style={{ borderTop: `2px solid ${colors.gray200}`, marginTop: spacing["2xl"], paddingTop: spacing.xl }}>
+                  <p style={typography.label}>Subcategories ({subcats.length}) — optional</p>
                   {subcats.length === 0 && emptyMsg("No subcategories yet. Add one below if needed.")}
                   {cats.filter(c => c.id !== "all").map(parentCat => {
                     const children = subcats.filter(s => s.category_id === parentCat.id);
                     if (children.length === 0) return null;
                     return (
-                      <div key={parentCat.id} style={{ marginBottom: 16 }}>
-                        <p style={{ fontSize: 12, fontWeight: 600, color: "#555", marginBottom: 6 }}>{parentCat.label}</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      <div key={parentCat.id} style={{ marginBottom: spacing.lg }}>
+                        <p style={{ ...typography.body, fontWeight: 600, marginBottom: spacing.sm }}>{parentCat.label}</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm }}>
                           {children.map(sc => (
-                            <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f5f5f5", padding: "5px 12px", borderRadius: 14, fontSize: 12 }}>
-                              {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: 3, objectFit: "cover" }}/>}
+                            <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
+                              {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
                               {sc.name}
-                              {sc.playlist_id && <span style={{ fontSize: 9, color: "#999" }}>▶</span>}
+                              {sc.playlist_id && <span style={{ fontSize: 9, color: colors.gray500 }}>&#9654;</span>}
                               <button onClick={() => handleDeleteSubcategory(sc.id)} disabled={adminLoading}
-                                style={{ background: "none", border: "none", color: R, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>×</button>
+                                style={{ background: "none", border: "none", color: colors.danger, cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1, padding: 0, opacity: adminLoading ? 0.5 : 1 }}>x</button>
                             </span>
                           ))}
                         </div>
                       </div>
                     );
                   })}
-                  <form onSubmit={prevent(handleAddSubcategory)} style={{ ...S.adminCard, marginTop: 12 }}>
-                    <p style={S.adminCardTitle}>Add Subcategory</p>
-                    <select value={scParent} onChange={e => setScParent(e.target.value)} style={{ ...S.input, marginBottom: 10, color: scParent ? "#222" : "#aaa" }}>
+                  <form onSubmit={prevent(handleAddSubcategory)} style={{ ...A.card, marginTop: spacing.md }}>
+                    <p style={A.cardTitle}>Add Subcategory</p>
+                    <select value={scParent} onChange={e => setScParent(e.target.value)} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm, color: scParent ? colors.gray900 : colors.gray400 }}>
                       <option value="" disabled>Select parent category...</option>
                       {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                     </select>
-                    <input value={scName} onChange={e => setScName(e.target.value)} placeholder="Subcategory name" style={{ ...S.input, marginBottom: 10 }}/>
-                    <input value={scPlaylistId} onChange={e => setScPlaylistId(e.target.value)} placeholder="YouTube Playlist ID (optional) — links to playlist in Portfolio" style={{ ...S.input, marginBottom: 10 }}/>
+                    <input value={scName} onChange={e => setScName(e.target.value)} placeholder="Subcategory name" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                    <input value={scPlaylistId} onChange={e => setScPlaylistId(e.target.value)} placeholder="YouTube Playlist ID (optional) — links to playlist in Portfolio" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
                     <div>
-                      <label style={{ fontSize: 11, color: "#888" }}>Header image (optional)</label>
-                      <input key={fileKey + 1} type="file" accept="image/*" onChange={e => setScFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                      <label style={typography.caption}>Header image (optional)</label>
+                      <input key={fileKey + 1} type="file" accept="image/*" onChange={e => setScFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
                     </div>
-                    <button type="submit" className="admin-btn" disabled={adminLoading || !scName.trim() || !scParent}
-                      style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !scName.trim() || !scParent) ? 0.5 : 1 }}>
-                      {adminLoading ? "Adding..." : "Add Subcategory"}
-                    </button>
+                    <AdminButton type="submit" loading={adminLoading} disabled={!scName.trim() || !scParent}
+                      style={{ marginTop: spacing.md }}>
+                      Add Subcategory
+                    </AdminButton>
                   </form>
                 </div>
               </div>
@@ -470,71 +512,79 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* ── Portfolio Tab ── */}
             {adminTab === "work" && (
               <div>
-                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> Upload photos, YouTube videos, or Facebook reels here. Each item needs a category and a subcategory (both required when subcategories exist for that category). These items appear in the Portfolio page and can be selected for the home page carousels.
                 </div>
-                <p style={S.label}>Portfolio Items ({items.length})</p>
-                <form onSubmit={prevent(handleAddWorkItem)} style={{ ...S.adminCard, marginBottom: 20 }}>
-                  <p style={S.adminCardTitle}>Add Item</p>
-                  <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                <p style={typography.label}>Portfolio Items ({items.length})</p>
+                <form onSubmit={prevent(handleAddWorkItem)} style={{ ...A.card, marginBottom: spacing.xl }}>
+                  <p style={A.cardTitle}>Add Item</p>
+                  <div style={{ display: "flex", gap: spacing.sm, marginBottom: spacing.sm }}>
                     {["image","video","facebook"].map(t => (
-                      <button key={t} type="button" className="admin-btn" onClick={() => setWiType(t)}
-                        style={{ padding: "5px 14px", borderRadius: 6, border: "none", fontSize: 12, cursor: "pointer", fontWeight: wiType === t ? 600 : 400, background: wiType === t ? "#222" : "#eee", color: wiType === t ? "#fff" : "#666" }}>
+                      <button key={t} type="button" onClick={() => setWiType(t)}
+                        style={{
+                          ...A.btnSmall,
+                          background: wiType === t ? colors.brand : "none",
+                          color: wiType === t ? colors.white : colors.gray600,
+                          border: wiType === t ? "none" : `1px solid ${colors.gray300}`,
+                          borderRadius: radii.md,
+                          cursor: "pointer",
+                        }}>
                         {t === "image" ? "Image" : t === "video" ? "YouTube" : "Facebook"}
                       </button>
                     ))}
                   </div>
-                  <select value={wiCat} onChange={e => { setWiCat(e.target.value); setWiSubcat(""); }} style={{ ...S.input, marginBottom: 10, color: wiCat ? "#222" : "#aaa" }}>
+                  <select value={wiCat} onChange={e => { setWiCat(e.target.value); setWiSubcat(""); }} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm, color: wiCat ? colors.gray900 : colors.gray400 }}>
                     <option value="" disabled>Select category...</option>
                     {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
                   {wiCat && subcats.filter(s => s.category_id === wiCat).length > 0 && (
-                    <select value={wiSubcat} onChange={e => setWiSubcat(e.target.value)} style={{ ...S.input, marginBottom: 10, color: wiSubcat ? "#222" : "#aaa" }}>
+                    <select value={wiSubcat} onChange={e => setWiSubcat(e.target.value)} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm, color: wiSubcat ? colors.gray900 : colors.gray400 }}>
                       <option value="" disabled>Select subcategory...</option>
                       {subcats.filter(s => s.category_id === wiCat).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                   )}
-                  <input value={wiTitle} onChange={e => setWiTitle(e.target.value)} placeholder="Title" style={{ ...S.input, marginBottom: 10 }}/>
-                  <input value={wiDesc} onChange={e => setWiDesc(e.target.value)} placeholder="Description (optional)" style={{ ...S.input, marginBottom: 10 }}/>
+                  <input value={wiTitle} onChange={e => setWiTitle(e.target.value)} placeholder="Title" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                  <input value={wiDesc} onChange={e => setWiDesc(e.target.value)} placeholder="Description (optional)" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
                   {wiType === "image" && (
-                    <div style={{ marginBottom: 10 }}>
-                      <label style={{ fontSize: 11, color: "#888" }}>Image file</label>
-                      <input key={fileKey} type="file" accept="image/*" onChange={e => setWiFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                    <div style={{ marginBottom: spacing.sm }}>
+                      <label style={typography.caption}>Image file</label>
+                      <input key={fileKey} type="file" accept="image/*" onChange={e => setWiFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
                     </div>
                   )}
                   {wiType === "video" && (
                     <>
-                      <input value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="YouTube video ID" style={{ ...S.input, marginBottom: 10 }}/>
-                      <div style={{ marginBottom: 10 }}>
-                        <label style={{ fontSize: 11, color: "#888" }}>Thumbnail image <span style={{ color: "#bbb" }}>(optional)</span></label>
-                        <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                      <input value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="YouTube video ID" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                      <div style={{ marginBottom: spacing.sm }}>
+                        <label style={typography.caption}>Thumbnail image <span style={{ color: colors.gray400 }}>(optional)</span></label>
+                        <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
                       </div>
                     </>
                   )}
                   {wiType === "facebook" && (
                     <>
-                      <input value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="Facebook reel/video URL (e.g. https://www.facebook.com/reel/123...)" style={{ ...S.input, marginBottom: 10 }}/>
-                      <div style={{ marginBottom: 10 }}>
-                        <label style={{ fontSize: 11, color: "#888" }}>Thumbnail image <span style={{ color: "#bbb" }}>(recommended)</span></label>
-                        <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: 4, fontSize: 11 }}/>
+                      <input value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="Facebook reel/video URL (e.g. https://www.facebook.com/reel/123...)" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                      <div style={{ marginBottom: spacing.sm }}>
+                        <label style={typography.caption}>Thumbnail image <span style={{ color: colors.gray400 }}>(recommended)</span></label>
+                        <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
                       </div>
                     </>
                   )}
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !wiTitle.trim() || !wiCat || (subcats.filter(s => s.category_id === wiCat).length > 0 && !wiSubcat)}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !wiTitle.trim() || !wiCat || (subcats.filter(s => s.category_id === wiCat).length > 0 && !wiSubcat)) ? 0.5 : 1 }}>
-                    {adminLoading ? "Adding..." : "Add Item"}
-                  </button>
+                  <AdminButton type="submit" loading={adminLoading} disabled={!wiTitle.trim() || !wiCat || (subcats.filter(s => s.category_id === wiCat).length > 0 && !wiSubcat)}
+                    style={{ marginTop: spacing.md }}>
+                    Add Item
+                  </AdminButton>
                 </form>
                 {items.length === 0 && emptyMsg("No work items yet.")}
                 {items.map(item => (
-                  <div key={item.id} style={S.listItem}>
-                    <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: 5, background: "#eee" }}/>
+                  <div key={item.id} style={A.listItem}>
+                    <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
-                      <div style={{ fontSize: 10, color: "#777" }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
+                      <div style={{ fontSize: 10, color: colors.gray500 }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
                     </div>
-                    <button className="admin-ghost" onClick={() => handleDeleteWorkItem(item.id)} disabled={adminLoading}
-                      style={{ ...S.btnDanger, opacity: adminLoading ? 0.5 : 1 }}>Remove</button>
+                    <AdminButton variant="danger" size="small" onClick={() => handleDeleteWorkItem(item.id)} loading={adminLoading}>
+                      Remove
+                    </AdminButton>
                   </div>
                 ))}
               </div>
@@ -543,10 +593,10 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* ── FAQs Tab ── */}
             {adminTab === "faqs" && (
               <div>
-                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> FAQs appear on the home page (top 3) and the full FAQ page. They are automatically translated to all 5 languages. Drag to reorder.
                 </div>
-                <p style={S.label}>FAQs ({faqs.length})</p>
+                <p style={typography.label}>FAQs ({faqs.length})</p>
                 {faqs.length === 0 && emptyMsg("No FAQs yet. Add one below.")}
                 <DragList
                   items={faqs}
@@ -555,33 +605,37 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   renderItem={(f) => (
                     editingFaq === (f.id || f.q) ? (
                       <div>
-                        <input value={editFaqQ} onChange={e => setEditFaqQ(e.target.value)} style={{ ...S.input, marginBottom: 10, fontWeight: 600 }}/>
-                        <textarea value={editFaqA} onChange={e => setEditFaqA(e.target.value)} rows={3} style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 10 }}/>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <button className="admin-btn" onClick={() => handleUpdateFaq(f.id)} disabled={adminLoading} style={{ ...S.btnSmall, background: "#222", color: "#fff", borderColor: "#222", fontWeight: 600 }}>{translating ? "Translating..." : "Save"}</button>
-                          <button className="admin-ghost" onClick={() => setEditingFaq(null)} style={S.btnSmall}>Cancel</button>
+                        <input value={editFaqQ} onChange={e => setEditFaqQ(e.target.value)} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm, fontWeight: 600 }}/>
+                        <textarea value={editFaqA} onChange={e => setEditFaqA(e.target.value)} rows={3} className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
+                        <div style={{ display: "flex", gap: spacing.sm }}>
+                          <AdminButton size="small" loading={adminLoading || translating} onClick={() => handleUpdateFaq(f.id)}>
+                            Save
+                          </AdminButton>
+                          <AdminButton variant="secondary" size="small" onClick={() => setEditingFaq(null)}>
+                            Cancel
+                          </AdminButton>
                         </div>
                       </div>
                     ) : (
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>{f.q}</div>
-                        <div style={{ fontSize: 12, color: "#666", lineHeight: 1.5, marginBottom: 6 }}>{f.a}</div>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          {f.id && <button className="admin-ghost" onClick={() => { setEditingFaq(f.id); setEditFaqQ(f.q); setEditFaqA(f.a); }} style={S.btnSmall}>Edit</button>}
-                          {f.id && <button className="admin-ghost" onClick={() => handleDeleteFaq(f.id)} disabled={adminLoading} style={{ ...S.btnDanger, opacity: adminLoading ? 0.5 : 1 }}>Delete</button>}
+                        <div style={{ fontSize: 12, color: colors.gray600, lineHeight: 1.5, marginBottom: spacing.sm }}>{f.a}</div>
+                        <div style={{ display: "flex", gap: spacing.sm }}>
+                          {f.id && <AdminButton variant="secondary" size="small" onClick={() => { setEditingFaq(f.id); setEditFaqQ(f.q); setEditFaqA(f.a); }}>Edit</AdminButton>}
+                          {f.id && <AdminButton variant="danger" size="small" onClick={() => handleDeleteFaq(f.id)} loading={adminLoading}>Delete</AdminButton>}
                         </div>
                       </div>
                     )
                   )}
                 />
-                <form onSubmit={prevent(handleAddFaq)} style={{ ...S.adminCard, marginTop: 20 }}>
-                  <p style={S.adminCardTitle}>Add FAQ</p>
-                  <input value={faqQ} onChange={e => setFaqQ(e.target.value)} placeholder="Question" style={{ ...S.input, marginBottom: 10 }}/>
-                  <textarea value={faqA} onChange={e => setFaqA(e.target.value)} placeholder="Answer" rows={3} style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}/>
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !faqQ.trim() || !faqA.trim()}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !faqQ.trim() || !faqA.trim()) ? 0.5 : 1 }}>
-                    {translating ? "Translating..." : adminLoading ? "Adding..." : "Add FAQ"}
-                  </button>
+                <form onSubmit={prevent(handleAddFaq)} style={{ ...A.card, marginTop: spacing.xl }}>
+                  <p style={A.cardTitle}>Add FAQ</p>
+                  <input value={faqQ} onChange={e => setFaqQ(e.target.value)} placeholder="Question" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                  <textarea value={faqA} onChange={e => setFaqA(e.target.value)} placeholder="Answer" rows={3} className="admin-input" style={A.textarea}/>
+                  <AdminButton type="submit" loading={adminLoading || translating} disabled={!faqQ.trim() || !faqA.trim()}
+                    style={{ marginTop: spacing.md }}>
+                    Add FAQ
+                  </AdminButton>
                 </form>
               </div>
             )}
@@ -602,36 +656,37 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* ── FB Reviews Tab ── */}
             {adminTab === "fbreview" && (
               <div>
-                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> Facebook reviews show as "Recommends" (no star ratings). They appear in the Reviews section on home page and the Reviews page, mixed with Google reviews.
                 </div>
-                <p style={S.label}>Facebook Reviews ({fbReviews.length})</p>
-                <form onSubmit={prevent(handleAddFbReview)} style={{ ...S.adminCard, marginBottom: 20 }}>
-                  <p style={S.adminCardTitle}>Add Facebook Review</p>
-                  <input value={fbrName} onChange={e => setFbrName(e.target.value)} placeholder="Reviewer name" style={{ ...S.input, marginBottom: 10 }}/>
-                  <textarea value={fbrText} onChange={e => setFbrText(e.target.value)} placeholder="Review text" rows={3} style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 10 }}/>
-                  <div style={{ marginBottom: 10 }}>
-                    <label style={{ fontSize: 11, color: "#888" }}>Review date (optional)</label>
-                    <input type="date" value={fbrDate} onChange={e => setFbrDate(e.target.value)} style={{ ...S.input, marginTop: 4 }}/>
+                <p style={typography.label}>Facebook Reviews ({fbReviews.length})</p>
+                <form onSubmit={prevent(handleAddFbReview)} style={{ ...A.card, marginBottom: spacing.xl }}>
+                  <p style={A.cardTitle}>Add Facebook Review</p>
+                  <input value={fbrName} onChange={e => setFbrName(e.target.value)} placeholder="Reviewer name" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                  <textarea value={fbrText} onChange={e => setFbrText(e.target.value)} placeholder="Review text" rows={3} className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
+                  <div style={{ marginBottom: spacing.sm }}>
+                    <label style={typography.caption}>Review date (optional)</label>
+                    <input type="date" value={fbrDate} onChange={e => setFbrDate(e.target.value)} className="admin-input" style={{ ...A.input, marginTop: spacing.xs }}/>
                   </div>
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !fbrName.trim() || !fbrText.trim()}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !fbrName.trim() || !fbrText.trim()) ? 0.5 : 1 }}>
-                    {adminLoading ? "Adding..." : "Add Review"}
-                  </button>
+                  <AdminButton type="submit" loading={adminLoading} disabled={!fbrName.trim() || !fbrText.trim()}
+                    style={{ marginTop: spacing.md }}>
+                    Add Review
+                  </AdminButton>
                 </form>
                 {fbReviews.length === 0 && emptyMsg("No Facebook reviews yet.")}
                 {fbReviews.map(r => (
-                  <div key={r.id} style={{ padding: "8px 0", borderBottom: "1px solid #f3f3f3" }}>
+                  <div key={r.id} style={{ padding: `${spacing.sm}px 0`, borderBottom: `1px solid ${colors.gray200}` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
                         <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
-                        <span style={{ fontSize: 11, color: "#1877F2", marginLeft: 8 }}>👍 Recommends</span>
-                        {r.review_date && <span style={{ fontSize: 10, color: "#aaa", marginLeft: 8 }}>{r.review_date}</span>}
+                        <span style={{ fontSize: 11, color: "#1877F2", marginLeft: spacing.sm }}>&#128077; Recommends</span>
+                        {r.review_date && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.review_date}</span>}
                       </div>
-                      <button className="admin-ghost" onClick={() => handleDeleteFbReview(r.id)} disabled={adminLoading}
-                        style={{ ...S.btnDanger, opacity: adminLoading ? 0.5 : 1 }}>Remove</button>
+                      <AdminButton variant="danger" size="small" onClick={() => handleDeleteFbReview(r.id)} loading={adminLoading}>
+                        Remove
+                      </AdminButton>
                     </div>
-                    <div style={{ fontSize: 11, color: "#666", marginTop: 4, lineHeight: 1.4 }}>{r.text}</div>
+                    <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
                   </div>
                 ))}
               </div>
@@ -640,36 +695,37 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* ── Google Reviews Tab ── */}
             {adminTab === "greview" && (
               <div>
-                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> Google reviews with star ratings (1-5). They appear in the Reviews section on home page and the Reviews page. The star average is calculated only from these.
                 </div>
-                <p style={S.label}>Google Reviews ({(googleReviews || []).length})</p>
-                <form onSubmit={prevent(handleAddGoogleReview)} style={{ ...S.adminCard, marginBottom: 20 }}>
-                  <p style={S.adminCardTitle}>Add Google Review</p>
-                  <input value={grName} onChange={e => setGrName(e.target.value)} placeholder="Reviewer name" style={{ ...S.input, marginBottom: 10 }}/>
-                  <select value={grRating} onChange={e => setGrRating(e.target.value)} style={{ ...S.input, marginBottom: 10 }}>
+                <p style={typography.label}>Google Reviews ({(googleReviews || []).length})</p>
+                <form onSubmit={prevent(handleAddGoogleReview)} style={{ ...A.card, marginBottom: spacing.xl }}>
+                  <p style={A.cardTitle}>Add Google Review</p>
+                  <input value={grName} onChange={e => setGrName(e.target.value)} placeholder="Reviewer name" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                  <select value={grRating} onChange={e => setGrRating(e.target.value)} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}>
                     {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} star{n !== 1 ? "s" : ""}</option>)}
                   </select>
-                  <textarea value={grText} onChange={e => setGrText(e.target.value)} placeholder="Review text" rows={3} style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 10 }}/>
-                  <input value={grTime} onChange={e => setGrTime(e.target.value)} placeholder="Time label (e.g. '2 weeks ago')" style={S.input}/>
-                  <button type="submit" className="admin-btn" disabled={adminLoading || !grName.trim() || !grText.trim()}
-                    style={{ ...S.btnPrimary, marginTop: 12, opacity: (adminLoading || !grName.trim() || !grText.trim()) ? 0.5 : 1 }}>
-                    {adminLoading ? "Adding..." : "Add Review"}
-                  </button>
+                  <textarea value={grText} onChange={e => setGrText(e.target.value)} placeholder="Review text" rows={3} className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
+                  <input value={grTime} onChange={e => setGrTime(e.target.value)} placeholder="Time label (e.g. '2 weeks ago')" className="admin-input" style={A.input}/>
+                  <AdminButton type="submit" loading={adminLoading} disabled={!grName.trim() || !grText.trim()}
+                    style={{ marginTop: spacing.md }}>
+                    Add Review
+                  </AdminButton>
                 </form>
                 {(googleReviews || []).length === 0 && emptyMsg("No Google reviews yet.")}
                 {(googleReviews || []).map(r => (
-                  <div key={r.id} style={{ padding: "8px 0", borderBottom: "1px solid #f3f3f3" }}>
+                  <div key={r.id} style={{ padding: `${spacing.sm}px 0`, borderBottom: `1px solid ${colors.gray200}` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
                         <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
-                        <span style={{ fontSize: 11, color: "#E8A317", marginLeft: 8 }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
-                        {r.time_label && <span style={{ fontSize: 10, color: "#aaa", marginLeft: 8 }}>{r.time_label}</span>}
+                        <span style={{ fontSize: 11, color: "#E8A317", marginLeft: spacing.sm }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                        {r.time_label && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.time_label}</span>}
                       </div>
-                      <button className="admin-ghost" onClick={() => handleDeleteGoogleReview(r.id)} disabled={adminLoading}
-                        style={{ ...S.btnDanger, opacity: adminLoading ? 0.5 : 1 }}>Remove</button>
+                      <AdminButton variant="danger" size="small" onClick={() => handleDeleteGoogleReview(r.id)} loading={adminLoading}>
+                        Remove
+                      </AdminButton>
                     </div>
-                    <div style={{ fontSize: 11, color: "#666", marginTop: 4, lineHeight: 1.4 }}>{r.text}</div>
+                    <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
                   </div>
                 ))}
               </div>
@@ -678,14 +734,14 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {/* ── Site Texts Tab ── */}
             {adminTab === "config" && (
               <div>
-                <div style={{ padding: "10px 14px", background: "#F5F5F5", borderRadius: 8, marginBottom: 16, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> Customize the main texts and stats on the site. Changes appear immediately.
                 </div>
 
                 {/* Hero image position */}
-                <p style={S.label}>Hero Image Position</p>
-                <div style={{ ...S.adminCard, marginBottom: 20 }}>
-                  <p style={{ fontSize: 11, color: "#888", marginBottom: 10 }}>Adjust where the image focuses. 0% = left/top, 50% = center, 100% = right/bottom.</p>
+                <p style={typography.label}>Hero Image Position</p>
+                <div style={{ ...A.card, marginBottom: spacing.xl }}>
+                  <p style={{ ...typography.caption, marginBottom: spacing.sm }}>Adjust where the image focuses. 0% = left/top, 50% = center, 100% = right/bottom.</p>
                   <HeroPositionControl
                     xVal={siteConfig.hero_img_x || "50"}
                     yVal={siteConfig.hero_img_y || "50"}
@@ -695,8 +751,8 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 </div>
 
                 {/* Stats counters */}
-                <p style={S.label}>Stats Bar</p>
-                <div style={{ ...S.adminCard, marginBottom: 20 }}>
+                <p style={typography.label}>Stats Bar</p>
+                <div style={{ ...A.card, marginBottom: spacing.xl }}>
                   {[
                     { key: "stat_experience", label: "Years Experience", defaultVal: "20" },
                     { key: "stat_videos", label: "Video Shows", defaultVal: "400" },
@@ -707,7 +763,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   ))}
                 </div>
 
-                <p style={S.label}>Site Texts</p>
+                <p style={typography.label}>Site Texts</p>
                 {Object.entries(SITE_TEXTS).map(([key, def]) => (
                   <SiteTextRow key={key} configKey={key} def={def} currentValue={siteConfig[key]} onSave={handleSaveConfig} loading={adminLoading} />
                 ))}
@@ -715,7 +771,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 {/* Extra config keys (not in SITE_TEXTS) */}
                 {Object.entries(siteConfig).filter(([key]) => !SITE_TEXTS[key]).length > 0 && (
                   <>
-                    <p style={{ ...S.label, marginTop: 24 }}>Other Settings</p>
+                    <p style={{ ...typography.label, marginTop: spacing["2xl"] }}>Other Settings</p>
                     {Object.entries(siteConfig).filter(([key]) => !SITE_TEXTS[key]).map(([key, value]) => (
                       <ConfigRow key={key} configKey={key} initialValue={value} onSave={handleSaveConfig} loading={adminLoading} />
                     ))}
@@ -725,13 +781,14 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   if (!cfgKey.trim()) return;
                   handleSaveConfig(cfgKey.trim(), cfgVal.trim());
                   setCfgKey(""); setCfgVal("");
-                })} style={{ ...S.adminCard, marginTop: 16 }}>
-                  <p style={S.adminCardTitle}>Add Custom Setting</p>
-                  <input value={cfgKey} onChange={e => setCfgKey(e.target.value)} placeholder="Key" style={{ ...S.input, marginBottom: 10 }}/>
-                  <input value={cfgVal} onChange={e => setCfgVal(e.target.value)} placeholder="Value" style={S.input}/>
-                  <button type="submit" className="admin-btn" disabled={adminLoading} style={{ ...S.btnPrimary, marginTop: 12, opacity: adminLoading ? 0.5 : 1 }}>
-                    {adminLoading ? "Saving..." : "Save"}
-                  </button>
+                })} style={{ ...A.card, marginTop: spacing.lg }}>
+                  <p style={A.cardTitle}>Add Custom Setting</p>
+                  <input value={cfgKey} onChange={e => setCfgKey(e.target.value)} placeholder="Key" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
+                  <input value={cfgVal} onChange={e => setCfgVal(e.target.value)} placeholder="Value" className="admin-input" style={A.input}/>
+                  <AdminButton type="submit" loading={adminLoading}
+                    style={{ marginTop: spacing.md }}>
+                    Save
+                  </AdminButton>
                 </form>
               </div>
             )}
@@ -751,23 +808,26 @@ function HeroPositionControl({ xVal, yVal, onSave, loading }) {
   const HERO_IMG = "/anibal/hero.jpeg";
   return (
     <div>
-      <div style={{ position: "relative", width: "100%", paddingTop: "35%", borderRadius: 8, overflow: "hidden", marginBottom: 12, border: "1px solid #e0e0e0" }}>
+      <div style={{ position: "relative", width: "100%", paddingTop: "35%", borderRadius: radii.md, overflow: "hidden", marginBottom: spacing.md, border: `1px solid ${colors.gray200}` }}>
         <img src={HERO_IMG} alt="Hero preview" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${x}% ${y}%` }}/>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)" }}/>
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 10, height: 10, borderRadius: "50%", border: "2px solid #fff", background: "rgba(212,120,31,0.8)" }}/>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 10, height: 10, borderRadius: "50%", border: "2px solid #fff", background: `rgba(212,120,31,0.8)` }}/>
       </div>
-      <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
-        <label style={{ fontSize: 11, fontWeight: 600, color: "#555", minWidth: 80 }}>Horizontal ({x}%)</label>
+      <div style={{ display: "flex", gap: spacing.lg, alignItems: "center", marginBottom: spacing.sm }}>
+        <label style={{ ...typography.body, fontWeight: 600, minWidth: 80 }}>Horizontal ({x}%)</label>
         <input type="range" min="0" max="100" value={x} onChange={e => setX(e.target.value)} style={{ flex: 1 }}/>
       </div>
-      <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 12 }}>
-        <label style={{ fontSize: 11, fontWeight: 600, color: "#555", minWidth: 80 }}>Vertical ({y}%)</label>
+      <div style={{ display: "flex", gap: spacing.lg, alignItems: "center", marginBottom: spacing.md }}>
+        <label style={{ ...typography.body, fontWeight: 600, minWidth: 80 }}>Vertical ({y}%)</label>
         <input type="range" min="0" max="100" value={y} onChange={e => setY(e.target.value)} style={{ flex: 1 }}/>
       </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button className="admin-btn" onClick={() => { onSave("hero_img_x", x); onSave("hero_img_y", y); }} disabled={loading}
-          style={{ ...S.btnSmall, background: "#222", color: "#fff", borderColor: "#222", fontWeight: 600, opacity: loading ? 0.5 : 1 }}>Save Position</button>
-        <button className="admin-ghost" onClick={() => { setX("50"); setY("50"); }} style={S.btnSmall}>Reset</button>
+      <div style={{ display: "flex", gap: spacing.sm }}>
+        <AdminButton size="small" loading={loading} onClick={() => { onSave("hero_img_x", x); onSave("hero_img_y", y); }}>
+          Save Position
+        </AdminButton>
+        <AdminButton variant="secondary" size="small" onClick={() => { setX("50"); setY("50"); }}>
+          Reset
+        </AdminButton>
       </div>
     </div>
   );
@@ -778,12 +838,13 @@ function StatRow({ statKey, label, defaultVal, currentValue, onSave, loading }) 
   const [value, setValue] = useState(currentValue || defaultVal);
   useEffect(() => { setValue(currentValue || defaultVal); }, [currentValue, defaultVal]);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-      <label style={{ fontSize: 12, fontWeight: 600, minWidth: 160, color: "#555" }}>{label}</label>
+    <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm }}>
+      <label style={{ ...typography.body, fontWeight: 600, minWidth: 160 }}>{label}</label>
       <input type="number" value={value} onChange={e => setValue(e.target.value)}
-        style={{ ...S.input, flex: 1, margin: 0, maxWidth: 120 }}/>
-      <button className="admin-btn" onClick={() => onSave(statKey, value)} disabled={loading}
-        style={{ ...S.btnSmall, background: "#222", color: "#fff", borderColor: "#222", fontWeight: 600, opacity: loading ? 0.5 : 1 }}>Save</button>
+        className="admin-input" style={{ ...A.input, flex: 1, margin: 0, maxWidth: 120 }}/>
+      <AdminButton size="small" loading={loading} onClick={() => onSave(statKey, value)}>
+        Save
+      </AdminButton>
     </div>
   );
 }
@@ -793,11 +854,12 @@ function ConfigRow({ configKey, initialValue, onSave, loading }) {
   const [value, setValue] = useState(initialValue);
   useEffect(() => { setValue(initialValue); }, [initialValue]);
   return (
-    <div style={S.listItem}>
-      <label style={{ fontSize: 12, fontWeight: 600, minWidth: 120 }}>{configKey}</label>
-      <input value={value} onChange={e => setValue(e.target.value)} style={{ ...S.input, flex: 1, margin: 0 }}/>
-      <button className="admin-btn" onClick={() => onSave(configKey, value)} disabled={loading}
-        style={{ ...S.btnSmall, background: "#222", color: "#fff", borderColor: "#222", fontWeight: 600, opacity: loading ? 0.5 : 1 }}>Save</button>
+    <div style={A.listItem}>
+      <label style={{ ...typography.body, fontWeight: 600, minWidth: 120 }}>{configKey}</label>
+      <input value={value} onChange={e => setValue(e.target.value)} className="admin-input" style={{ ...A.input, flex: 1, margin: 0 }}/>
+      <AdminButton size="small" loading={loading} onClick={() => onSave(configKey, value)}>
+        Save
+      </AdminButton>
     </div>
   );
 }
@@ -826,26 +888,26 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
   };
 
   return (
-    <div style={{ ...S.adminCard, marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <p style={{ fontSize: 12, fontWeight: 600 }}>{def.label}</p>
-        <span style={{ fontSize: 9, color: "#bbb", fontFamily: "monospace" }}>{configKey}</span>
+    <div style={{ ...A.card, marginBottom: spacing.md }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.sm }}>
+        <p style={{ ...typography.body, fontWeight: 600 }}>{def.label}</p>
+        <span style={{ fontSize: 9, color: colors.gray400, fontFamily: "monospace" }}>{configKey}</span>
       </div>
       <textarea value={text} onChange={e => setText(e.target.value)}
         placeholder={def.defaultText || "(uses translation default)"}
         rows={configKey === "bio_text" ? 4 : 2}
-        style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginBottom: 8 }}/>
-      <div style={{ display: "flex", gap: 8 }}>
+        className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
+      <div style={{ display: "flex", gap: spacing.sm }}>
         <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 10, color: "#888" }}>Font size (px)</label>
+          <label style={typography.caption}>Font size (px)</label>
           <input type="number" value={fontSize} onChange={e => setFontSize(e.target.value)}
             placeholder={`${def.defaultFontSize}`}
-            style={{ ...S.input, marginTop: 2 }}/>
+            className="admin-input" style={{ ...A.input, marginTop: 2 }}/>
         </div>
         <div style={{ flex: 2 }}>
-          <label style={{ fontSize: 10, color: "#888" }}>Font family</label>
+          <label style={typography.caption}>Font family</label>
           <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}
-            style={{ ...S.input, marginTop: 2, color: fontFamily ? "#222" : "#aaa" }}>
+            className="admin-input" style={{ ...A.input, marginTop: 2, color: fontFamily ? colors.gray900 : colors.gray400 }}>
             <option value="">Default ({def.defaultFontFamily})</option>
             {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
@@ -853,18 +915,18 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
       </div>
       {/* Preview */}
       {text && (
-        <div style={{ marginTop: 8, padding: "8px 10px", background: "#fafafa", borderRadius: 6, border: "1px dashed #e0e0e0" }}>
-          <span style={{ fontSize: 9, color: "#bbb", display: "block", marginBottom: 4 }}>Preview:</span>
+        <div style={{ marginTop: spacing.sm, padding: `${spacing.sm}px ${spacing.md}px`, background: colors.gray50, borderRadius: radii.md, border: `1px dashed ${colors.gray200}` }}>
+          <span style={{ fontSize: 9, color: colors.gray400, display: "block", marginBottom: spacing.xs }}>Preview:</span>
           <span style={{
             fontSize: fontSize ? `${fontSize}px` : `${def.defaultFontSize}px`,
             fontFamily: fontFamily ? `'${fontFamily}', sans-serif` : `'${def.defaultFontFamily}', sans-serif`,
           }}>{text}</span>
         </div>
       )}
-      <button className="admin-btn" onClick={handleSave} disabled={loading}
-        style={{ ...S.btnPrimary, marginTop: 10, opacity: loading ? 0.5 : 1 }}>
-        {loading ? "Saving..." : "Save"}
-      </button>
+      <AdminButton loading={loading} onClick={handleSave}
+        style={{ marginTop: spacing.sm }}>
+        Save
+      </AdminButton>
     </div>
   );
 }
