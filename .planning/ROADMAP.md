@@ -1,8 +1,9 @@
 # Roadmap: Admin Panel UX Overhaul
 
-## Overview
+## Milestones
 
-Transform the functional-but-rough admin panel into a polished, self-explanatory content management experience. The work flows in three phases: first build the design system (tokens and reusable primitives), then restyle the admin shell (tabs, flash messages, loading states), then apply everything horizontally across all 7 tab content areas (cards, empty states, forms). Each phase builds on the previous -- tokens enable primitives, primitives enable consistent shell styling, shell styling establishes the patterns that tab content follows.
+- v1.0 Admin Panel UX Overhaul - Phases 1-3 (shipped 2026-03-16)
+- v1.1 Admin Portfolio UX - Phases 4-5 (in progress)
 
 ## Phases
 
@@ -12,60 +13,102 @@ Transform the functional-but-rough admin panel into a polished, self-explanatory
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Design System** - Create adminStyles.js tokens and ui.jsx primitives with typography, button, and input foundations (completed 2026-03-16)
-- [x] **Phase 2: Shell and Feedback** - Restyle admin header, tab bar, flash messages, and loading indicators (completed 2026-03-16)
-- [ ] **Phase 3: Tab Content** - Apply card layouts, empty states, and styled forms across all 7 tabs
+<details>
+<summary>v1.0 Admin Panel UX Overhaul (Phases 1-3) - SHIPPED 2026-03-16</summary>
 
-## Phase Details
+- [x] **Phase 1: Design System** - Create adminStyles.js tokens and adminUI.jsx primitives with typography, button, and input foundations (completed 2026-03-16)
+- [x] **Phase 2: Shell and Feedback** - Restyle admin header, tab bar, flash messages, and loading indicators (completed 2026-03-16)
+- [x] **Phase 3: Tab Content** - Apply card layouts, empty states, and styled forms across all 7 tabs (completed 2026-03-16)
 
 ### Phase 1: Design System
 **Goal**: A complete design token system and reusable UI primitive components exist, ready for consumption by all admin views
 **Depends on**: Nothing (first phase)
 **Requirements**: DSGN-05, DSGN-01, DSGN-02, DSGN-03
 **Success Criteria** (what must be TRUE):
-  1. An `adminStyles.js` file exists with named tokens for colors, spacing, typography, radii, and shadows -- no magic numbers remain for admin styling
-  2. Typography renders at the defined scale (18px page titles, 14px section headers, 13px body, 11px captions) when primitives are used
-  3. Button primitives render three distinct visual variants: primary (filled orange), secondary (outlined/ghost), and danger (red)
-  4. Input primitives render at 40px height with visible borders, brand-color focus ring, and persistent labels above the field
+  1. An `adminStyles.js` file exists with named tokens for colors, spacing, typography, radii, and shadows
+  2. Typography renders at the defined scale (18px page titles, 14px section headers, 13px body, 11px captions)
+  3. Button primitives render three distinct visual variants: primary, secondary, danger
+  4. Input primitives render at 40px height with visible borders, brand-color focus ring
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 01-01-PLAN.md -- Design tokens (adminStyles.js) and UI primitives (adminUI.jsx)
+- [x] 01-01: Design tokens (adminStyles.js) and UI primitives (adminUI.jsx)
 
 ### Phase 2: Shell and Feedback
-**Goal**: The admin panel outer frame (header, tab navigation, flash messages, loading states) looks professional and communicates state clearly
+**Goal**: The admin panel outer frame looks professional and communicates state clearly
 **Depends on**: Phase 1
 **Requirements**: NAVF-02, NAVF-03, NAVF-04
 **Success Criteria** (what must be TRUE):
-  1. Tab bar stays visible (sticky) at the top when scrolling down within any tab's content
-  2. Success flash messages appear green with a checkmark icon and error messages appear red with an X icon, both with smooth fade-out
-  3. Clicking a submit button during an async operation shows a spinner adjacent to the button text (not just reduced opacity)
+  1. Tab bar stays visible (sticky) at the top when scrolling
+  2. Flash messages are color-coded (green success, red error) with icons
+  3. Submit buttons show a spinner during async operations
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 02-01-PLAN.md -- AdminFlash component, sticky tab bar, token-based header/login, AdminButton replacements throughout
+- [x] 02-01: AdminFlash, sticky tab bar, token-based header/login, AdminButton replacements
 
 ### Phase 3: Tab Content
-**Goal**: All 7 tabs use consistent card layouts, form styling, empty states, and item lists -- the admin feels cohesive from tab to tab
+**Goal**: All 7 tabs use consistent card layouts, form styling, empty states, and item lists
 **Depends on**: Phase 2
 **Requirements**: DSGN-04, NAVF-01
 **Success Criteria** (what must be TRUE):
-  1. Every tab groups its "add new" form and its "existing items" list into visually distinct cards with subtle borders or shadows
-  2. Every tab that can be empty shows guidance text with a specific call-to-action (e.g., "No categories yet. Add your first category above.") instead of blank space or faint gray text
-  3. All 7 tabs use the same card, input, button, and typography primitives -- no tab has its own one-off inline styles for these elements
-**Plans:** 2 plans
+  1. Every tab groups content into visually distinct cards
+  2. Empty tabs show guidance text with call-to-action
+  3. All 7 tabs use the same primitives -- no one-off inline styles
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 03-01-PLAN.md -- AdminSelect primitive + Categories/Portfolio/FAQs card wrapping and input migration
-- [ ] 03-02-PLAN.md -- FB Reviews/Google Reviews/Site Texts card wrapping + DragList/CarouselsTab token cleanup
+- [x] 03-01: AdminSelect + Categories/Portfolio/FAQs card wrapping and input migration
+- [x] 03-02: FB Reviews/Google Reviews/Site Texts card wrapping + DragList/CarouselsTab token cleanup
+
+</details>
+
+### v1.1 Admin Portfolio UX (In Progress)
+
+**Milestone Goal:** Make the admin Portfolio tab usable at scale (1000+ items) with filtering, pagination, and quick preview.
+
+- [ ] **Phase 4: Filter and Paginate** - Category/subcategory filtering with paginated results for navigating large portfolios
+- [ ] **Phase 5: Quick Preview** - Inline media preview and item details without leaving the portfolio list
+
+## Phase Details
+
+### Phase 4: Filter and Paginate
+**Goal**: Admin can efficiently navigate a large portfolio by narrowing items with filters and browsing page by page
+**Depends on**: Phase 3
+**Requirements**: FILT-01, FILT-02, FILT-03, PAGE-01, PAGE-02
+**Success Criteria** (what must be TRUE):
+  1. Admin can select a category from a dropdown and the portfolio list shows only items in that category
+  2. When a category is selected, a subcategory dropdown appears and further narrows the list to items in that subcategory
+  3. A count label shows how many items match the current filter vs total (e.g., "Showing 42 of 312")
+  4. The item list shows a fixed page of 20-30 items with previous/next buttons and page numbers to navigate between pages
+  5. Filters and pagination work together -- changing a filter resets to page 1 and paginates the filtered results
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: TBD
+
+### Phase 5: Quick Preview
+**Goal**: Admin can inspect any portfolio item's media and metadata without navigating away from the list
+**Depends on**: Phase 4
+**Requirements**: PREV-01, PREV-02
+**Success Criteria** (what must be TRUE):
+  1. Clicking a portfolio item opens an inline preview showing the full-size photo or video thumbnail
+  2. The preview displays the item's title, category, subcategory, and media type (photo/YouTube/Facebook)
+  3. The preview can be dismissed to return to the list without losing the current filter or page position
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3
+Phases execute in numeric order: 4 -> 5
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Design System | 0/1 | Complete    | 2026-03-16 |
-| 2. Shell and Feedback | 1/1 | Complete   | 2026-03-16 |
-| 3. Tab Content | 0/2 | Not started | - |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Design System | v1.0 | 1/1 | Complete | 2026-03-16 |
+| 2. Shell and Feedback | v1.0 | 1/1 | Complete | 2026-03-16 |
+| 3. Tab Content | v1.0 | 2/2 | Complete | 2026-03-16 |
+| 4. Filter and Paginate | v1.1 | 0/? | Not started | - |
+| 5. Quick Preview | v1.1 | 0/? | Not started | - |
