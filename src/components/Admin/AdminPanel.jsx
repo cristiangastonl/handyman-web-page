@@ -65,6 +65,10 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   // Work item subcategory (optional)
   const [wiSubcat, setWiSubcat] = useState("");
 
+  // Portfolio filter state
+  const [filterCat, setFilterCat] = useState("");
+  const [filterSubcat, setFilterSubcat] = useState("");
+
   // FB Review form
   const [fbrName, setFbrName] = useState("");
   const [fbrRating, setFbrRating] = useState("5");
@@ -581,22 +585,54 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   </form>
                 </AdminCard>
 
-                <AdminCard title={`Portfolio Items (${items.length})`}>
-                  {items.length === 0
-                    ? emptyMsg("No portfolio items yet. Add photos, YouTube videos, or Facebook reels above.")
-                    : items.map(item => (
-                        <div key={item.id} style={A.listItem}>
-                          <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
-                            <div style={{ fontSize: 10, color: colors.gray500 }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
-                          </div>
-                          <AdminButton variant="danger" size="small" onClick={() => handleDeleteWorkItem(item.id)} loading={adminLoading}>
-                            Remove
-                          </AdminButton>
-                        </div>
-                      ))
-                  }
+                <AdminCard title="Portfolio Items">
+                  {/* Filter dropdowns */}
+                  <div style={{ display: "flex", gap: spacing.md, marginBottom: spacing.lg, alignItems: "flex-end" }}>
+                    <div style={{ flex: 1 }}>
+                      <AdminSelect label="Filter by category" value={filterCat} onChange={e => { setFilterCat(e.target.value); setFilterSubcat(""); }} style={{ marginBottom: 0 }}>
+                        <option value="">All categories</option>
+                        {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                      </AdminSelect>
+                    </div>
+                    {filterCat && subcats.filter(s => s.category_id === filterCat).length > 0 && (
+                      <div style={{ flex: 1 }}>
+                        <AdminSelect label="Subcategory" value={filterSubcat} onChange={e => setFilterSubcat(e.target.value)} style={{ marginBottom: 0 }}>
+                          <option value="">All subcategories</option>
+                          {subcats.filter(s => s.category_id === filterCat).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </AdminSelect>
+                      </div>
+                    )}
+                  </div>
+                  {/* Count label */}
+                  {(() => {
+                    const filteredItems = items.filter(item => {
+                      if (filterCat && item.cat !== filterCat) return false;
+                      if (filterSubcat && item.subcategory_id !== filterSubcat) return false;
+                      return true;
+                    });
+                    return (
+                      <>
+                        <div style={{ ...typography.caption, marginBottom: spacing.md }}>Showing {filteredItems.length} of {items.length}</div>
+                        {items.length === 0
+                          ? emptyMsg("No portfolio items yet. Add photos, YouTube videos, or Facebook reels above.")
+                          : filteredItems.length === 0
+                            ? emptyMsg("No items match the current filters.")
+                            : filteredItems.map(item => (
+                                <div key={item.id} style={A.listItem}>
+                                  <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
+                                    <div style={{ fontSize: 10, color: colors.gray500 }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
+                                  </div>
+                                  <AdminButton variant="danger" size="small" onClick={() => handleDeleteWorkItem(item.id)} loading={adminLoading}>
+                                    Remove
+                                  </AdminButton>
+                                </div>
+                              ))
+                        }
+                      </>
+                    );
+                  })()}
                 </AdminCard>
               </div>
             )}
