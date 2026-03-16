@@ -9,11 +9,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Design Foundation
 
-- [ ] **DSGN-01**: Admin panel uses a consistent typography scale — page titles (18px), section headers (14px), body text (13px), captions (11px)
-- [ ] **DSGN-02**: Buttons have clear visual hierarchy — primary (filled orange), secondary (outlined/ghost), danger (red for destructive actions)
-- [ ] **DSGN-03**: Form inputs have 40px height, clear borders, brand-color focus ring, and persistent labels above each field
+- [x] **DSGN-01**: Admin panel uses a consistent typography scale — page titles (18px), section headers (14px), body text (13px), captions (11px)
+- [x] **DSGN-02**: Buttons have clear visual hierarchy — primary (filled orange), secondary (outlined/ghost), danger (red for destructive actions)
+- [x] **DSGN-03**: Form inputs have 40px height, clear borders, brand-color focus ring, and persistent labels above each field
 - [ ] **DSGN-04**: Related content is grouped in cards with subtle borders/shadows (add form in one card, existing items list in another)
-- [ ] **DSGN-05**: Design tokens live in a dedicated `adminStyles.js` file, separate from the public site's `constants.js`
+- [x] **DSGN-05**: Design tokens live in a dedicated `adminStyles.js` file, separate from the public site's `constants.js`
 
 ### Navigation & Feedback
 
@@ -64,11 +64,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DSGN-01 | Phase 1: Design System | Pending |
-| DSGN-02 | Phase 1: Design System | Pending |
-| DSGN-03 | Phase 1: Design System | Pending |
+| DSGN-01 | Phase 1: Design System | Complete |
+| DSGN-02 | Phase 1: Design System | Complete |
+| DSGN-03 | Phase 1: Design System | Complete |
 | DSGN-04 | Phase 3: Tab Content | Pending |
-| DSGN-05 | Phase 1: Design System | Pending |
+| DSGN-05 | Phase 1: Design System | Complete |
 | NAVF-01 | Phase 3: Tab Content | Pending |
 | NAVF-02 | Phase 2: Shell and Feedback | Pending |
 | NAVF-03 | Phase 2: Shell and Feedback | Pending |
