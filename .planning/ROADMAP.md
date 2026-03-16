@@ -82,10 +82,10 @@ Plans:
   3. A count label shows how many items match the current filter vs total (e.g., "Showing 42 of 312")
   4. The item list shows a fixed page of 20-30 items with previous/next buttons and page numbers to navigate between pages
   5. Filters and pagination work together -- changing a filter resets to page 1 and paginates the filtered results
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- Category/subcategory filters, count label, pagination with page size selector
 
 ### Phase 5: Quick Preview
 **Goal**: Admin can inspect any portfolio item's media and metadata without navigating away from the list
@@ -110,5 +110,5 @@ Phases execute in numeric order: 4 -> 5
 | 1. Design System | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 2. Shell and Feedback | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 3. Tab Content | v1.0 | 2/2 | Complete | 2026-03-16 |
-| 4. Filter and Paginate | v1.1 | 0/? | Not started | - |
+| 4. Filter and Paginate | v1.1 | 0/1 | Not started | - |
 | 5. Quick Preview | v1.1 | 0/? | Not started | - |
