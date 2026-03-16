@@ -675,36 +675,39 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> Facebook reviews show as "Recommends" (no star ratings). They appear in the Reviews section on home page and the Reviews page, mixed with Google reviews.
                 </div>
-                <p style={typography.label}>Facebook Reviews ({fbReviews.length})</p>
-                <form onSubmit={prevent(handleAddFbReview)} style={{ ...A.card, marginBottom: spacing.xl }}>
-                  <p style={A.cardTitle}>Add Facebook Review</p>
-                  <input value={fbrName} onChange={e => setFbrName(e.target.value)} placeholder="Reviewer name" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                  <textarea value={fbrText} onChange={e => setFbrText(e.target.value)} placeholder="Review text" rows={3} className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
-                  <div style={{ marginBottom: spacing.sm }}>
-                    <label style={typography.caption}>Review date (optional)</label>
-                    <input type="date" value={fbrDate} onChange={e => setFbrDate(e.target.value)} className="admin-input" style={{ ...A.input, marginTop: spacing.xs }}/>
-                  </div>
-                  <AdminButton type="submit" loading={adminLoading} disabled={!fbrName.trim() || !fbrText.trim()}
-                    style={{ marginTop: spacing.md }}>
-                    Add Review
-                  </AdminButton>
-                </form>
-                {fbReviews.length === 0 && emptyMsg("No Facebook reviews yet.")}
-                {fbReviews.map(r => (
-                  <div key={r.id} style={{ padding: `${spacing.sm}px 0`, borderBottom: `1px solid ${colors.gray200}` }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
-                        <span style={{ fontSize: 11, color: "#1877F2", marginLeft: spacing.sm }}>&#128077; Recommends</span>
-                        {r.review_date && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.review_date}</span>}
-                      </div>
-                      <AdminButton variant="danger" size="small" onClick={() => handleDeleteFbReview(r.id)} loading={adminLoading}>
-                        Remove
-                      </AdminButton>
-                    </div>
-                    <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
-                  </div>
-                ))}
+
+                <AdminCard title="Add Facebook Review">
+                  <form onSubmit={prevent(handleAddFbReview)}>
+                    <AdminInput label="Reviewer name" value={fbrName} onChange={e => setFbrName(e.target.value)} placeholder="Reviewer name" />
+                    <AdminTextarea label="Review text" value={fbrText} onChange={e => setFbrText(e.target.value)} placeholder="Review text" rows={3} />
+                    <AdminInput label="Review date (optional)" type="date" value={fbrDate} onChange={e => setFbrDate(e.target.value)} />
+                    <AdminButton type="submit" loading={adminLoading} disabled={!fbrName.trim() || !fbrText.trim()}
+                      style={{ marginTop: spacing.md }}>
+                      Add Review
+                    </AdminButton>
+                  </form>
+                </AdminCard>
+
+                <AdminCard title={`Facebook Reviews (${fbReviews.length})`} style={{ marginTop: spacing.xl }}>
+                  {fbReviews.length === 0
+                    ? emptyMsg("No Facebook reviews yet. Add reviews from your Facebook page above.")
+                    : fbReviews.map(r => (
+                        <div key={r.id} style={A.listItem}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div>
+                              <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
+                              <span style={{ fontSize: 11, color: "#1877F2", marginLeft: spacing.sm }}>&#128077; Recommends</span>
+                              {r.review_date && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.review_date}</span>}
+                            </div>
+                            <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
+                          </div>
+                          <AdminButton variant="danger" size="small" onClick={() => handleDeleteFbReview(r.id)} loading={adminLoading}>
+                            Remove
+                          </AdminButton>
+                        </div>
+                      ))
+                  }
+                </AdminCard>
               </div>
             )}
 
@@ -714,36 +717,42 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
                   <strong>How it works:</strong> Google reviews with star ratings (1-5). They appear in the Reviews section on home page and the Reviews page. The star average is calculated only from these.
                 </div>
-                <p style={typography.label}>Google Reviews ({(googleReviews || []).length})</p>
-                <form onSubmit={prevent(handleAddGoogleReview)} style={{ ...A.card, marginBottom: spacing.xl }}>
-                  <p style={A.cardTitle}>Add Google Review</p>
-                  <input value={grName} onChange={e => setGrName(e.target.value)} placeholder="Reviewer name" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                  <select value={grRating} onChange={e => setGrRating(e.target.value)} className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}>
-                    {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} star{n !== 1 ? "s" : ""}</option>)}
-                  </select>
-                  <textarea value={grText} onChange={e => setGrText(e.target.value)} placeholder="Review text" rows={3} className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
-                  <input value={grTime} onChange={e => setGrTime(e.target.value)} placeholder="Time label (e.g. '2 weeks ago')" className="admin-input" style={A.input}/>
-                  <AdminButton type="submit" loading={adminLoading} disabled={!grName.trim() || !grText.trim()}
-                    style={{ marginTop: spacing.md }}>
-                    Add Review
-                  </AdminButton>
-                </form>
-                {(googleReviews || []).length === 0 && emptyMsg("No Google reviews yet.")}
-                {(googleReviews || []).map(r => (
-                  <div key={r.id} style={{ padding: `${spacing.sm}px 0`, borderBottom: `1px solid ${colors.gray200}` }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
-                        <span style={{ fontSize: 11, color: "#E8A317", marginLeft: spacing.sm }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
-                        {r.time_label && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.time_label}</span>}
-                      </div>
-                      <AdminButton variant="danger" size="small" onClick={() => handleDeleteGoogleReview(r.id)} loading={adminLoading}>
-                        Remove
-                      </AdminButton>
-                    </div>
-                    <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
-                  </div>
-                ))}
+
+                <AdminCard title="Add Google Review">
+                  <form onSubmit={prevent(handleAddGoogleReview)}>
+                    <AdminInput label="Reviewer name" value={grName} onChange={e => setGrName(e.target.value)} placeholder="Reviewer name" />
+                    <AdminSelect label="Rating" value={grRating} onChange={e => setGrRating(e.target.value)}>
+                      {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} star{n !== 1 ? "s" : ""}</option>)}
+                    </AdminSelect>
+                    <AdminTextarea label="Review text" value={grText} onChange={e => setGrText(e.target.value)} placeholder="Review text" rows={3} />
+                    <AdminInput label="Time label" value={grTime} onChange={e => setGrTime(e.target.value)} placeholder="e.g. '2 weeks ago'" />
+                    <AdminButton type="submit" loading={adminLoading} disabled={!grName.trim() || !grText.trim()}
+                      style={{ marginTop: spacing.md }}>
+                      Add Review
+                    </AdminButton>
+                  </form>
+                </AdminCard>
+
+                <AdminCard title={`Google Reviews (${(googleReviews || []).length})`} style={{ marginTop: spacing.xl }}>
+                  {(googleReviews || []).length === 0
+                    ? emptyMsg("No Google reviews yet. Add reviews from your Google Business profile above.")
+                    : (googleReviews || []).map(r => (
+                        <div key={r.id} style={A.listItem}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div>
+                              <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
+                              <span style={{ fontSize: 11, color: "#E8A317", marginLeft: spacing.sm }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                              {r.time_label && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.time_label}</span>}
+                            </div>
+                            <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
+                          </div>
+                          <AdminButton variant="danger" size="small" onClick={() => handleDeleteGoogleReview(r.id)} loading={adminLoading}>
+                            Remove
+                          </AdminButton>
+                        </div>
+                      ))
+                  }
+                </AdminCard>
               </div>
             )}
 
@@ -755,8 +764,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 </div>
 
                 {/* Hero image position */}
-                <p style={typography.label}>Hero Image Position</p>
-                <div style={{ ...A.card, marginBottom: spacing.xl }}>
+                <AdminCard title="Hero Image Position" style={{ marginBottom: spacing.xl }}>
                   <p style={{ ...typography.caption, marginBottom: spacing.sm }}>Adjust where the image focuses. 0% = left/top, 50% = center, 100% = right/bottom.</p>
                   <HeroPositionControl
                     xVal={siteConfig.hero_img_x || "50"}
@@ -764,11 +772,10 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                     onSave={handleSaveConfig}
                     loading={adminLoading}
                   />
-                </div>
+                </AdminCard>
 
                 {/* Stats counters */}
-                <p style={typography.label}>Stats Bar</p>
-                <div style={{ ...A.card, marginBottom: spacing.xl }}>
+                <AdminCard title="Stats Bar" style={{ marginBottom: spacing.xl }}>
                   {[
                     { key: "stat_experience", label: "Years Experience", defaultVal: "20" },
                     { key: "stat_videos", label: "Video Shows", defaultVal: "400" },
@@ -777,7 +784,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   ].map(stat => (
                     <StatRow key={stat.key} statKey={stat.key} label={stat.label} defaultVal={stat.defaultVal} currentValue={siteConfig[stat.key]} onSave={handleSaveConfig} loading={adminLoading} />
                   ))}
-                </div>
+                </AdminCard>
 
                 <p style={typography.label}>Site Texts</p>
                 {Object.entries(SITE_TEXTS).map(([key, def]) => (
@@ -793,19 +800,20 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                     ))}
                   </>
                 )}
-                <form onSubmit={prevent(() => {
-                  if (!cfgKey.trim()) return;
-                  handleSaveConfig(cfgKey.trim(), cfgVal.trim());
-                  setCfgKey(""); setCfgVal("");
-                })} style={{ ...A.card, marginTop: spacing.lg }}>
-                  <p style={A.cardTitle}>Add Custom Setting</p>
-                  <input value={cfgKey} onChange={e => setCfgKey(e.target.value)} placeholder="Key" className="admin-input" style={{ ...A.input, marginBottom: spacing.sm }}/>
-                  <input value={cfgVal} onChange={e => setCfgVal(e.target.value)} placeholder="Value" className="admin-input" style={A.input}/>
-                  <AdminButton type="submit" loading={adminLoading}
-                    style={{ marginTop: spacing.md }}>
-                    Save
-                  </AdminButton>
-                </form>
+                <AdminCard title="Add Custom Setting" style={{ marginTop: spacing.lg }}>
+                  <form onSubmit={prevent(() => {
+                    if (!cfgKey.trim()) return;
+                    handleSaveConfig(cfgKey.trim(), cfgVal.trim());
+                    setCfgKey(""); setCfgVal("");
+                  })}>
+                    <AdminInput label="Key" value={cfgKey} onChange={e => setCfgKey(e.target.value)} placeholder="Key" />
+                    <AdminInput label="Value" value={cfgVal} onChange={e => setCfgVal(e.target.value)} placeholder="Value" />
+                    <AdminButton type="submit" loading={adminLoading}
+                      style={{ marginTop: spacing.md }}>
+                      Save
+                    </AdminButton>
+                  </form>
+                </AdminCard>
               </div>
             )}
           </>
