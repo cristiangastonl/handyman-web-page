@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { itemThumb, SITE_TEXTS, parseSiteText } from "../../lib/constants";
 import { colors, spacing, typography, shadows, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminTextarea, AdminCard, AdminLabel, AdminSelect, AdminFlash, AdminStyles } from "./adminUI";
@@ -82,6 +82,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [filterSubcat, setFilterSubcat] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(30);
+  const [previewId, setPreviewId] = useState(null);
 
   // FB Review form
   const [fbrName, setFbrName] = useState("");
@@ -656,16 +657,80 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                           : filteredItems.length === 0
                             ? emptyMsg("No items match the current filters.")
                             : pagedItems.map(item => (
-                                <div key={item.id} style={A.listItem}>
-                                  <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
-                                    <div style={{ fontSize: 10, color: colors.gray500 }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
+                                <React.Fragment key={item.id}>
+                                  <div
+                                    style={{ ...A.listItem, cursor: "pointer", background: previewId === item.id ? colors.gray50 : "transparent" }}
+                                    onClick={() => setPreviewId(prev => prev === item.id ? null : item.id)}
+                                  >
+                                    <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
+                                      <div style={{ fontSize: 10, color: colors.gray500 }}>{item.type} · {cats.find(c => c.id === item.cat)?.label}</div>
+                                    </div>
+                                    <AdminButton variant="danger" size="small" onClick={(e) => { e.stopPropagation(); handleDeleteWorkItem(item.id); }} loading={adminLoading}>
+                                      Remove
+                                    </AdminButton>
                                   </div>
-                                  <AdminButton variant="danger" size="small" onClick={() => handleDeleteWorkItem(item.id)} loading={adminLoading}>
-                                    Remove
-                                  </AdminButton>
-                                </div>
+                                  {previewId === item.id && (
+                                    <div style={{
+                                      padding: `${spacing.lg}px ${spacing.xl}px`,
+                                      background: colors.gray50,
+                                      borderBottom: `1px solid ${colors.gray200}`,
+                                      display: "flex",
+                                      gap: spacing.xl,
+                                      alignItems: "flex-start",
+                                    }}>
+                                      <img
+                                        src={itemThumb(item)}
+                                        alt={item.title || ""}
+                                        style={{
+                                          width: 320,
+                                          maxWidth: "50%",
+                                          height: "auto",
+                                          objectFit: "contain",
+                                          borderRadius: radii.md,
+                                          background: colors.gray200,
+                                        }}
+                                      />
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                          <div>
+                                            <div style={{ fontSize: 14, fontWeight: 600, color: colors.gray900, marginBottom: spacing.xs }}>
+                                              {item.title || "(untitled)"}
+                                            </div>
+                                            <div style={{ ...typography.caption, marginBottom: spacing.sm }}>
+                                              {cats.find(c => c.id === item.cat)?.label || "Unknown category"}
+                                            </div>
+                                          </div>
+                                          <button
+                                            type="button"
+                                            onClick={() => setPreviewId(null)}
+                                            style={{
+                                              background: "none",
+                                              border: "none",
+                                              cursor: "pointer",
+                                              fontSize: 18,
+                                              color: colors.gray400,
+                                              padding: spacing.xs,
+                                              lineHeight: 1,
+                                            }}
+                                            title="Close preview"
+                                          >
+                                            x
+                                          </button>
+                                        </div>
+                                        {item.desc && (
+                                          <div style={{ ...typography.caption, color: colors.gray500, marginTop: spacing.xs }}>
+                                            {item.desc}
+                                          </div>
+                                        )}
+                                        <div style={{ ...typography.caption, marginTop: spacing.md, color: colors.gray400 }}>
+                                          Type: {item.type === "image" ? "Photo" : item.type === "video" ? "YouTube" : "Facebook"}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </React.Fragment>
                               ))
                         }
                         {/* Pagination controls */}
