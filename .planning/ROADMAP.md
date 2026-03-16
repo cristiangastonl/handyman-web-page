@@ -53,10 +53,11 @@ Plans:
   1. Every tab groups its "add new" form and its "existing items" list into visually distinct cards with subtle borders or shadows
   2. Every tab that can be empty shows guidance text with a specific call-to-action (e.g., "No categories yet. Add your first category above.") instead of blank space or faint gray text
   3. All 7 tabs use the same card, input, button, and typography primitives -- no tab has its own one-off inline styles for these elements
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md -- AdminSelect primitive + Categories/Portfolio/FAQs card wrapping and input migration
+- [ ] 03-02-PLAN.md -- FB Reviews/Google Reviews/Site Texts card wrapping + DragList/CarouselsTab token cleanup
 
 ## Progress
 
@@ -67,4 +68,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Design System | 0/1 | Complete    | 2026-03-16 |
 | 2. Shell and Feedback | 1/1 | Complete   | 2026-03-16 |
-| 3. Tab Content | 0/0 | Not started | - |
+| 3. Tab Content | 0/2 | Not started | - |
