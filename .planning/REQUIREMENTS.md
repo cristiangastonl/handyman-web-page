@@ -3,82 +3,83 @@
 **Defined:** 2026-03-16
 **Core Value:** Anibal can manage his website content confidently — every section is self-explanatory, visually clear, and pleasant to use.
 
-## v1 Requirements
-
-Requirements for initial release. Each maps to roadmap phases.
+## v1.0 Requirements (Complete)
 
 ### Design Foundation
 
-- [x] **DSGN-01**: Admin panel uses a consistent typography scale — page titles (18px), section headers (14px), body text (13px), captions (11px)
-- [x] **DSGN-02**: Buttons have clear visual hierarchy — primary (filled orange), secondary (outlined/ghost), danger (red for destructive actions)
-- [x] **DSGN-03**: Form inputs have 40px height, clear borders, brand-color focus ring, and persistent labels above each field
-- [x] **DSGN-04**: Related content is grouped in cards with subtle borders/shadows (add form in one card, existing items list in another)
-- [x] **DSGN-05**: Design tokens live in a dedicated `adminStyles.js` file, separate from the public site's `constants.js`
+- [x] **DSGN-01**: Admin panel uses a consistent typography scale
+- [x] **DSGN-02**: Buttons have clear visual hierarchy (primary/secondary/danger)
+- [x] **DSGN-03**: Form inputs have 40px height, clear borders, brand-color focus ring
+- [x] **DSGN-04**: Related content is grouped in cards with subtle borders/shadows
+- [x] **DSGN-05**: Design tokens live in a dedicated `adminStyles.js` file
 
 ### Navigation & Feedback
 
-- [x] **NAVF-01**: Empty states show guidance text with a clear call-to-action (e.g., "Add your first category") instead of faint gray text
-- [x] **NAVF-02**: Flash messages are color-coded — green with checkmark for success, red with X for errors — with smooth fade-out
-- [x] **NAVF-03**: Tab bar is sticky at the top of the admin panel when scrolling
-- [x] **NAVF-04**: Async operations show a spinner next to the submit button (not just opacity reduction)
+- [x] **NAVF-01**: Empty states show guidance text with clear call-to-action
+- [x] **NAVF-02**: Flash messages are color-coded (green success, red error)
+- [x] **NAVF-03**: Tab bar is sticky at the top
+- [x] **NAVF-04**: Async operations show a spinner next to submit button
 
-## v2 Requirements
+## v1.1 Requirements
 
-Deferred to future release. Tracked but not in current roadmap.
+Requirements for Admin Portfolio UX milestone. Each maps to roadmap phases.
 
-### Navigation Enhancements
+### Portfolio Filtering
 
-- **NAVE-01**: Tab icons for quick visual recognition (grid, image, layers, star, question, gear)
-- **NAVE-02**: Count badges on tabs showing item counts (e.g., "Portfolio (24)")
+- [ ] **FILT-01**: Admin can filter portfolio items by category via dropdown
+- [ ] **FILT-02**: Admin can filter portfolio items by subcategory (appears when category is selected)
+- [ ] **FILT-03**: Filter shows item count matching current selection (e.g., "Showing 42 of 312")
 
-### Interaction Polish
+### Portfolio Pagination
 
-- **INTR-01**: Image preview thumbnail before upload (URL.createObjectURL)
-- **INTR-02**: Richer item previews in lists (larger thumbnails, type badges, more metadata)
-- **INTR-03**: Improved "How it works" info boxes with collapsible behavior and distinct styling
-- **INTR-04**: Form validation feedback (red borders on empty required fields with helper text)
-- **INTR-05**: Keyboard shortcuts (Enter to submit forms, Escape to cancel edits)
-- **INTR-06**: Smooth CSS transitions on tab switches and list item changes
-- **INTR-07**: Spacing and whitespace improvements (20-24px padding, 32px between sections)
+- [ ] **PAGE-01**: Portfolio item list displays a fixed number of items per page (e.g., 20-30)
+- [ ] **PAGE-02**: Admin can navigate between pages (previous/next + page numbers)
+
+### Portfolio Preview
+
+- [ ] **PREV-01**: Admin can click an item to see a larger preview (photo or video thumbnail) without leaving the tab
+- [ ] **PREV-02**: Preview shows item details (title, category, subcategory, type)
+
+## Future Requirements
+
+Deferred to future release.
+
+- **NAVE-01**: Tab icons for quick visual recognition
+- **NAVE-02**: Count badges on tabs showing item counts
+- **INTR-01**: Image preview thumbnail before upload
+- **INTR-03**: Collapsible "How it works" info boxes
+- **INTR-04**: Form validation feedback (red borders on empty required fields)
+- **INTR-05**: Keyboard shortcuts (Enter to submit, Escape to cancel)
+- **INTR-06**: Smooth CSS transitions on tab switches
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Sidebar navigation | Overkill for 7 tabs, horizontal tabs are perfect for this count |
-| Dark mode | Single user, desktop only, likely uses during business hours — zero value |
-| Role-based access / permissions | Single user (Anibal), no other admins |
-| Drag-and-drop file upload zones | Overkill — standard file inputs with better styling are sufficient |
-| Undo/redo system | Complex state management for minimal value |
-| Dashboard/analytics page | No metrics to show, Anibal manages content not analytics |
-| Bulk operations | Single-user adding items one at a time |
-| Custom modal dialogs | Replace window.confirm() is engineering effort with minimal UX gain |
-| Search/filter across tabs | Content set is small enough for scrolling |
-| Mobile responsive admin | User is desktop-only |
-| New CRUD functionality | Focus is purely UX/visual |
+| Public-facing portfolio changes | Admin only for this milestone |
+| Bulk operations (multi-select, delete) | Single user, one at a time |
+| Search/text filter | Category/subcategory filtering sufficient for now |
+| Mobile responsive admin | Desktop only user |
 | Backend/schema changes | Supabase stays as-is |
+| Virtual scrolling / infinite scroll | Pagination is simpler and sufficient |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DSGN-01 | Phase 1: Design System | Complete |
-| DSGN-02 | Phase 1: Design System | Complete |
-| DSGN-03 | Phase 1: Design System | Complete |
-| DSGN-04 | Phase 3: Tab Content | Complete |
-| DSGN-05 | Phase 1: Design System | Complete |
-| NAVF-01 | Phase 3: Tab Content | Complete |
-| NAVF-02 | Phase 2: Shell and Feedback | Complete |
-| NAVF-03 | Phase 2: Shell and Feedback | Complete |
-| NAVF-04 | Phase 2: Shell and Feedback | Complete |
+| FILT-01 | — | Pending |
+| FILT-02 | — | Pending |
+| FILT-03 | — | Pending |
+| PAGE-01 | — | Pending |
+| PAGE-02 | — | Pending |
+| PREV-01 | — | Pending |
+| PREV-02 | — | Pending |
 
 **Coverage:**
-- v1 requirements: 9 total
-- Mapped to phases: 9
-- Unmapped: 0
+- v1.1 requirements: 7 total
+- Mapped to phases: 0
+- Unmapped: 7 ⚠️
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after roadmap creation*
+*Last updated: 2026-03-16 after v1.1 milestone definition*
