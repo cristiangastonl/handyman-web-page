@@ -24,7 +24,7 @@ export default function BrandStrip() {
         <p style={{ textAlign: "center", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", margin: "0 0 16px" }}>
           {t("brands.title", "Trusted Brands We Work With")}
         </p>
-        <div style={{ position: "relative", width: "100%" }}>
+        <div style={{ position: "relative", maxWidth: 940, margin: "0 auto", overflow: "hidden" }}>
           {/* Fade edges */}
           <div className="brand-fade-left" style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(to right, #fafafa, transparent)", zIndex: 1, pointerEvents: "none" }}/>
           <div className="brand-fade-right" style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(to left, #fafafa, transparent)", zIndex: 1, pointerEvents: "none" }}/>
