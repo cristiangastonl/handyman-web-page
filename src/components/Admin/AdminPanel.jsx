@@ -18,6 +18,18 @@ import CarouselsTab from "./CarouselsTab";
 
 const emptyMsg = (text) => <p style={{ ...A.emptyState, padding: `${spacing.lg}px 0` }}>{text}</p>;
 
+function generatePageNumbers(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [1];
+  if (current > 3) pages.push("...");
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (current < total - 2) pages.push("...");
+  pages.push(total);
+  return pages;
+}
+
 export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, returningCustomers, setReturningCustomers, fbReviews, setFbReviews, googleReviews, setGoogleReviews, carouselData, setCarouselData, adminTab, setAdminTab }) {
   // Auth
   const [session, setSession] = useState(null);
@@ -68,6 +80,8 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   // Portfolio filter state
   const [filterCat, setFilterCat] = useState("");
   const [filterSubcat, setFilterSubcat] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(30);
 
   // FB Review form
   const [fbrName, setFbrName] = useState("");
@@ -589,35 +603,59 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   {/* Filter dropdowns */}
                   <div style={{ display: "flex", gap: spacing.md, marginBottom: spacing.lg, alignItems: "flex-end" }}>
                     <div style={{ flex: 1 }}>
-                      <AdminSelect label="Filter by category" value={filterCat} onChange={e => { setFilterCat(e.target.value); setFilterSubcat(""); }} style={{ marginBottom: 0 }}>
+                      <AdminSelect label="Filter by category" value={filterCat} onChange={e => { setFilterCat(e.target.value); setFilterSubcat(""); setPage(1); }} style={{ marginBottom: 0 }}>
                         <option value="">All categories</option>
                         {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                       </AdminSelect>
                     </div>
                     {filterCat && subcats.filter(s => s.category_id === filterCat).length > 0 && (
                       <div style={{ flex: 1 }}>
-                        <AdminSelect label="Subcategory" value={filterSubcat} onChange={e => setFilterSubcat(e.target.value)} style={{ marginBottom: 0 }}>
+                        <AdminSelect label="Subcategory" value={filterSubcat} onChange={e => { setFilterSubcat(e.target.value); setPage(1); }} style={{ marginBottom: 0 }}>
                           <option value="">All subcategories</option>
                           {subcats.filter(s => s.category_id === filterCat).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </AdminSelect>
                       </div>
                     )}
                   </div>
-                  {/* Count label */}
+                  {/* Filtered + paginated items */}
                   {(() => {
                     const filteredItems = items.filter(item => {
                       if (filterCat && item.cat !== filterCat) return false;
                       if (filterSubcat && item.subcategory_id !== filterSubcat) return false;
                       return true;
                     });
+                    const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+                    const safePage = Math.min(page, totalPages);
+                    const pagedItems = filteredItems.slice((safePage - 1) * pageSize, safePage * pageSize);
                     return (
                       <>
-                        <div style={{ ...typography.caption, marginBottom: spacing.md }}>Showing {filteredItems.length} of {items.length}</div>
+                        {/* Count + page size selector */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+                          <span style={typography.caption}>Showing {filteredItems.length} of {items.length}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: spacing.xs }}>
+                            <span style={typography.caption}>Per page:</span>
+                            {[20, 30, 50].map(n => (
+                              <button key={n} type="button" onClick={() => { setPageSize(n); setPage(1); }}
+                                style={{
+                                  background: pageSize === n ? colors.brand : "none",
+                                  color: pageSize === n ? colors.white : colors.gray600,
+                                  border: pageSize === n ? "none" : `1px solid ${colors.gray300}`,
+                                  borderRadius: radii.sm,
+                                  padding: "2px 8px",
+                                  fontSize: 11,
+                                  cursor: "pointer",
+                                  fontWeight: pageSize === n ? 600 : 400,
+                                }}>
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                         {items.length === 0
                           ? emptyMsg("No portfolio items yet. Add photos, YouTube videos, or Facebook reels above.")
                           : filteredItems.length === 0
                             ? emptyMsg("No items match the current filters.")
-                            : filteredItems.map(item => (
+                            : pagedItems.map(item => (
                                 <div key={item.id} style={A.listItem}>
                                   <img src={itemThumb(item)} alt="" style={{ width: 52, height: 36, objectFit: "cover", borderRadius: radii.sm, background: colors.gray200 }}/>
                                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -630,6 +668,52 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                                 </div>
                               ))
                         }
+                        {/* Pagination controls */}
+                        {totalPages > 1 && (
+                          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: spacing.xs, paddingTop: spacing.lg, marginTop: spacing.md, borderTop: `1px solid ${colors.gray200}` }}>
+                            <button type="button" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage <= 1}
+                              style={{
+                                background: "none",
+                                border: `1px solid ${colors.gray300}`,
+                                borderRadius: radii.sm,
+                                color: safePage <= 1 ? colors.gray300 : colors.gray700,
+                                cursor: safePage <= 1 ? "not-allowed" : "pointer",
+                                fontSize: 13, padding: "2px 10px", height: 28,
+                              }}>
+                              &lt;
+                            </button>
+                            {generatePageNumbers(safePage, totalPages).map((p, i) =>
+                              p === "..." ? (
+                                <span key={`ellipsis-${i}`} style={{ color: colors.gray400, fontSize: 12, padding: "0 2px" }}>...</span>
+                              ) : (
+                                <button key={p} type="button" onClick={() => setPage(p)}
+                                  style={{
+                                    background: p === safePage ? colors.brand : "none",
+                                    color: p === safePage ? colors.white : colors.gray700,
+                                    border: p === safePage ? "none" : `1px solid ${colors.gray300}`,
+                                    borderRadius: radii.sm,
+                                    minWidth: 28, height: 28,
+                                    fontSize: 12, fontWeight: p === safePage ? 600 : 400,
+                                    cursor: "pointer",
+                                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                  }}>
+                                  {p}
+                                </button>
+                              )
+                            )}
+                            <button type="button" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}
+                              style={{
+                                background: "none",
+                                border: `1px solid ${colors.gray300}`,
+                                borderRadius: radii.sm,
+                                color: safePage >= totalPages ? colors.gray300 : colors.gray700,
+                                cursor: safePage >= totalPages ? "not-allowed" : "pointer",
+                                fontSize: 13, padding: "2px 10px", height: 28,
+                              }}>
+                              &gt;
+                            </button>
+                          </div>
+                        )}
                       </>
                     );
                   })()}
