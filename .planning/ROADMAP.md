@@ -119,10 +119,10 @@ Plans:
   3. Stats counter values (numbers) remain editable within the Stats section
   4. Hero image position sliders remain functional within the Hero section
   5. Existing text fields (hero title, hero subtitle, brand subtitle, bio, highlights title) remain editable within their respective sections
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md -- Extract Site Texts tab into SiteTextsTab.jsx with 7 section-based layout (Hero, About, Stats, Carousels, CTAs, Reviews, Footer) and visual previews
 
 ### Phase 7: Typography Controls
 **Goal**: Admin can customize font size and font family for every visible text area on the site, with changes persisted and applied live
