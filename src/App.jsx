@@ -186,15 +186,15 @@ export default function App() {
           <StatsBar siteConfig={siteConfig}/>
           <About nav={nav} navToCategory={navToCategory} siteConfig={siteConfig}/>
           <ServiceAreasCTA/>
-          <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={setLb} nav={nav}/>
+          <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={setLb} nav={nav} siteConfig={siteConfig}/>
           <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={setLb} siteConfig={siteConfig}/>
-          <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={setLb}/>
-          <TailoringCTA nav={nav}/>
-          <TailorJobs items={carouselData.tailor_jobs} setLb={setLb}/>
+          <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={setLb} siteConfig={siteConfig}/>
+          <TailoringCTA nav={nav} siteConfig={siteConfig}/>
+          <TailorJobs items={carouselData.tailor_jobs} setLb={setLb} siteConfig={siteConfig}/>
           <BrandStrip/>
-          <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews}/>
+          <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews} siteConfig={siteConfig}/>
           <FAQHome faqs={faqs} nav={nav}/>
-          <BottomCTA/>
+          <BottomCTA siteConfig={siteConfig}/>
         </>
       )}
     </>
@@ -240,7 +240,7 @@ export default function App() {
       </main>
       {page !== "admin" && (
         <>
-          <Footer nav={nav}/>
+          <Footer nav={nav} siteConfig={siteConfig}/>
           <StickyBar nav={nav}/>
           <Lightbox item={lb} items={items} onClose={() => setLb(null)} onNavigate={setLb}/>
           <WhatsAppFAB/>
