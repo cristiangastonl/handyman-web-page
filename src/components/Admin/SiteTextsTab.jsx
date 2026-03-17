@@ -3,7 +3,7 @@
 // Extracted from AdminPanel.jsx inline config tab rendering.
 
 import { useState, useEffect } from "react";
-import { SITE_TEXTS, parseSiteText } from "../../lib/constants";
+import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig } from "../../lib/constants";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminCard } from "./adminUI";
 
@@ -21,6 +21,7 @@ const STATS = [
 // ── Keys that are handled by named sections (not shown in "Other Settings") ──
 const KNOWN_KEYS = new Set([
   ...Object.keys(SITE_TEXTS),
+  ...Object.keys(STYLE_KEYS),
   ...STATS.map(s => s.key),
   "hero_img_x",
   "hero_img_y",
@@ -103,6 +104,46 @@ function ConfigRow({ configKey, initialValue, onSave, loading }) {
       <AdminButton size="small" loading={loading} onClick={() => onSave(configKey, value)}>
         Save
       </AdminButton>
+    </div>
+  );
+}
+
+// ── Style-only control for i18n texts (no text editing -- only fontSize + fontFamily) ──
+function StyleControl({ configKey, label, siteConfig, onSave, loading }) {
+  const defaults = STYLE_KEYS[configKey] || { fontSize: 14, fontFamily: "DM Sans" };
+  const current = getStyleConfig(siteConfig, configKey);
+  const [fontSize, setFontSize] = useState(current.fontSize);
+  const [fontFamily, setFontFamily] = useState(current.fontFamily);
+
+  useEffect(() => {
+    const c = getStyleConfig(siteConfig, configKey);
+    setFontSize(c.fontSize);
+    setFontFamily(c.fontFamily);
+  }, [siteConfig[configKey]]);
+
+  const handleSave = () => {
+    onSave(configKey, JSON.stringify({ fontSize: Number(fontSize), fontFamily }));
+  };
+
+  return (
+    <div style={{ display: "flex", gap: spacing.sm, alignItems: "flex-end", marginBottom: spacing.md }}>
+      <div style={{ minWidth: 140 }}>
+        <label style={{ ...typography.caption, fontWeight: 600 }}>{label}</label>
+      </div>
+      <div style={{ width: 80 }}>
+        <label style={typography.caption}>Size (px)</label>
+        <input type="number" value={fontSize} onChange={e => setFontSize(e.target.value)}
+          placeholder={`${defaults.fontSize}`}
+          className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}/>
+      </div>
+      <div style={{ flex: 1 }}>
+        <label style={typography.caption}>Font</label>
+        <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}
+          className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}>
+          {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+        </select>
+      </div>
+      <AdminButton size="small" loading={loading} onClick={handleSave}>Save</AdminButton>
     </div>
   );
 }
@@ -270,6 +311,16 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         </PreviewBox>
 
         <SiteTextRow configKey="bio_text" def={SITE_TEXTS.bio_text} currentValue={siteConfig.bio_text} onSave={onSave} loading={loading} />
+
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Highlight Boxes</p>
+        <StyleControl configKey="about_highlight1_title_style" label="Highlight 1 Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight1_text_style" label="Highlight 1 Text" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight2_title_style" label="Highlight 2 Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight2_text_style" label="Highlight 2 Text" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight3_title_style" label="Highlight 3 Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight3_text_style" label="Highlight 3 Text" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Other Text</p>
+        <StyleControl configKey="about_expat_note_style" label="Expat Note" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 3. Stats Bar ── */}
@@ -279,10 +330,12 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
           <div style={{ display: "flex", justifyContent: "space-around", padding: `${spacing.sm}px 0` }}>
             {STATS.map(stat => {
               const val = siteConfig[stat.key] || stat.defaultVal;
+              const numStyle = getStyleConfig(siteConfig, "stats_number_style");
+              const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
               return (
                 <div key={stat.key} style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: colors.brand }}>{val}{stat.key === "stat_yt_views" ? "K+" : "+"}</div>
-                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
+                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 700, color: colors.brand }}>{val}{stat.key === "stat_yt_views" ? "K+" : "+"}</div>
+                  <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
                 </div>
               );
             })}
@@ -292,29 +345,43 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         {STATS.map(stat => (
           <StatRow key={stat.key} statKey={stat.key} label={stat.label} defaultVal={stat.defaultVal} currentValue={siteConfig[stat.key]} onSave={onSave} loading={loading} />
         ))}
+
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Typography</p>
+        <StyleControl configKey="stats_number_style" label="Counter Numbers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="stats_label_style" label="Counter Labels" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 4. Carousels ── */}
       <AdminCard title="Carousels" style={{ marginBottom: spacing.xl }}>
         <SiteTextRow configKey="highlights_section_title" def={SITE_TEXTS.highlights_section_title} currentValue={siteConfig.highlights_section_title} onSave={onSave} loading={loading} />
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Carousel Title Typography</p>
+        <StyleControl configKey="carousel_recent_work_title_style" label="Recent Work Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="carousel_returning_customers_title_style" label="Returning Customers Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="carousel_tailor_jobs_title_style" label="Custom Projects Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <p style={{ ...typography.caption, marginTop: spacing.sm }}>
-          Carousel content is managed in the Carousels tab. Typography controls coming in Phase 7.
+          Carousel content is managed in the Carousels tab.
         </p>
       </AdminCard>
 
       {/* ── 5. CTAs ── */}
       <AdminCard title="Call to Action Sections" style={{ marginBottom: spacing.xl }}>
-        <PlaceholderInfo text="CTA text styling controls coming in Phase 7." />
+        <p style={{ ...typography.label, marginBottom: spacing.sm }}>Tailoring CTA</p>
+        <StyleControl configKey="cta_tailoring_title_style" label="Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="cta_tailoring_text_style" label="Description" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Bottom CTA</p>
+        <StyleControl configKey="cta_bottom_title_style" label="Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="cta_bottom_subtitle_style" label="Subtitle" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 6. Reviews ── */}
       <AdminCard title="Reviews Section" style={{ marginBottom: spacing.xl }}>
-        <PlaceholderInfo text="Reviews section styling controls coming in Phase 7." />
+        <StyleControl configKey="reviews_title_style" label="Section Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 7. Footer ── */}
       <AdminCard title="Footer" style={{ marginBottom: spacing.xl }}>
-        <PlaceholderInfo text="Footer text styling controls coming in Phase 7." />
+        <StyleControl configKey="footer_heading_style" label="Section Headings" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="footer_hours_style" label="Hours Text" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── Other Settings ── */}
