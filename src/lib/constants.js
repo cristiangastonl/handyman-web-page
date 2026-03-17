@@ -107,6 +107,51 @@ export const parseSiteText = (value) => {
   } catch {}
   return { text: value }; // legacy plain text
 };
+// ─── Style-only config keys (no text content -- fontSize + fontFamily only) ───
+export const STYLE_KEYS = {
+  // About section (TYPO-02)
+  about_highlight1_title_style: { fontSize: 13, fontFamily: "DM Sans" },
+  about_highlight1_text_style: { fontSize: 12, fontFamily: "DM Sans" },
+  about_highlight2_title_style: { fontSize: 13, fontFamily: "DM Sans" },
+  about_highlight2_text_style: { fontSize: 12, fontFamily: "DM Sans" },
+  about_highlight3_title_style: { fontSize: 13, fontFamily: "DM Sans" },
+  about_highlight3_text_style: { fontSize: 12, fontFamily: "DM Sans" },
+  about_expat_note_style: { fontSize: 13, fontFamily: "DM Sans" },
+  // Carousel titles (TYPO-03)
+  carousel_recent_work_title_style: { fontSize: 18, fontFamily: "DM Sans" },
+  carousel_returning_customers_title_style: { fontSize: 18, fontFamily: "DM Sans" },
+  carousel_tailor_jobs_title_style: { fontSize: 18, fontFamily: "DM Sans" },
+  // CTA sections (TYPO-04)
+  cta_tailoring_title_style: { fontSize: 20, fontFamily: "DM Sans" },
+  cta_tailoring_text_style: { fontSize: 14, fontFamily: "DM Sans" },
+  cta_bottom_title_style: { fontSize: 24, fontFamily: "DM Sans" },
+  cta_bottom_subtitle_style: { fontSize: 14, fontFamily: "DM Sans" },
+  // Stats bar labels (TYPO-05)
+  stats_label_style: { fontSize: 11, fontFamily: "DM Sans" },
+  stats_number_style: { fontSize: 24, fontFamily: "DM Sans" },
+  // Footer (TYPO-06)
+  footer_heading_style: { fontSize: 12, fontFamily: "DM Sans" },
+  footer_hours_style: { fontSize: 12, fontFamily: "DM Sans" },
+  // Reviews (TYPO-07)
+  reviews_title_style: { fontSize: 14, fontFamily: "DM Sans" },
+};
+
+// Read a style-only config value (no text content). Returns {fontSize, fontFamily} with defaults.
+export const getStyleConfig = (siteConfig, key) => {
+  const defaults = STYLE_KEYS[key] || { fontSize: 14, fontFamily: "DM Sans" };
+  const raw = siteConfig?.[key];
+  if (!raw) return defaults;
+  try {
+    const parsed = typeof raw === "object" ? raw : JSON.parse(raw);
+    return {
+      fontSize: parsed.fontSize || defaults.fontSize,
+      fontFamily: parsed.fontFamily || defaults.fontFamily,
+    };
+  } catch {
+    return defaults;
+  }
+};
+
 export const fbEmbedUrl = (url) => `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
 export const itemThumb = (item) => {
   if (item.thumb) return item.thumb;
