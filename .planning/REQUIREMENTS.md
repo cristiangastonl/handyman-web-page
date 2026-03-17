@@ -54,14 +54,14 @@ Requirements for Site Texts Redesign milestone.
 
 ### Existing Features (preserve)
 
-- [ ] **KEEP-01**: Stats counters remain editable (values)
-- [ ] **KEEP-02**: Hero image position control remains functional
-- [ ] **KEEP-03**: Existing text editing (hero titles, bio, highlights title) remains functional
+- [x] **KEEP-01**: Stats counters remain editable (values)
+- [x] **KEEP-02**: Hero image position control remains functional
+- [x] **KEEP-03**: Existing text editing (hero titles, bio, highlights title) remains functional
 
 ### UX Redesign
 
-- [ ] **UXRD-01**: Site Texts tab organized by site sections (Hero, About, Stats, Carousels, CTAs, Reviews, Footer) instead of flat list
-- [ ] **UXRD-02**: Each section shows a visual preview of the text with current styling applied
+- [x] **UXRD-01**: Site Texts tab organized by site sections (Hero, About, Stats, Carousels, CTAs, Reviews, Footer) instead of flat list
+- [x] **UXRD-02**: Each section shows a visual preview of the text with current styling applied
 
 ## Future Requirements
 
@@ -109,11 +109,11 @@ Requirements for Site Texts Redesign milestone.
 | TYPO-05 | Phase 7 | Pending |
 | TYPO-06 | Phase 7 | Pending |
 | TYPO-07 | Phase 7 | Pending |
-| KEEP-01 | Phase 6 | Pending |
-| KEEP-02 | Phase 6 | Pending |
-| KEEP-03 | Phase 6 | Pending |
-| UXRD-01 | Phase 6 | Pending |
-| UXRD-02 | Phase 6 | Pending |
+| KEEP-01 | Phase 6 | Complete |
+| KEEP-02 | Phase 6 | Complete |
+| KEEP-03 | Phase 6 | Complete |
+| UXRD-01 | Phase 6 | Complete |
+| UXRD-02 | Phase 6 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 12 total

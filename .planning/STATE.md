@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Site Texts Redesign
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-03-17"
-last_activity: 2026-03-17 -- Roadmap created for v1.2
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-17T00:03:27.335Z"
+last_activity: 2026-03-17 -- Completed 06-01 Section Layout and Preservation
 progress:
   total_phases: 2
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Current Position
 
 Phase: 6 of 7 (Section Layout and Preservation)
-Plan: 0 of 1 in current phase
-Status: Ready to plan
-Last activity: 2026-03-17 -- Roadmap created for v1.2
+Plan: 1 of 1 in current phase
+Status: Executing
+Last activity: 2026-03-17 -- Completed 06-01 Section Layout and Preservation
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 | 3. Tab Content | 2 | ~60m | ~30m |
 | 4. Filter and Paginate | 1 | ~30m | ~30m |
 | 5. Quick Preview | 1 | ~30m | ~30m |
+| 6. Section Layout | 1 | ~4m | ~4m |
 
 ## Accumulated Context
 
@@ -60,6 +61,8 @@ Progress: [░░░░░░░░░░] 0%
 - [v1.2]: Font size + font family controls only (no text editing for i18n texts)
 - [v1.2]: Keep existing editable texts (hero titles, bio, highlights title)
 - [v1.2]: Use existing site_config key-value store (no new tables)
+- [v1.2]: Section-based admin layout with PreviewBox for visual previews
+- [v1.2]: KNOWN_KEYS Set for filtering Other Settings accurately
 
 ### Pending Todos
 
@@ -72,5 +75,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Roadmap created for v1.2, ready to plan Phase 6
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
