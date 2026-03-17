@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { itemThumb, fbEmbedUrl, SITE_TEXTS, parseSiteText } from "../../lib/constants";
+import { itemThumb, fbEmbedUrl } from "../../lib/constants";
 import { colors, spacing, typography, shadows, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminTextarea, AdminCard, AdminLabel, AdminSelect, AdminFlash, AdminStyles } from "./adminUI";
 import { translateFaq } from "../../lib/translate";
@@ -15,6 +15,7 @@ import {
   fetchGoogleReviews, addGoogleReview, deleteGoogleReview,
 } from "../../lib/supabase";
 import CarouselsTab from "./CarouselsTab";
+import SiteTextsTab from "./SiteTextsTab";
 
 const emptyMsg = (text) => <p style={{ ...A.emptyState, padding: `${spacing.lg}px 0` }}>{text}</p>;
 
@@ -1097,63 +1098,15 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
 
             {/* ── Site Texts Tab ── */}
             {adminTab === "config" && (
-              <div>
-                <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
-                  <strong>How it works:</strong> Customize the main texts and stats on the site. Changes appear immediately.
-                </div>
-
-                {/* Hero image position */}
-                <AdminCard title="Hero Image Position" style={{ marginBottom: spacing.xl }}>
-                  <p style={{ ...typography.caption, marginBottom: spacing.sm }}>Adjust where the image focuses. 0% = left/top, 50% = center, 100% = right/bottom.</p>
-                  <HeroPositionControl
-                    xVal={siteConfig.hero_img_x || "50"}
-                    yVal={siteConfig.hero_img_y || "50"}
-                    onSave={handleSaveConfig}
-                    loading={adminLoading}
-                  />
-                </AdminCard>
-
-                {/* Stats counters */}
-                <AdminCard title="Stats Bar" style={{ marginBottom: spacing.xl }}>
-                  {[
-                    { key: "stat_experience", label: "Years Experience", defaultVal: "20" },
-                    { key: "stat_videos", label: "Video Shows", defaultVal: "400" },
-                    { key: "stat_yt_views", label: "YouTube Views (in K)", defaultVal: "900" },
-                    { key: "stat_fb_followers", label: "Facebook Followers", defaultVal: "1400" },
-                  ].map(stat => (
-                    <StatRow key={stat.key} statKey={stat.key} label={stat.label} defaultVal={stat.defaultVal} currentValue={siteConfig[stat.key]} onSave={handleSaveConfig} loading={adminLoading} />
-                  ))}
-                </AdminCard>
-
-                <p style={typography.label}>Site Texts</p>
-                {Object.entries(SITE_TEXTS).map(([key, def]) => (
-                  <SiteTextRow key={key} configKey={key} def={def} currentValue={siteConfig[key]} onSave={handleSaveConfig} loading={adminLoading} />
-                ))}
-
-                {/* Extra config keys (not in SITE_TEXTS) */}
-                {Object.entries(siteConfig).filter(([key]) => !SITE_TEXTS[key]).length > 0 && (
-                  <>
-                    <p style={{ ...typography.label, marginTop: spacing["2xl"] }}>Other Settings</p>
-                    {Object.entries(siteConfig).filter(([key]) => !SITE_TEXTS[key]).map(([key, value]) => (
-                      <ConfigRow key={key} configKey={key} initialValue={value} onSave={handleSaveConfig} loading={adminLoading} />
-                    ))}
-                  </>
-                )}
-                <AdminCard title="Add Custom Setting" style={{ marginTop: spacing.lg }}>
-                  <form onSubmit={prevent(() => {
-                    if (!cfgKey.trim()) return;
-                    handleSaveConfig(cfgKey.trim(), cfgVal.trim());
-                    setCfgKey(""); setCfgVal("");
-                  })}>
-                    <AdminInput label="Key" value={cfgKey} onChange={e => setCfgKey(e.target.value)} placeholder="Key" />
-                    <AdminInput label="Value" value={cfgVal} onChange={e => setCfgVal(e.target.value)} placeholder="Value" />
-                    <AdminButton type="submit" loading={adminLoading}
-                      style={{ marginTop: spacing.md }}>
-                      Save
-                    </AdminButton>
-                  </form>
-                </AdminCard>
-              </div>
+              <SiteTextsTab
+                siteConfig={siteConfig}
+                onSave={handleSaveConfig}
+                loading={adminLoading}
+                cfgKey={cfgKey}
+                setCfgKey={setCfgKey}
+                cfgVal={cfgVal}
+                setCfgVal={setCfgVal}
+              />
             )}
           </>
         )}
@@ -1162,134 +1115,3 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   );
 }
 
-// Hero image position control with sliders and live preview
-function HeroPositionControl({ xVal, yVal, onSave, loading }) {
-  const [x, setX] = useState(xVal);
-  const [y, setY] = useState(yVal);
-  useEffect(() => { setX(xVal); }, [xVal]);
-  useEffect(() => { setY(yVal); }, [yVal]);
-  const HERO_IMG = "/anibal/hero.jpeg";
-  return (
-    <div>
-      <div style={{ position: "relative", width: "100%", paddingTop: "35%", borderRadius: radii.md, overflow: "hidden", marginBottom: spacing.md, border: `1px solid ${colors.gray200}` }}>
-        <img src={HERO_IMG} alt="Hero preview" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${x}% ${y}%` }}/>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)" }}/>
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 10, height: 10, borderRadius: "50%", border: "2px solid #fff", background: `rgba(212,120,31,0.8)` }}/>
-      </div>
-      <div style={{ display: "flex", gap: spacing.lg, alignItems: "center", marginBottom: spacing.sm }}>
-        <label style={{ ...typography.body, fontWeight: 600, minWidth: 80 }}>Horizontal ({x}%)</label>
-        <input type="range" min="0" max="100" value={x} onChange={e => setX(e.target.value)} style={{ flex: 1 }}/>
-      </div>
-      <div style={{ display: "flex", gap: spacing.lg, alignItems: "center", marginBottom: spacing.md }}>
-        <label style={{ ...typography.body, fontWeight: 600, minWidth: 80 }}>Vertical ({y}%)</label>
-        <input type="range" min="0" max="100" value={y} onChange={e => setY(e.target.value)} style={{ flex: 1 }}/>
-      </div>
-      <div style={{ display: "flex", gap: spacing.sm }}>
-        <AdminButton size="small" loading={loading} onClick={() => { onSave("hero_img_x", x); onSave("hero_img_y", y); }}>
-          Save Position
-        </AdminButton>
-        <AdminButton variant="secondary" size="small" onClick={() => { setX("50"); setY("50"); }}>
-          Reset
-        </AdminButton>
-      </div>
-    </div>
-  );
-}
-
-// Stat row for stats bar editing
-function StatRow({ statKey, label, defaultVal, currentValue, onSave, loading }) {
-  const [value, setValue] = useState(currentValue || defaultVal);
-  useEffect(() => { setValue(currentValue || defaultVal); }, [currentValue, defaultVal]);
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm }}>
-      <label style={{ ...typography.body, fontWeight: 600, minWidth: 160 }}>{label}</label>
-      <input type="number" value={value} onChange={e => setValue(e.target.value)}
-        className="admin-input" style={{ ...A.input, flex: 1, margin: 0, maxWidth: 120 }}/>
-      <AdminButton size="small" loading={loading} onClick={() => onSave(statKey, value)}>
-        Save
-      </AdminButton>
-    </div>
-  );
-}
-
-// Controlled config row component for extra settings
-function ConfigRow({ configKey, initialValue, onSave, loading }) {
-  const [value, setValue] = useState(initialValue);
-  useEffect(() => { setValue(initialValue); }, [initialValue]);
-  return (
-    <div style={A.listItem}>
-      <label style={{ ...typography.body, fontWeight: 600, minWidth: 120 }}>{configKey}</label>
-      <input value={value} onChange={e => setValue(e.target.value)} className="admin-input" style={{ ...A.input, flex: 1, margin: 0 }}/>
-      <AdminButton size="small" loading={loading} onClick={() => onSave(configKey, value)}>
-        Save
-      </AdminButton>
-    </div>
-  );
-}
-
-const FONT_OPTIONS = ["DM Sans", "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Playfair Display", "Dancing Script", "Georgia", "Arial", "Comic Sans MS", "Comic Neue", "Patrick Hand", "Caveat", "Indie Flower"];
-
-// Site text row with text + fontSize + fontFamily
-function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
-  const parsed = parseSiteText(currentValue) || {};
-  const [text, setText] = useState(parsed.text || "");
-  const [fontSize, setFontSize] = useState(parsed.fontSize || "");
-  const [fontFamily, setFontFamily] = useState(parsed.fontFamily || "");
-
-  useEffect(() => {
-    const p = parseSiteText(currentValue) || {};
-    setText(p.text || "");
-    setFontSize(p.fontSize || "");
-    setFontFamily(p.fontFamily || "");
-  }, [currentValue]);
-
-  const handleSave = () => {
-    const val = { text: text || "", fontSize: fontSize ? Number(fontSize) : undefined, fontFamily: fontFamily || undefined };
-    // Clean undefined values
-    Object.keys(val).forEach(k => val[k] === undefined && delete val[k]);
-    onSave(configKey, JSON.stringify(val));
-  };
-
-  return (
-    <div style={{ ...A.card, marginBottom: spacing.md }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.sm }}>
-        <p style={{ ...typography.body, fontWeight: 600 }}>{def.label}</p>
-        <span style={{ fontSize: 9, color: colors.gray400, fontFamily: "monospace" }}>{configKey}</span>
-      </div>
-      <textarea value={text} onChange={e => setText(e.target.value)}
-        placeholder={def.defaultText || "(uses translation default)"}
-        rows={configKey === "bio_text" ? 4 : 2}
-        className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
-      <div style={{ display: "flex", gap: spacing.sm }}>
-        <div style={{ flex: 1 }}>
-          <label style={typography.caption}>Font size (px)</label>
-          <input type="number" value={fontSize} onChange={e => setFontSize(e.target.value)}
-            placeholder={`${def.defaultFontSize}`}
-            className="admin-input" style={{ ...A.input, marginTop: 2 }}/>
-        </div>
-        <div style={{ flex: 2 }}>
-          <label style={typography.caption}>Font family</label>
-          <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}
-            className="admin-input" style={{ ...A.input, marginTop: 2, color: fontFamily ? colors.gray900 : colors.gray400 }}>
-            <option value="">Default ({def.defaultFontFamily})</option>
-            {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
-          </select>
-        </div>
-      </div>
-      {/* Preview */}
-      {text && (
-        <div style={{ marginTop: spacing.sm, padding: `${spacing.sm}px ${spacing.md}px`, background: colors.gray50, borderRadius: radii.md, border: `1px dashed ${colors.gray200}` }}>
-          <span style={{ fontSize: 9, color: colors.gray400, display: "block", marginBottom: spacing.xs }}>Preview:</span>
-          <span style={{
-            fontSize: fontSize ? `${fontSize}px` : `${def.defaultFontSize}px`,
-            fontFamily: fontFamily ? `'${fontFamily}', sans-serif` : `'${def.defaultFontFamily}', sans-serif`,
-          }}>{text}</span>
-        </div>
-      )}
-      <AdminButton loading={loading} onClick={handleSave}
-        style={{ marginTop: spacing.sm }}>
-        Save
-      </AdminButton>
-    </div>
-  );
-}
