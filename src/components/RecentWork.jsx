@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R } from "../lib/constants";
+import { R, getStyleConfig } from "../lib/constants";
 import Carousel from "./Carousel";
 import { FadeIn } from "./FadeIn";
 
-export function RecentWork({ items, curatedItems = [], setLb, nav }) {
+export function RecentWork({ items, curatedItems = [], setLb, nav, siteConfig = {} }) {
   const { t } = useTranslation();
   // Use curated items if available, otherwise fallback to latest work items
   const source = curatedItems.length > 0 ? curatedItems : items;
   const photos = source.filter(w => w.type === "image");
   const videos = source.filter(w => w.type === "video");
   const [tab, setTab] = useState("all");
+  const titleStyle = getStyleConfig(siteConfig, "carousel_recent_work_title_style");
   if (!source.length) return null;
 
   const displayItems = tab === "photos" ? photos.slice(0, 8)
@@ -22,7 +23,7 @@ export function RecentWork({ items, curatedItems = [], setLb, nav }) {
     <section style={{ padding: "40px 24px", maxWidth: 940, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700 }}>{t("recentWork.title")}</h2>
+          <h2 style={{ fontSize: titleStyle.fontSize, fontFamily: `'${titleStyle.fontFamily}', sans-serif`, fontWeight: 700 }}>{t("recentWork.title")}</h2>
           <div style={{ display: "flex", gap: 0, background: "#f5f5f5", borderRadius: 10, padding: 2 }}>
             <button onClick={() => setTab("all")}
               style={{ padding: "5px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === "all" ? "#fff" : "transparent", color: tab === "all" ? R : "#999", boxShadow: tab === "all" ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>

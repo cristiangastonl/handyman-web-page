@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { R, G, WA_LINK, svgP, SERVICE_AREAS } from "../lib/constants";
+import { R, G, WA_LINK, svgP, SERVICE_AREAS, getStyleConfig } from "../lib/constants";
 import { MapPin } from "./ui";
 import { FadeIn } from "./FadeIn";
 
-export function TailoringCTA({ nav }) {
+export function TailoringCTA({ nav, siteConfig = {} }) {
   const { t } = useTranslation();
+  const tTitleStyle = getStyleConfig(siteConfig, "cta_tailoring_title_style");
+  const tTextStyle = getStyleConfig(siteConfig, "cta_tailoring_text_style");
   return (
     <FadeIn delay={0.15}>
     <section style={{ padding: "0 24px 12px", maxWidth: 940, margin: "0 auto" }}>
@@ -14,8 +16,8 @@ export function TailoringCTA({ nav }) {
         color: "#fff", textAlign: "center",
         boxShadow: "0 8px 32px rgba(212,120,31,0.25)",
       }}>
-        <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>{t("tailoring.title")}</h3>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, maxWidth: 460, margin: "0 auto 20px" }}>{t("tailoring.text")}</p>
+        <h3 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 8 }}>{t("tailoring.title")}</h3>
+        <p style={{ fontSize: tTextStyle.fontSize, fontFamily: `'${tTextStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, maxWidth: 460, margin: "0 auto 20px" }}>{t("tailoring.text")}</p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
             style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", color: R, padding: "11px 26px", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.15)", transition: "transform .2s" }}
@@ -71,14 +73,16 @@ export function ServiceAreasCTA() {
   );
 }
 
-export function BottomCTA() {
+export function BottomCTA({ siteConfig = {} }) {
   const { t } = useTranslation();
+  const bTitleStyle = getStyleConfig(siteConfig, "cta_bottom_title_style");
+  const bSubStyle = getStyleConfig(siteConfig, "cta_bottom_subtitle_style");
   return (
     <FadeIn delay={0.1}>
     <section style={{ padding: "8px 24px 48px", textAlign: "center" }}>
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 32px", background: `linear-gradient(135deg, ${G} 0%, #3a3a3a 100%)`, borderRadius: 16, color: "#fff" }}>
-        <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{t("cta.title")}</h3>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>{t("cta.subtitle")}</p>
+        <h3 style={{ fontSize: bTitleStyle.fontSize, fontFamily: `'${bTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 8 }}>{t("cta.title")}</h3>
+        <p style={{ fontSize: bSubStyle.fontSize, fontFamily: `'${bSubStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>{t("cta.subtitle")}</p>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "12px 28px", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,211,102,0.3)" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
           {t("cta.button")}

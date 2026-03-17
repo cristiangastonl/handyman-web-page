@@ -1,11 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { R, G, socialUrls, WA_LINK } from "../lib/constants";
+import { R, G, socialUrls, WA_LINK, getStyleConfig } from "../lib/constants";
 import { SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
 export default function StatsBar({ siteConfig = {} }) {
   const { t } = useTranslation();
   const stat = (key, fallback) => Number(siteConfig[key]) || fallback;
+  const numStyle = getStyleConfig(siteConfig, "stats_number_style");
+  const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
   return (
     <div style={{ position: "relative", overflow: "hidden" }}>
 
@@ -20,10 +22,10 @@ export default function StatsBar({ siteConfig = {} }) {
             { val: stat("stat_fb_followers", 1400), label: t("stats.fbFollowers"), suffix: "+", decimals: 0 },
           ].map((s, i) => (
             <div key={i} style={{ textAlign: "center", minWidth: 100 }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: R }}>
+              <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 800, color: R }}>
                 {s.prefix || ""}<AnimatedCounter target={s.val} decimals={s.decimals ?? 1}/>{s.suffix}
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{s.label}</div>
+              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
         </div>

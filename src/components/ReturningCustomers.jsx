@@ -1,20 +1,21 @@
 import { useTranslation } from "react-i18next";
-import { WA_LINK, svgP } from "../lib/constants";
+import { WA_LINK, svgP, getStyleConfig } from "../lib/constants";
 import Carousel from "./Carousel";
 import { FadeIn } from "./FadeIn";
 
-export default function ReturningCustomers({ returningCustomers, curatedItems = [], setLb }) {
+export default function ReturningCustomers({ returningCustomers, curatedItems = [], setLb, siteConfig = {} }) {
   const { t } = useTranslation();
   // Use curated carousel items if available, otherwise fallback to old returning_customers table data
   const displayItems = curatedItems.length > 0
     ? curatedItems
     : returningCustomers.map(h => ({ id: h.id, type: "image", src: h.image_url, title: h.title, desc: h.description }));
+  const titleStyle = getStyleConfig(siteConfig, "carousel_returning_customers_title_style");
   if (!displayItems.length) return null;
   return (
     <FadeIn delay={0.1}>
     <section style={{ padding: "0 24px 40px", maxWidth: 940, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700 }}>{t("returningCustomers.title")}</h2>
+        <h2 style={{ fontSize: titleStyle.fontSize, fontFamily: `'${titleStyle.fontFamily}', sans-serif`, fontWeight: 700 }}>{t("returningCustomers.title")}</h2>
       </div>
       <Carousel
         items={displayItems}

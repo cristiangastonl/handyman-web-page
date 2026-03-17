@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, PROFILE_IMG, parseSiteText } from "../lib/constants";
+import { R, PROFILE_IMG, parseSiteText, getStyleConfig } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
 export default function About({ nav, navToCategory, siteConfig = {} }) {
@@ -19,9 +19,10 @@ export default function About({ nav, navToCategory, siteConfig = {} }) {
           }}>
             {bio?.text || t("about.bio")}
           </p>); })()}
-          <p style={{ fontSize: 13, color: "#666", lineHeight: 1.5, marginBottom: 12, fontStyle: "italic" }}>
+          {(() => { const expatStyle = getStyleConfig(siteConfig, "about_expat_note_style"); return (
+          <p style={{ fontSize: expatStyle.fontSize, fontFamily: `'${expatStyle.fontFamily}', sans-serif`, color: "#666", lineHeight: 1.5, marginBottom: 12, fontStyle: "italic" }}>
             {t("about.expatNote")}
-          </p>
+          </p>); })()}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {["electricity","plumbing","assembly","fixings","gardening","wallMounting"].map(s => (
               <button key={s} className="skill-tag" onClick={() => navToCategory ? navToCategory(s) : nav("portfolio")}
@@ -36,12 +37,16 @@ export default function About({ nav, navToCategory, siteConfig = {} }) {
       </div>
       {/* Highlight cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginTop: 28 }}>
-        {[1, 2, 3].map(n => (
+        {[1, 2, 3].map(n => {
+          const htStyle = getStyleConfig(siteConfig, `about_highlight${n}_title_style`);
+          const hbStyle = getStyleConfig(siteConfig, `about_highlight${n}_text_style`);
+          return (
           <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", borderLeft: "3px solid #D4781F" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 4 }}>{t(`about.highlight${n}.title`)}</div>
-            <div style={{ fontSize: 12, color: "#555", lineHeight: 1.55 }}>{t(`about.highlight${n}.text`)}</div>
+            <div style={{ fontSize: htStyle.fontSize, fontFamily: `'${htStyle.fontFamily}', sans-serif`, fontWeight: 700, color: "#333", marginBottom: 4 }}>{t(`about.highlight${n}.title`)}</div>
+            <div style={{ fontSize: hbStyle.fontSize, fontFamily: `'${hbStyle.fontFamily}', sans-serif`, color: "#555", lineHeight: 1.55 }}>{t(`about.highlight${n}.text`)}</div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
     </FadeIn>

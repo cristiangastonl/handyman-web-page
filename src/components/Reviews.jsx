@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R, REVIEWS, svgP, socialUrls, WA_LINK, ab } from "../lib/constants";
+import { R, REVIEWS, svgP, socialUrls, WA_LINK, ab, getStyleConfig } from "../lib/constants";
 import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
@@ -11,8 +11,9 @@ const FbBadge = () => (
 );
 
 // Unified reviews carousel for the home page (Google + Facebook)
-export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
+export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], siteConfig = {} }) {
   const { t } = useTranslation();
+  const revTitleStyle = getStyleConfig(siteConfig, "reviews_title_style");
   const revRef = useRef(null);
   const [expanded, setExpanded] = useState(new Set());
   const toggleExpand = (e, i) => {
@@ -42,7 +43,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [] }) {
               <GoogleG/>
               <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
               <SocialIcon type="fb" size={20}/>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
+              <span style={{ fontSize: revTitleStyle.fontSize, fontFamily: `'${revTitleStyle.fontFamily}', sans-serif`, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
             </div>
             <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
