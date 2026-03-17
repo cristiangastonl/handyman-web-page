@@ -8,6 +8,9 @@ export default function Footer({ nav, siteConfig = {} }) {
   const [copied, setCopied] = useState(false);
   const headStyle = getStyleConfig(siteConfig, "footer_heading_style");
   const hoursStyle = getStyleConfig(siteConfig, "footer_hours_style");
+  const phone = siteConfig.footer_phone || PHONE;
+  const hours = siteConfig.footer_hours_text || t("footer.hours");
+  const areas = siteConfig.footer_service_areas || SERVICE_AREAS.map(a => a.name).join(" · ");
 
   const copyLink = async () => {
     const url = typeof window !== "undefined" ? window.location.origin : "";
@@ -27,17 +30,17 @@ export default function Footer({ nav, siteConfig = {} }) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 32, marginBottom: 36 }}>
           <div>
             <div style={{ fontSize: headStyle.fontSize, fontFamily: `'${headStyle.fontFamily}', sans-serif`, fontWeight: 700, marginBottom: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>{t("footer.contact")}</div>
-            <a href={`tel:${PHONE.replace(/\s/g, "")}`} style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,0.85)", textDecoration: "none", marginBottom: 8 }}>{PHONE}</a>
+            <a href={`tel:${phone.replace(/\s/g, "")}`} style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,0.85)", textDecoration: "none", marginBottom: 8 }}>{phone}</a>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#25D366", textDecoration: "none", marginBottom: 8 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
               WhatsApp
             </a>
-            <div style={{ fontSize: hoursStyle.fontSize, fontFamily: `'${hoursStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>{t("footer.hours")}</div>
+            <div style={{ fontSize: hoursStyle.fontSize, fontFamily: `'${hoursStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>{hours}</div>
           </div>
           <div>
             <div style={{ fontSize: headStyle.fontSize, fontFamily: `'${headStyle.fontFamily}', sans-serif`, fontWeight: 700, marginBottom: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>{t("serviceAreas.title")}</div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.8 }}>
-              {SERVICE_AREAS.map(a => a.name).join(" · ")}
+              {areas}
             </div>
           </div>
           <div>

@@ -3,7 +3,7 @@
 // Extracted from AdminPanel.jsx inline config tab rendering.
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig } from "../../lib/constants";
+import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_AREAS } from "../../lib/constants";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminCard } from "./adminUI";
 
@@ -25,6 +25,9 @@ const KNOWN_KEYS = new Set([
   ...STATS.map(s => s.key),
   "hero_img_x",
   "hero_img_y",
+  "footer_phone",
+  "footer_hours_text",
+  "footer_service_areas",
 ]);
 
 // ── Preview wrapper ──
@@ -287,6 +290,24 @@ function getTextStyle(siteConfig, key) {
   };
 }
 
+// ── Simple text field for footer content (phone, hours, areas) ──
+function FooterField({ label, configKey, defaultValue, siteConfig, onSave, loading, hint }) {
+  const [value, setValue] = useState(siteConfig[configKey] || defaultValue);
+  useEffect(() => { setValue(siteConfig[configKey] || defaultValue); }, [siteConfig[configKey], defaultValue]);
+  return (
+    <div style={{ display: "flex", gap: spacing.sm, alignItems: "flex-end", marginBottom: spacing.md }}>
+      <div style={{ flex: 1 }}>
+        <label style={{ ...typography.caption, fontWeight: 600 }}>{label}</label>
+        {hint && <span style={{ ...typography.caption, color: colors.gray400, marginLeft: spacing.sm }}>{hint}</span>}
+        <input value={value} onChange={e => setValue(e.target.value)}
+          placeholder={defaultValue}
+          className="admin-input" style={{ ...A.input, marginTop: 2 }}/>
+      </div>
+      <AdminButton size="small" loading={loading} onClick={() => onSave(configKey, value)}>Save</AdminButton>
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════
 // Main component
 // ══════════════════════════════════════════════════════════════════
@@ -429,8 +450,14 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
       {/* ── 7. Footer ── */}
       <AdminCard title="Footer" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.label, marginBottom: spacing.sm }}>Content</p>
+        <FooterField label="Phone Number" configKey="footer_phone" defaultValue={PHONE} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Business Hours" configKey="footer_hours_text" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Service Areas" configKey="footer_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />
+
+        <p style={{ ...typography.label, marginTop: spacing.xl, marginBottom: spacing.sm }}>Typography</p>
         <StyleControl configKey="footer_heading_style" label="Footer — Section Headings" hint="Contact, Hours, Quick Links" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="footer_hours_style" label="Footer — Hours" hint="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="footer_hours_style" label="Footer — Hours Text" hint={siteConfig.footer_hours_text || "Mon–Sat · 8:00–19:00"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── Other Settings ── */}
