@@ -651,7 +651,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                         </div>
                       </>
                     )}
-                    <AdminButton type="submit" loading={adminLoading} disabled={!wiTitle.trim() || !wiCat || (subcats.filter(s => s.category_id === wiCat).length > 0 && !wiSubcat)}
+                    <AdminButton type="submit" loading={adminLoading} disabled={!wiTitle.trim() || !wiCat}
                       style={{ marginTop: spacing.md }}>
                       Add Item
                     </AdminButton>
