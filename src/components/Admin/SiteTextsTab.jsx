@@ -162,7 +162,7 @@ function ConfigRow({ configKey, initialValue, onSave, loading }) {
 }
 
 // ── Style-only control for i18n texts (no text editing -- only fontSize + fontFamily) ──
-function StyleControl({ configKey, label, siteConfig, onSave, loading }) {
+function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
   const defaults = STYLE_KEYS[configKey] || { fontSize: 14, fontFamily: "DM Sans" };
   const current = getStyleConfig(siteConfig, configKey);
   const [fontSize, setFontSize] = useState(current.fontSize);
@@ -179,24 +179,40 @@ function StyleControl({ configKey, label, siteConfig, onSave, loading }) {
   };
 
   return (
-    <div style={{ display: "flex", gap: spacing.sm, alignItems: "flex-end", marginBottom: spacing.md }}>
-      <div style={{ minWidth: 140 }}>
+    <div style={{ marginBottom: spacing.lg, padding: `${spacing.md}px`, background: colors.gray50, borderRadius: radii.md }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xs }}>
         <label style={{ ...typography.caption, fontWeight: 600 }}>{label}</label>
       </div>
-      <div style={{ width: 80 }}>
-        <label style={typography.caption}>Size (px)</label>
-        <input type="number" value={fontSize} onChange={e => setFontSize(e.target.value)}
-          placeholder={`${defaults.fontSize}`}
-          className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}/>
+      {hint && (
+        <div style={{
+          fontSize: Number(fontSize) > 18 ? 14 : Number(fontSize) || defaults.fontSize,
+          fontFamily: `'${fontFamily || defaults.fontFamily}', sans-serif`,
+          color: colors.gray600,
+          marginBottom: spacing.sm,
+          lineHeight: 1.4,
+          padding: `${spacing.xs}px 0`,
+          borderBottom: `1px dashed ${colors.gray200}`,
+          paddingBottom: spacing.sm,
+        }}>
+          "{hint}"
+        </div>
+      )}
+      <div style={{ display: "flex", gap: spacing.sm, alignItems: "flex-end" }}>
+        <div style={{ width: 80 }}>
+          <label style={typography.caption}>Size (px)</label>
+          <input type="number" value={fontSize} onChange={e => setFontSize(e.target.value)}
+            placeholder={`${defaults.fontSize}`}
+            className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}/>
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={typography.caption}>Font</label>
+          <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}
+            className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}>
+            {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
+        <AdminButton size="small" loading={loading} onClick={handleSave}>Save</AdminButton>
       </div>
-      <div style={{ flex: 1 }}>
-        <label style={typography.caption}>Font</label>
-        <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}
-          className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}>
-          {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
-        </select>
-      </div>
-      <AdminButton size="small" loading={loading} onClick={handleSave}>Save</AdminButton>
     </div>
   );
 }
@@ -346,14 +362,14 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <SiteTextRow configKey="bio_text" def={SITE_TEXTS.bio_text} currentValue={siteConfig.bio_text} onSave={onSave} loading={loading} />
 
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Highlight Boxes</p>
-        <StyleControl configKey="about_highlight1_title_style" label="Highlight 1 Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight1_text_style" label="Highlight 1 Text" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight2_title_style" label="Highlight 2 Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight2_text_style" label="Highlight 2 Text" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight3_title_style" label="Highlight 3 Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight3_text_style" label="Highlight 3 Text" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight1_title_style" label="Highlight 1 — Title" hint="What to expect 🤔" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight1_text_style" label="Highlight 1 — Text" hint="Fresh ideas that save you time and stress..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight2_title_style" label="Highlight 2 — Title" hint="What you truly get 🤩" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight2_text_style" label="Highlight 2 — Text" hint="Professional-quality work at affordable prices..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight3_title_style" label="Highlight 3 — Title" hint="Who I serve 🤗" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_highlight3_text_style" label="Highlight 3 — Text" hint="Always happy to assist both the local and expat community..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Other Text</p>
-        <StyleControl configKey="about_expat_note_style" label="Expat Note" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="about_expat_note_style" label="Expat Note" hint="Fluent in English — proudly serving the expat community 🤗" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 3. Stats Bar ── */}
@@ -380,17 +396,17 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         ))}
 
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Typography</p>
-        <StyleControl configKey="stats_number_style" label="Counter Numbers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="stats_label_style" label="Counter Labels" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="stats_number_style" label="Counter Numbers" hint="20+, 400+, 900K+, 1400+" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="stats_label_style" label="Counter Labels" hint="Years Experience, Video Shows, YouTube Views, Facebook Followers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 4. Carousels ── */}
       <AdminCard title="Carousels" style={{ marginBottom: spacing.xl }}>
         <SiteTextRow configKey="highlights_section_title" def={SITE_TEXTS.highlights_section_title} currentValue={siteConfig.highlights_section_title} onSave={onSave} loading={loading} />
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Carousel Title Typography</p>
-        <StyleControl configKey="carousel_recent_work_title_style" label="Recent Work Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="carousel_returning_customers_title_style" label="Returning Customers Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="carousel_tailor_jobs_title_style" label="Custom Projects Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="carousel_recent_work_title_style" label="Recent Work — Section Title" hint="Recent work" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="carousel_returning_customers_title_style" label="Returning Customers — Section Title" hint="Returning Customers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="carousel_tailor_jobs_title_style" label="Custom Projects — Section Title" hint="Custom Projects" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <p style={{ ...typography.caption, marginTop: spacing.sm }}>
           Carousel content is managed in the Carousels tab.
         </p>
@@ -398,23 +414,23 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
       {/* ── 5. CTAs ── */}
       <AdminCard title="Call to Action Sections" style={{ marginBottom: spacing.xl }}>
-        <p style={{ ...typography.label, marginBottom: spacing.sm }}>Tailoring CTA</p>
-        <StyleControl configKey="cta_tailoring_title_style" label="Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="cta_tailoring_text_style" label="Description" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Bottom CTA</p>
-        <StyleControl configKey="cta_bottom_title_style" label="Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="cta_bottom_subtitle_style" label="Subtitle" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <p style={{ ...typography.label, marginBottom: spacing.sm }}>Tailoring CTA (mid-page)</p>
+        <StyleControl configKey="cta_tailoring_title_style" label="Tailoring — Title" hint="Need something specific?" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="cta_tailoring_text_style" label="Tailoring — Description" hint="I also do tailored work — from unique installations to custom projects..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Bottom CTA (before footer)</p>
+        <StyleControl configKey="cta_bottom_title_style" label="Bottom CTA — Title" hint="Ready to get started?" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="cta_bottom_subtitle_style" label="Bottom CTA — Subtitle" hint="Same-day estimates · Reply within 2 hours · Quality guaranteed" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 6. Reviews ── */}
       <AdminCard title="Reviews Section" style={{ marginBottom: spacing.xl }}>
-        <StyleControl configKey="reviews_title_style" label="Section Title" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="reviews_title_style" label="Reviews — Section Title" hint="Reviews" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 7. Footer ── */}
       <AdminCard title="Footer" style={{ marginBottom: spacing.xl }}>
-        <StyleControl configKey="footer_heading_style" label="Section Headings" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="footer_hours_style" label="Hours Text" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="footer_heading_style" label="Footer — Section Headings" hint="Contact, Hours, Quick Links" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="footer_hours_style" label="Footer — Hours" hint="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── Other Settings ── */}
