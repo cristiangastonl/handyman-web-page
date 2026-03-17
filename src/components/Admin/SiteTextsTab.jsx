@@ -28,6 +28,12 @@ const KNOWN_KEYS = new Set([
   "site_phone",
   "site_hours",
   "site_service_areas",
+  // Legacy keys already in site_config (managed elsewhere or via Contact & Business Info)
+  "phone",
+  "whatsapp_url",
+  "facebook_url",
+  "youtube_url",
+  "brand_subtitle",
 ]);
 
 // ── Preview wrapper ──
@@ -324,8 +330,12 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
       {/* ── 0. Contact & Business Info (used across the site) ── */}
       <AdminCard title="Contact & Business Info" style={{ marginBottom: spacing.xl }}>
-        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>These values are used across the entire site — footer, CTAs, service areas section.</p>
-        <FooterField label="Phone Number" configKey="site_phone" defaultValue={PHONE} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>These values are used across the entire site — footer, CTAs, service areas, social links.</p>
+        <FooterField label="Phone Number" configKey="site_phone" defaultValue={siteConfig.phone || PHONE} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="WhatsApp URL" configKey="whatsapp_url" defaultValue={siteConfig.whatsapp_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Full wa.me link" />
+        <FooterField label="Facebook URL" configKey="facebook_url" defaultValue={siteConfig.facebook_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="YouTube URL" configKey="youtube_url" defaultValue={siteConfig.youtube_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Brand Subtitle" configKey="brand_subtitle" defaultValue={siteConfig.brand_subtitle || "Specialist Technician At Domestic Matters"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Business Hours" configKey="site_hours" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Service Areas" configKey="site_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />
       </AdminCard>
