@@ -133,10 +133,11 @@ Plans:
   2. Changing a font size or font family value persists to site_config and survives page reload
   3. The live site renders text using the admin-configured font sizes and font families
   4. All 7 text areas (Hero, About, Carousels, CTAs, Stats, Footer, Reviews) have independent typography controls -- changing one does not affect others
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: TBD
+- [ ] 07-01-PLAN.md -- Add STYLE_KEYS/getStyleConfig to constants.js and typography controls (StyleControl) to all SiteTextsTab sections
+- [ ] 07-02-PLAN.md -- Wire siteConfig to all public components and apply admin-configured font styles
 
 ## Progress
 
@@ -151,4 +152,4 @@ Phases execute in numeric order: 6 -> 7
 | 4. Filter and Paginate | v1.1 | 1/1 | Complete | 2026-03-17 |
 | 5. Quick Preview | v1.1 | 1/1 | Complete | 2026-03-17 |
 | 6. Section Layout and Preservation | v1.2 | 0/1 | Not started | - |
-| 7. Typography Controls | v1.2 | 0/1 | Not started | - |
+| 7. Typography Controls | v1.2 | 0/2 | Not started | - |
