@@ -2,7 +2,7 @@
 // Section-based Site Texts tab -- organizes config editing by site structure.
 // Extracted from AdminPanel.jsx inline config tab rendering.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig } from "../../lib/constants";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminCard } from "./adminUI";
@@ -43,34 +43,87 @@ function PreviewBox({ dark, children }) {
   );
 }
 
-// ── Hero image position control with sliders and live preview ──
+// ── Hero image position control with drag & drop ──
 function HeroPositionControl({ xVal, yVal, onSave, loading }) {
-  const [x, setX] = useState(xVal);
-  const [y, setY] = useState(yVal);
-  useEffect(() => { setX(xVal); }, [xVal]);
-  useEffect(() => { setY(yVal); }, [yVal]);
+  const [x, setX] = useState(Number(xVal));
+  const [y, setY] = useState(Number(yVal));
+  const containerRef = useRef(null);
+  const dragging = useRef(false);
+
+  useEffect(() => { setX(Number(xVal)); }, [xVal]);
+  useEffect(() => { setY(Number(yVal)); }, [yVal]);
+
+  const updateFromEvent = useCallback((e) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const newX = Math.round(Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)));
+    const newY = Math.round(Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100)));
+    setX(newX);
+    setY(newY);
+  }, []);
+
+  const onPointerDown = useCallback((e) => {
+    e.preventDefault();
+    dragging.current = true;
+    updateFromEvent(e);
+  }, [updateFromEvent]);
+
+  useEffect(() => {
+    const onMove = (e) => { if (dragging.current) { e.preventDefault(); updateFromEvent(e); } };
+    const onUp = () => { dragging.current = false; };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    };
+  }, [updateFromEvent]);
+
   const HERO_IMG = "/anibal/hero.jpeg";
   return (
     <div>
-      <div style={{ position: "relative", width: "100%", paddingTop: "35%", borderRadius: radii.md, overflow: "hidden", marginBottom: spacing.md, border: `1px solid ${colors.gray200}` }}>
+      <div
+        ref={containerRef}
+        onMouseDown={onPointerDown}
+        onTouchStart={onPointerDown}
+        style={{
+          position: "relative", width: "100%", paddingTop: "35%", borderRadius: radii.md,
+          overflow: "hidden", marginBottom: spacing.sm, border: `1px solid ${colors.gray200}`,
+          cursor: "crosshair", userSelect: "none",
+        }}
+      >
         <img src={HERO_IMG} alt="Hero preview" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${x}% ${y}%` }}/>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)" }}/>
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 10, height: 10, borderRadius: "50%", border: "2px solid #fff", background: "rgba(212,120,31,0.8)" }}/>
+        {/* Crosshair indicator */}
+        <div style={{
+          position: "absolute", left: `${x}%`, top: `${y}%`, transform: "translate(-50%, -50%)",
+          width: 20, height: 20, borderRadius: "50%",
+          border: "2px solid #fff", background: "rgba(212,120,31,0.7)",
+          boxShadow: "0 0 0 1px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.3)",
+          pointerEvents: "none",
+        }}/>
+        {/* Position label */}
+        <div style={{
+          position: "absolute", bottom: 6, right: 8,
+          background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 10, fontWeight: 600,
+          padding: "2px 6px", borderRadius: radii.sm,
+        }}>
+          {x}%, {y}%
+        </div>
       </div>
-      <div style={{ display: "flex", gap: spacing.lg, alignItems: "center", marginBottom: spacing.sm }}>
-        <label style={{ ...typography.body, fontWeight: 600, minWidth: 80 }}>Horizontal ({x}%)</label>
-        <input type="range" min="0" max="100" value={x} onChange={e => setX(e.target.value)} style={{ flex: 1 }}/>
-      </div>
-      <div style={{ display: "flex", gap: spacing.lg, alignItems: "center", marginBottom: spacing.md }}>
-        <label style={{ ...typography.body, fontWeight: 600, minWidth: 80 }}>Vertical ({y}%)</label>
-        <input type="range" min="0" max="100" value={y} onChange={e => setY(e.target.value)} style={{ flex: 1 }}/>
-      </div>
+      <p style={{ ...typography.caption, marginBottom: spacing.md }}>Click or drag on the image to set the focal point.</p>
       <div style={{ display: "flex", gap: spacing.sm }}>
-        <AdminButton size="small" loading={loading} onClick={() => { onSave("hero_img_x", x); onSave("hero_img_y", y); }}>
+        <AdminButton size="small" loading={loading} onClick={() => { onSave("hero_img_x", String(x)); onSave("hero_img_y", String(y)); }}>
           Save Position
         </AdminButton>
-        <AdminButton variant="secondary" size="small" onClick={() => { setX("50"); setY("50"); }}>
-          Reset
+        <AdminButton variant="secondary" size="small" onClick={() => { setX(50); setY(50); }}>
+          Reset to Center
         </AdminButton>
       </div>
     </div>
@@ -194,15 +247,6 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
           </select>
         </div>
       </div>
-      {text && (
-        <div style={{ marginTop: spacing.sm, padding: `${spacing.sm}px ${spacing.md}px`, background: colors.gray50, borderRadius: radii.md, border: `1px dashed ${colors.gray200}` }}>
-          <span style={{ fontSize: 9, color: colors.gray400, display: "block", marginBottom: spacing.xs }}>Preview:</span>
-          <span style={{
-            fontSize: fontSize ? `${fontSize}px` : `${def.defaultFontSize}px`,
-            fontFamily: fontFamily ? `'${fontFamily}', sans-serif` : `'${def.defaultFontFamily}', sans-serif`,
-          }}>{text}</span>
-        </div>
-      )}
       <AdminButton loading={loading} onClick={handleSave}
         style={{ marginTop: spacing.sm }}>
         Save
@@ -227,15 +271,6 @@ function getTextStyle(siteConfig, key) {
   };
 }
 
-// ── Info box for placeholder sections ──
-function PlaceholderInfo({ text }) {
-  return (
-    <div style={{ ...A.infoBox, fontSize: 12 }}>
-      {text}
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════════
 // Main component
 // ══════════════════════════════════════════════════════════════════
@@ -252,7 +287,17 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
       {/* ── 1. Hero Section ── */}
       <AdminCard title="Hero Section" style={{ marginBottom: spacing.xl }}>
-        {/* Hero visual preview */}
+        {/* Hero image position — drag to reposition */}
+        <p style={{ ...typography.label, marginBottom: spacing.sm }}>Image Position</p>
+        <HeroPositionControl
+          xVal={siteConfig.hero_img_x || "50"}
+          yVal={siteConfig.hero_img_y || "50"}
+          onSave={onSave}
+          loading={loading}
+        />
+
+        {/* Hero text preview + controls together */}
+        <p style={{ ...typography.label, marginTop: spacing.xl, marginBottom: spacing.sm }}>Hero Texts</p>
         <PreviewBox dark>
           <div style={{ textAlign: "center", padding: `${spacing.lg}px 0` }}>
             <div style={{
@@ -280,36 +325,24 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
             </div>
           </div>
         </PreviewBox>
-
-        {/* Hero image position */}
-        <p style={{ ...typography.label, marginBottom: spacing.sm }}>Image Position</p>
-        <HeroPositionControl
-          xVal={siteConfig.hero_img_x || "50"}
-          yVal={siteConfig.hero_img_y || "50"}
-          onSave={onSave}
-          loading={loading}
-        />
-
-        {/* Hero text fields */}
-        <p style={{ ...typography.label, marginTop: spacing.xl, marginBottom: spacing.sm }}>Text Fields</p>
-        {["hero_title", "hero_subtitle", "hero_brand_subtitle"].map(key => (
+        {["hero_title", "hero_brand_subtitle", "hero_subtitle"].map(key => (
           <SiteTextRow key={key} configKey={key} def={SITE_TEXTS[key]} currentValue={siteConfig[key]} onSave={onSave} loading={loading} />
         ))}
       </AdminCard>
 
       {/* ── 2. About Section ── */}
       <AdminCard title="About Section" style={{ marginBottom: spacing.xl }}>
-        {/* About visual preview */}
+        {/* Bio preview + controls */}
+        <p style={{ ...typography.label, marginBottom: spacing.sm }}>Bio Text</p>
         <PreviewBox>
           <div style={{
             ...getTextStyle(siteConfig, "bio_text"),
             color: colors.gray700,
             whiteSpace: "pre-line",
           }}>
-            {getTextValue(siteConfig, "bio_text") || "(No bio text set -- uses translation default)"}
+            {getTextValue(siteConfig, "bio_text") || "(No bio text set — uses translation default)"}
           </div>
         </PreviewBox>
-
         <SiteTextRow configKey="bio_text" def={SITE_TEXTS.bio_text} currentValue={siteConfig.bio_text} onSave={onSave} loading={loading} />
 
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Highlight Boxes</p>
