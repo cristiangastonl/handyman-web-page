@@ -158,6 +158,15 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
 
         return (
           <>
+            {/* Breadcrumb */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12, fontSize: 13, color: "#999" }}>
+              <button onClick={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: R, fontWeight: 500, padding: 0, fontSize: 13 }}>
+                {t("portfolio.title")}
+              </button>
+              <span style={{ color: "#ccc" }}>/</span>
+              <span style={{ color: "#555", fontWeight: 600 }}>{currentCat?.label}</span>
+            </div>
             <DetailHeader
               title={currentCat?.label}
               subtitle={<>
@@ -166,7 +175,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
               </>}
               thumb={catThumb}
               onBack={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
-              backLabel={t("portfolio.backToCategories")}
+              backLabel={`← ${t("portfolio.backToCategories")}`}
             />
 
             {/* Subcategory cards */}
@@ -254,6 +263,20 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
 
         return (
           <>
+            {/* Breadcrumb */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12, fontSize: 13, color: "#999", flexWrap: "wrap" }}>
+              <button onClick={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: R, fontWeight: 500, padding: 0, fontSize: 13 }}>
+                {t("portfolio.title")}
+              </button>
+              <span style={{ color: "#ccc" }}>/</span>
+              <button onClick={() => { setPortfolioView({ cat: portfolioView.cat, tab: "photos" }); window.scrollTo?.(0, 0); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: R, fontWeight: 500, padding: 0, fontSize: 13 }}>
+                {currentCat?.label}
+              </button>
+              <span style={{ color: "#ccc" }}>/</span>
+              <span style={{ color: "#555", fontWeight: 600 }}>{currentSubcat?.name}</span>
+            </div>
             <DetailHeader
               title={currentSubcat?.name}
               subtitle={<>
