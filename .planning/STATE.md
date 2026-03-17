@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Site Texts Redesign
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-17T00:06:46.431Z"
-last_activity: 2026-03-17 -- Completed 06-01 Section Layout and Preservation
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-17T00:24:30Z"
+last_activity: 2026-03-17 -- Completed 07-01 Typography Controls (admin controls)
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 100
+  total_plans: 3
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Anibal can manage his website content confidently -- every section is self-explanatory, visually clear, and pleasant to use.
-**Current focus:** Phase 6 - Section Layout and Preservation
+**Current focus:** Phase 7 - Typography Controls
 
 ## Current Position
 
-Phase: 6 of 7 (Section Layout and Preservation)
-Plan: 1 of 1 in current phase
+Phase: 7 of 7 (Typography Controls)
+Plan: 1 of 2 in current phase
 Status: Executing
-Last activity: 2026-03-17 -- Completed 06-01 Section Layout and Preservation
+Last activity: 2026-03-17 -- Completed 07-01 Typography Controls (admin controls)
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [██████████] 100%
 | 4. Filter and Paginate | 1 | ~30m | ~30m |
 | 5. Quick Preview | 1 | ~30m | ~30m |
 | 6. Section Layout | 1 | ~4m | ~4m |
+| 7. Typography Controls | 1 | ~3m | ~3m |
 
 ## Accumulated Context
 
@@ -63,6 +64,8 @@ Progress: [██████████] 100%
 - [v1.2]: Use existing site_config key-value store (no new tables)
 - [v1.2]: Section-based admin layout with PreviewBox for visual previews
 - [v1.2]: KNOWN_KEYS Set for filtering Other Settings accurately
+- [v1.2]: StyleControl saves JSON {fontSize, fontFamily} separate from SiteTextRow text+style
+- [v1.2]: getStyleConfig helper for public component style consumption with defaults
 
 ### Pending Todos
 
@@ -75,5 +78,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Completed 06-01-PLAN.md
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None

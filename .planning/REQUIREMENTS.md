@@ -44,13 +44,13 @@ Requirements for Site Texts Redesign milestone.
 
 ### Typography Controls
 
-- [ ] **TYPO-01**: Admin can control font size and font family for Hero section texts (title, subtitle, brand subtitle)
-- [ ] **TYPO-02**: Admin can control font size and font family for About section texts (bio, highlight boxes, expat note)
-- [ ] **TYPO-03**: Admin can control font size and font family for carousel section titles (Recent Work, Highlights, Returning Customers, Custom Projects)
-- [ ] **TYPO-04**: Admin can control font size and font family for CTA section texts (tailoring CTA, bottom CTA)
-- [ ] **TYPO-05**: Admin can control font size and font family for Stats bar labels
-- [ ] **TYPO-06**: Admin can control font size and font family for Footer texts
-- [ ] **TYPO-07**: Admin can control font size and font family for Reviews section title
+- [x] **TYPO-01**: Admin can control font size and font family for Hero section texts (title, subtitle, brand subtitle)
+- [x] **TYPO-02**: Admin can control font size and font family for About section texts (bio, highlight boxes, expat note)
+- [x] **TYPO-03**: Admin can control font size and font family for carousel section titles (Recent Work, Highlights, Returning Customers, Custom Projects)
+- [x] **TYPO-04**: Admin can control font size and font family for CTA section texts (tailoring CTA, bottom CTA)
+- [x] **TYPO-05**: Admin can control font size and font family for Stats bar labels
+- [x] **TYPO-06**: Admin can control font size and font family for Footer texts
+- [x] **TYPO-07**: Admin can control font size and font family for Reviews section title
 
 ### Existing Features (preserve)
 
@@ -102,13 +102,13 @@ Requirements for Site Texts Redesign milestone.
 | PAGE-02 | Phase 4 | Complete |
 | PREV-01 | Phase 5 | Complete |
 | PREV-02 | Phase 5 | Complete |
-| TYPO-01 | Phase 7 | Pending |
-| TYPO-02 | Phase 7 | Pending |
-| TYPO-03 | Phase 7 | Pending |
-| TYPO-04 | Phase 7 | Pending |
-| TYPO-05 | Phase 7 | Pending |
-| TYPO-06 | Phase 7 | Pending |
-| TYPO-07 | Phase 7 | Pending |
+| TYPO-01 | Phase 7 | Complete |
+| TYPO-02 | Phase 7 | Complete |
+| TYPO-03 | Phase 7 | Complete |
+| TYPO-04 | Phase 7 | Complete |
+| TYPO-05 | Phase 7 | Complete |
+| TYPO-06 | Phase 7 | Complete |
+| TYPO-07 | Phase 7 | Complete |
 | KEEP-01 | Phase 6 | Complete |
 | KEEP-02 | Phase 6 | Complete |
 | KEEP-03 | Phase 6 | Complete |
