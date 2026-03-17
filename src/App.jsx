@@ -185,7 +185,7 @@ export default function App() {
           <Hero nav={nav} siteConfig={siteConfig} isAdmin={isAdmin} onConfigUpdate={setSiteConfig} fbReviewCount={fbReviews.length || 120}/>
           <StatsBar siteConfig={siteConfig}/>
           <About nav={nav} navToCategory={navToCategory} siteConfig={siteConfig}/>
-          <ServiceAreasCTA/>
+          <ServiceAreasCTA siteConfig={siteConfig}/>
           <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={setLb} nav={nav} siteConfig={siteConfig}/>
           <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={setLb} siteConfig={siteConfig}/>
           <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={setLb} siteConfig={siteConfig}/>

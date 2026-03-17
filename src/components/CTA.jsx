@@ -39,8 +39,10 @@ export function TailoringCTA({ nav, siteConfig = {} }) {
   );
 }
 
-export function ServiceAreasCTA() {
+export function ServiceAreasCTA({ siteConfig = {} }) {
   const { t } = useTranslation();
+  const areasStr = siteConfig.site_service_areas || SERVICE_AREAS.map(a => a.name).join(" · ");
+  const areaNames = areasStr.split("·").map(s => s.trim()).filter(Boolean);
   return (
     <FadeIn delay={0.15}>
     <section style={{ padding: "0 24px 40px", maxWidth: 940, margin: "0 auto" }}>
@@ -53,8 +55,8 @@ export function ServiceAreasCTA() {
         <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{t("serviceAreas.title")}</h4>
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 14 }}>{t("serviceAreas.subtitle")}</p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-          {SERVICE_AREAS.map(area => (
-            <div key={area.name} style={{
+          {areaNames.map(name => (
+            <div key={name} style={{
               display: "flex", alignItems: "center", gap: 5,
               padding: "8px 16px", borderRadius: 8,
               background: "rgba(255,255,255,0.15)",
@@ -63,7 +65,7 @@ export function ServiceAreasCTA() {
               fontSize: 12,
             }}>
               <MapPin size={13} color="rgba(255,255,255,0.7)"/>
-              {area.name}
+              {name}
             </div>
           ))}
         </div>

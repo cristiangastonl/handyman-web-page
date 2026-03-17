@@ -25,9 +25,9 @@ const KNOWN_KEYS = new Set([
   ...STATS.map(s => s.key),
   "hero_img_x",
   "hero_img_y",
-  "footer_phone",
-  "footer_hours_text",
-  "footer_service_areas",
+  "site_phone",
+  "site_hours",
+  "site_service_areas",
 ]);
 
 // ── Preview wrapper ──
@@ -322,6 +322,14 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <strong>How it works:</strong> Each section below matches a part of the live site. Edit texts, adjust font sizes, and preview changes in real time.
       </div>
 
+      {/* ── 0. Contact & Business Info (used across the site) ── */}
+      <AdminCard title="Contact & Business Info" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>These values are used across the entire site — footer, CTAs, service areas section.</p>
+        <FooterField label="Phone Number" configKey="site_phone" defaultValue={PHONE} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Business Hours" configKey="site_hours" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Service Areas" configKey="site_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />
+      </AdminCard>
+
       {/* ── 1. Hero Section ── */}
       <AdminCard title="Hero Section" style={{ marginBottom: spacing.xl }}>
         {/* Hero image position — drag to reposition */}
@@ -450,14 +458,9 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
       {/* ── 7. Footer ── */}
       <AdminCard title="Footer" style={{ marginBottom: spacing.xl }}>
-        <p style={{ ...typography.label, marginBottom: spacing.sm }}>Content</p>
-        <FooterField label="Phone Number" configKey="footer_phone" defaultValue={PHONE} siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="Business Hours" configKey="footer_hours_text" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="Service Areas" configKey="footer_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />
-
-        <p style={{ ...typography.label, marginTop: spacing.xl, marginBottom: spacing.sm }}>Typography</p>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>Phone, hours, and service areas are in "Contact & Business Info" above — shared across the site.</p>
         <StyleControl configKey="footer_heading_style" label="Footer — Section Headings" hint="Contact, Hours, Quick Links" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="footer_hours_style" label="Footer — Hours Text" hint={siteConfig.footer_hours_text || "Mon–Sat · 8:00–19:00"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="footer_hours_style" label="Footer — Hours Text" hint={siteConfig.site_hours || "Mon–Sat · 8:00–19:00"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── Other Settings ── */}

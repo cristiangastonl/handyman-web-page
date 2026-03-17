@@ -8,9 +8,9 @@ export default function Footer({ nav, siteConfig = {} }) {
   const [copied, setCopied] = useState(false);
   const headStyle = getStyleConfig(siteConfig, "footer_heading_style");
   const hoursStyle = getStyleConfig(siteConfig, "footer_hours_style");
-  const phone = siteConfig.footer_phone || PHONE;
-  const hours = siteConfig.footer_hours_text || t("footer.hours");
-  const areas = siteConfig.footer_service_areas || SERVICE_AREAS.map(a => a.name).join(" · ");
+  const phone = siteConfig.site_phone || PHONE;
+  const hours = siteConfig.site_hours || t("footer.hours");
+  const areas = siteConfig.site_service_areas || SERVICE_AREAS.map(a => a.name).join(" · ");
 
   const copyLink = async () => {
     const url = typeof window !== "undefined" ? window.location.origin : "";
