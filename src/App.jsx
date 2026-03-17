@@ -142,7 +142,7 @@ export default function App() {
         safe(() => fetchCarouselItems('tailor_jobs')),
       ]);
       if (dbCats?.length > 0) setCats([{ id: "all", label: "All" }, ...dbCats.map(c => ({ id: c.id, label: c.label, header_image: c.header_image }))]);
-      if (dbItems?.length > 0) setItems(dbItems.map(w => ({ id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb, title: w.title, desc: w.description, videoId: w.video_id })));
+      if (dbItems?.length > 0) setItems(dbItems.map(w => ({ id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb, title: w.title, desc: w.description, videoId: w.video_id, subcategory_id: w.subcategory_id || null })));
       if (dbFaqs?.length > 0) setFaqs(dbFaqs.map(f => ({
         id: f.id, q: f.question, a: f.answer,
         question_de: f.question_de, answer_de: f.answer_de,

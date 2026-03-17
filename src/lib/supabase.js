@@ -61,6 +61,12 @@ export async function addWorkItem(item) {
   if (error) throw error;
   return data;
 }
+export async function updateWorkItem(id, updates) {
+  if (!supabase) return;
+  const { data, error } = await supabase.from("work_items").update(updates).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
 export async function deleteWorkItem(id) {
   if (!supabase) return;
   const { error } = await supabase.from("work_items").delete().eq("id", id);

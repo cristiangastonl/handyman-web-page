@@ -2,12 +2,95 @@ import { useTranslation } from "react-i18next";
 import { R, G, WA_LINK, itemThumb, svgP } from "../lib/constants";
 import { SocialIcon } from "./ui";
 
+// Reusable item card
+function ItemCard({ item, setLb }) {
+  return (
+    <div key={item.id} onClick={() => setLb(item)}
+      style={{ borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+      <div style={{ position: "relative", paddingTop: "62%" }}>
+        <img src={item.type === "video" ? itemThumb(item) : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+        {item.type === "video" && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.08)" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="13" height="13" viewBox="0 0 20 20" fill={R}><path d="M6 4l10 6-10 6V4z"/></svg>
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ padding: "9px 11px" }}>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</div>
+        {item.desc && <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{item.desc}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Tabs for photos/videos + grid
+function ItemsGrid({ items, activeTab, onTabChange, setLb, t }) {
+  const photos = items.filter(w => w.type === "image");
+  const videos = items.filter(w => w.type === "video");
+  const displayItems = activeTab === "photos" ? photos : videos;
+
+  return (
+    <>
+      <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0" }}>
+        {[["photos", t("portfolio.photos"), photos.length], ["videos", t("portfolio.videos"), videos.length]].map(([tab, label, count]) => (
+          <button key={tab} onClick={() => onTabChange(tab)}
+            style={{
+              padding: "8px 18px", background: "none", border: "none", cursor: "pointer",
+              fontSize: 13, fontWeight: activeTab === tab ? 600 : 400,
+              color: activeTab === tab ? R : "#666",
+              borderBottom: activeTab === tab ? `2px solid ${R}` : "2px solid transparent",
+              marginBottom: -2,
+            }}>
+            {label} ({count})
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 10 }}>
+        {displayItems.map(item => <ItemCard key={item.id} item={item} setLb={setLb}/>)}
+      </div>
+      {!displayItems.length && (
+        <div style={{ textAlign: "center", padding: "48px 20px" }}>
+          <p style={{ color: "#999", fontSize: 13, marginBottom: 12 }}>{t("portfolio.noItemsYet", "No items yet in this section.")}</p>
+          <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
+            {t("portfolio.askForPhotos", "Ask me for photos of this work")}
+          </a>
+        </div>
+      )}
+    </>
+  );
+}
+
+// Header banner for category or subcategory
+function DetailHeader({ title, subtitle, thumb, onBack, backLabel }) {
+  return (
+    <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", marginBottom: 20, height: 120, background: G }}>
+      {thumb && <img src={thumb} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }}/>}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%)" }}/>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px" }}>
+        <button onClick={onBack}
+          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, padding: 0, marginBottom: 6, textAlign: "left" }}
+          onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+          onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}>
+          {backLabel}
+        </button>
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{title}</h3>
+        {subtitle && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>{subtitle}</div>}
+      </div>
+    </div>
+  );
+}
+
 export default function Portfolio({ cats, items, subcats, portfolioView, setPortfolioView, setLb }) {
   const { t } = useTranslation();
   const activeCats = cats.filter(c => c.id !== "all" && (items.some(w => w.cat === c.id) || (subcats || []).some(s => s.category_id === c.id)));
   const totalPhotos = items.filter(w => w.type === "image").length;
   const totalVideos = items.filter(w => w.type === "video").length;
-  const totalPlaylists = (subcats || []).filter(s => s.playlist_id).length;
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
@@ -17,7 +100,6 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
           {activeCats.length} {t("portfolio.categories", "categories")}
           {totalPhotos > 0 && <> · {totalPhotos} {t("portfolio.photos")}</>}
           {totalVideos > 0 && <> · {totalVideos} {t("portfolio.videos")}</>}
-          {totalPlaylists > 0 && <> · {totalPlaylists} {t("portfolio.playlists")}</>}
         </p>
       )}
 
@@ -27,7 +109,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))", gap: 14 }}>
             {activeCats.map(c => {
               const catItems = items.filter(w => w.cat === c.id);
-              const catPlaylists = (subcats || []).filter(s => s.category_id === c.id && s.playlist_id).length;
+              const catSubcats = (subcats || []).filter(s => s.category_id === c.id);
               const thumb = c.header_image || (catItems[0]?.type === "video" ? itemThumb(catItems[0]) : catItems[0]?.src) || "";
               return (
                 <div key={c.id}
@@ -50,8 +132,8 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                       <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{c.label}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
                         {catItems.length > 0 && <>{catItems.length} {catItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
-                        {catItems.length > 0 && catPlaylists > 0 && " · "}
-                        {catPlaylists > 0 && <>{catPlaylists} {t("portfolio.playlists")}</>}
+                        {catItems.length > 0 && catSubcats.length > 0 && " · "}
+                        {catSubcats.length > 0 && <>{catSubcats.length} {t("portfolio.subcategories", "subcategories")}</>}
                       </div>
                     </div>
                   </div>
@@ -63,106 +145,94 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
         </>
       )}
 
-      {/* Level 2: Category Detail View */}
-      {typeof portfolioView === "object" && portfolioView.cat && (() => {
+      {/* Level 2: Category Detail — subcategory cards + loose items */}
+      {typeof portfolioView === "object" && portfolioView.cat && !portfolioView.subcat && (() => {
         const currentCat = cats.find(c => c.id === portfolioView.cat);
         const catItems = items.filter(w => w.cat === portfolioView.cat);
-        const photos = catItems.filter(w => w.type === "image");
-        const videos = catItems.filter(w => w.type === "video");
-        const activeTab = portfolioView.tab || "photos";
-        const displayItems = activeTab === "photos" ? photos : videos;
         const catSubcats = (subcats || []).filter(s => s.category_id === portfolioView.cat);
+        const looseItems = catItems.filter(w => !w.subcategory_id);
         const catThumb = currentCat?.header_image || (catItems[0]?.type === "video" ? itemThumb(catItems[0]) : catItems[0]?.src) || "";
+        const activeTab = portfolioView.tab || "photos";
+        const loosePhotos = looseItems.filter(w => w.type === "image").length;
+        const looseVideos = looseItems.filter(w => w.type === "video").length;
 
         return (
           <>
-            {/* Category header with image */}
-            <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", marginBottom: 20, height: 120, background: G }}>
-              {catThumb && <img src={catThumb} alt={currentCat?.label} style={{ width: "100%", height: "100%", objectFit: "cover" }}/>}
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%)" }}/>
-              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px" }}>
-                <button onClick={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
-                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, padding: 0, marginBottom: 6, textAlign: "left" }}
-                  onMouseEnter={e => e.currentTarget.style.color = "#fff"}
-                  onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}>
-                  {t("portfolio.backToCategories")}
-                </button>
-                <h3 style={{ fontSize: 22, fontWeight: 800, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{currentCat?.label}</h3>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>
-                  {photos.length} {t("portfolio.photos")} · {videos.length} {t("portfolio.videos")}
-                  {catSubcats.length > 0 && <> · {catSubcats.length} {t("portfolio.playlists")}</>}
-                </div>
-              </div>
-            </div>
+            <DetailHeader
+              title={currentCat?.label}
+              subtitle={<>
+                {catItems.length} {t("portfolio.items")}
+                {catSubcats.length > 0 && <> · {catSubcats.length} {t("portfolio.subcategories", "subcategories")}</>}
+              </>}
+              thumb={catThumb}
+              onBack={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
+              backLabel={t("portfolio.backToCategories")}
+            />
 
-            {/* Subcategories (YouTube Playlists) */}
+            {/* Subcategory cards */}
             {catSubcats.length > 0 && (
               <div style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#777", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
-                  {t("portfolio.playlists")}
+                  {t("portfolio.subcategories", "Subcategories")}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
-                  {catSubcats.map(sc => (
-                    <a key={sc.id}
-                      href={sc.playlist_id ? `https://www.youtube.com/playlist?list=${sc.playlist_id}` : "#"}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 10, border: "1px solid #eee", background: "#fafafa", textDecoration: "none", color: "#333", transition: "border-color .2s, box-shadow .2s" }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF0000"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,0,0,0.08)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "none"; }}>
-                      <SocialIcon type="yt" size={32}/>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sc.name}</div>
-                        <div style={{ fontSize: 10, color: "#666" }}>{t("portfolio.viewPlaylist")}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))", gap: 14 }}>
+                  {catSubcats.map(sc => {
+                    const scItems = catItems.filter(w => w.subcategory_id === sc.id);
+                    const scThumb = sc.header_image || (scItems[0]?.type === "video" ? itemThumb(scItems[0]) : scItems[0]?.src) || "";
+                    return (
+                      <div key={sc.id}
+                        onClick={() => { setPortfolioView({ cat: portfolioView.cat, subcat: sc.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
+                        style={{ borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                        <div style={{ position: "relative", paddingTop: "65%", background: G }}>
+                          {scThumb ? (
+                            <img src={scThumb} alt={sc.name} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+                          ) : (
+                            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                              </svg>
+                            </div>
+                          )}
+                          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }}/>
+                          <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{sc.name}</div>
+                            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
+                              {scItems.length > 0 && <>{scItems.length} {scItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
+                              {sc.playlist_id && <>{scItems.length > 0 && " · "}<svg width="10" height="10" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" style={{ verticalAlign: "middle", marginRight: 3 }}><path d="M23 12l-10.5-7v14L23 12zM1 5h2v14H1V5zm4 0h2v14H5V5zm4 0h2v14H9V5z"/></svg>{t("portfolio.playlist", "Playlist")}</>}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </a>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Tabs: Photos / Videos */}
-            <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "2px solid #f0f0f0" }}>
-              {[["photos", t("portfolio.photos"), photos.length], ["videos", t("portfolio.videos"), videos.length]].map(([tab, label, count]) => (
-                <button key={tab} onClick={() => setPortfolioView({ ...portfolioView, tab })}
-                  style={{
-                    padding: "8px 18px", background: "none", border: "none", cursor: "pointer",
-                    fontSize: 13, fontWeight: activeTab === tab ? 600 : 400,
-                    color: activeTab === tab ? R : "#666",
-                    borderBottom: activeTab === tab ? `2px solid ${R}` : "2px solid transparent",
-                    marginBottom: -2,
-                  }}>
-                  {label} ({count})
-                </button>
-              ))}
-            </div>
+            {/* Loose items (no subcategory) */}
+            {(loosePhotos > 0 || looseVideos > 0) && (
+              <>
+                {catSubcats.length > 0 && (
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#777", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+                    {t("portfolio.general", "General")}
+                  </div>
+                )}
+                <ItemsGrid
+                  items={looseItems}
+                  activeTab={activeTab}
+                  onTabChange={tab => setPortfolioView({ ...portfolioView, tab })}
+                  setLb={setLb}
+                  t={t}
+                />
+              </>
+            )}
 
-            {/* Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 10 }}>
-              {displayItems.map(item => (
-                <div key={item.id} onClick={() => setLb(item)}
-                  style={{ borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                  <div style={{ position: "relative", paddingTop: "62%" }}>
-                    <img src={item.type === "video" ? itemThumb(item) : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
-                    {item.type === "video" && (
-                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.08)" }}>
-                        <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <svg width="13" height="13" viewBox="0 0 20 20" fill={R}><path d="M6 4l10 6-10 6V4z"/></svg>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ padding: "9px 11px" }}>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</div>
-                    {item.desc && <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{item.desc}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-            {!displayItems.length && (
+            {/* No content at all */}
+            {catSubcats.length === 0 && loosePhotos === 0 && looseVideos === 0 && (
               <div style={{ textAlign: "center", padding: "48px 20px" }}>
-                <p style={{ color: "#999", fontSize: 13, marginBottom: 12 }}>{t("portfolio.noItemsYet", "No items yet in this section. Check out the playlists above!")}</p>
+                <p style={{ color: "#999", fontSize: 13, marginBottom: 12 }}>{t("portfolio.noItemsYet", "No items yet in this section.")}</p>
                 <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
@@ -170,6 +240,53 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                 </a>
               </div>
             )}
+          </>
+        );
+      })()}
+
+      {/* Level 3: Subcategory Detail — items within a subcategory */}
+      {typeof portfolioView === "object" && portfolioView.subcat && (() => {
+        const currentCat = cats.find(c => c.id === portfolioView.cat);
+        const currentSubcat = (subcats || []).find(s => s.id === portfolioView.subcat);
+        const scItems = items.filter(w => w.cat === portfolioView.cat && w.subcategory_id === portfolioView.subcat);
+        const activeTab = portfolioView.tab || "photos";
+        const scThumb = currentSubcat?.header_image || (scItems[0]?.type === "video" ? itemThumb(scItems[0]) : scItems[0]?.src) || "";
+
+        return (
+          <>
+            <DetailHeader
+              title={currentSubcat?.name}
+              subtitle={<>
+                {currentCat?.label}
+                {scItems.length > 0 && <> · {scItems.length} {scItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
+              </>}
+              thumb={scThumb}
+              onBack={() => { setPortfolioView({ cat: portfolioView.cat, tab: "photos" }); window.scrollTo?.(0, 0); }}
+              backLabel={`← ${currentCat?.label}`}
+            />
+
+            {/* YouTube playlist link if available */}
+            {currentSubcat?.playlist_id && (
+              <a href={`https://www.youtube.com/playlist?list=${currentSubcat.playlist_id}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 10, border: "1px solid #eee", background: "#fafafa", textDecoration: "none", color: "#333", marginBottom: 20, transition: "border-color .2s, box-shadow .2s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF0000"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,0,0,0.08)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "none"; }}>
+                <SocialIcon type="yt" size={28}/>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{t("portfolio.viewPlaylist", "View Playlist")}</div>
+                  <div style={{ fontSize: 10, color: "#666" }}>YouTube</div>
+                </div>
+              </a>
+            )}
+
+            <ItemsGrid
+              items={scItems}
+              activeTab={activeTab}
+              onTabChange={tab => setPortfolioView({ ...portfolioView, tab })}
+              setLb={setLb}
+              t={t}
+            />
           </>
         );
       })()}

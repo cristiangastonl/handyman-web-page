@@ -7,7 +7,7 @@ import DragList from "./DragList";
 import {
   supabase, uploadImage,
   fetchCategories, addCategory, updateCategory, deleteCategory,
-  fetchWorkItems, addWorkItem, deleteWorkItem,
+  fetchWorkItems, addWorkItem, updateWorkItem, deleteWorkItem,
   fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow, updateFaqOrder,
   fetchSiteConfig, upsertSiteConfig,
   fetchSubcategories, addSubcategory, updateSubcategory, deleteSubcategory,
@@ -214,6 +214,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
       setItems(prev => [...prev, {
         id: saved.id, type: saved.type, cat: saved.cat, src: saved.src,
         thumb: saved.thumb, title: saved.title, desc: saved.description, videoId: saved.video_id,
+        subcategory_id: saved.subcategory_id || null,
       }]);
       setWiTitle(""); setWiDesc(""); setWiFile(null); setWiVideoId(""); setWiThumbFile(null); setWiSubcat(""); resetFiles();
       flash("Work item added");
@@ -886,35 +887,73 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                         />
                       )}
                       {/* Info bar */}
-                      <div style={{ padding: `${spacing.md}px ${spacing.lg}px`, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `1px solid ${colors.gray200}` }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: colors.gray900 }}>{previewItem.title || "(untitled)"}</div>
-                          <div style={{ ...typography.caption, marginTop: 2 }}>
-                            {cats.find(c => c.id === previewItem.cat)?.label}
-                            {previewItem.subcategory_id && subcats.find(s => s.id === previewItem.subcategory_id)?.name && ` / ${subcats.find(s => s.id === previewItem.subcategory_id).name}`}
-                            {" · "}{previewItem.type === "image" ? "Photo" : previewItem.type === "video" ? "YouTube" : "Facebook"}
+                      <div style={{ padding: `${spacing.md}px ${spacing.lg}px`, borderTop: `1px solid ${colors.gray200}` }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.sm }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: colors.gray900 }}>{previewItem.title || "(untitled)"}</div>
+                            <div style={{ ...typography.caption, marginTop: 2 }}>
+                              {cats.find(c => c.id === previewItem.cat)?.label}
+                              {previewItem.subcategory_id && subcats.find(s => s.id === previewItem.subcategory_id)?.name && ` / ${subcats.find(s => s.id === previewItem.subcategory_id).name}`}
+                              {" · "}{previewItem.type === "image" ? "Photo" : previewItem.type === "video" ? "YouTube" : "Facebook"}
+                            </div>
+                            {previewItem.desc && <div style={{ ...typography.caption, color: colors.gray400, marginTop: 2 }}>{previewItem.desc}</div>}
                           </div>
-                          {previewItem.desc && <div style={{ ...typography.caption, color: colors.gray400, marginTop: 2 }}>{previewItem.desc}</div>}
+                          <div style={{ display: "flex", gap: spacing.sm, alignItems: "center", marginLeft: spacing.md }}>
+                            <AdminButton variant="danger" size="small" onClick={() => { handleDeleteWorkItem(previewItem.id); setPreviewItem(null); }} loading={adminLoading}>
+                              Remove
+                            </AdminButton>
+                            <button
+                              onClick={() => setPreviewItem(null)}
+                              style={{
+                                background: "none",
+                                border: `1px solid ${colors.gray300}`,
+                                borderRadius: radii.sm,
+                                cursor: "pointer",
+                                fontSize: 13,
+                                color: colors.gray600,
+                                height: 28,
+                                padding: "0 12px",
+                              }}
+                            >
+                              Close
+                            </button>
+                          </div>
                         </div>
-                        <div style={{ display: "flex", gap: spacing.sm, alignItems: "center", marginLeft: spacing.md }}>
-                          <AdminButton variant="danger" size="small" onClick={() => { handleDeleteWorkItem(previewItem.id); setPreviewItem(null); }} loading={adminLoading}>
-                            Remove
-                          </AdminButton>
-                          <button
-                            onClick={() => setPreviewItem(null)}
-                            style={{
-                              background: "none",
-                              border: `1px solid ${colors.gray300}`,
-                              borderRadius: radii.sm,
-                              cursor: "pointer",
-                              fontSize: 13,
-                              color: colors.gray600,
-                              height: 28,
-                              padding: "0 12px",
-                            }}
-                          >
-                            Close
-                          </button>
+                        {/* Edit category / subcategory */}
+                        <div style={{ display: "flex", gap: spacing.md, alignItems: "flex-end", paddingTop: spacing.sm, borderTop: `1px solid ${colors.gray100}` }}>
+                          <div style={{ flex: 1 }}>
+                            <AdminSelect label="Category" value={previewItem.cat || ""} onChange={async e => {
+                              const newCat = e.target.value;
+                              try {
+                                setAdminLoading(true);
+                                await updateWorkItem(previewItem.id, { cat: newCat, subcategory_id: null });
+                                setItems(prev => prev.map(it => it.id === previewItem.id ? { ...it, cat: newCat, subcategory_id: null } : it));
+                                setPreviewItem(prev => ({ ...prev, cat: newCat, subcategory_id: null }));
+                                flash("Category updated");
+                              } catch (err) { flash("Error: " + err.message); }
+                              finally { setAdminLoading(false); }
+                            }} style={{ marginBottom: 0 }}>
+                              {cats.filter(c => c.id !== "all").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                            </AdminSelect>
+                          </div>
+                          {subcats.filter(s => s.category_id === previewItem.cat).length > 0 && (
+                            <div style={{ flex: 1 }}>
+                              <AdminSelect label="Subcategory" value={previewItem.subcategory_id || ""} onChange={async e => {
+                                const newSubcat = e.target.value || null;
+                                try {
+                                  setAdminLoading(true);
+                                  await updateWorkItem(previewItem.id, { subcategory_id: newSubcat });
+                                  setItems(prev => prev.map(it => it.id === previewItem.id ? { ...it, subcategory_id: newSubcat } : it));
+                                  setPreviewItem(prev => ({ ...prev, subcategory_id: newSubcat }));
+                                  flash(newSubcat ? "Subcategory updated" : "Subcategory removed");
+                                } catch (err) { flash("Error: " + err.message); }
+                                finally { setAdminLoading(false); }
+                              }} style={{ marginBottom: 0 }}>
+                                <option value="">No subcategory</option>
+                                {subcats.filter(s => s.category_id === previewItem.cat).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                              </AdminSelect>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
