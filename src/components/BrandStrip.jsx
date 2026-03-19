@@ -2,15 +2,15 @@ import { useTranslation } from "react-i18next";
 import { FadeIn } from "./FadeIn";
 
 const BRANDS = [
-  { name: "Bosch Professional", file: "bosch.svg" },
+  { name: "Bosch Professional", file: "bosch.png" },
   { name: "PB Swiss Tools", file: "pb-swiss-tools.png" },
-  { name: "Stanley", file: "stanley.svg" },
+  { name: "Stanley", file: "stanley.png" },
   { name: "Fischer", file: "fischer.png" },
   { name: "Strauss", file: "strauss.png" },
-  { name: "WAGO", file: "wago.svg" },
+  { name: "WAGO", file: "wago.png" },
   { name: "Laserliner", file: "laserliner.png" },
-  { name: "3M", file: "3m.svg" },
-  { name: "Tesa", file: "tesa.svg" },
+  { name: "3M", file: "3m.png" },
+  { name: "Tesa", file: "tesa.png" },
 ];
 
 // Duplicate list for seamless infinite scroll

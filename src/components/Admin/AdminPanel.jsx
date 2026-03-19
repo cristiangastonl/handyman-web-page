@@ -870,7 +870,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                           />
                         </div>
                       ) : previewItem.type === "facebook" ? (
-                        <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
+                        <div style={{ position: "relative", paddingTop: "177.78%", background: "#000", maxHeight: "70vh" }}>
                           <iframe
                             src={fbEmbedUrl(previewItem.videoId || previewItem.src)}
                             title="Facebook video preview"

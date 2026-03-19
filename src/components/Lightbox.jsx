@@ -49,13 +49,13 @@ export default function Lightbox({ item, items = [], onClose, onNavigate }) {
   if (!item) return null;
   return (
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Image viewer" onClick={onClose} onKeyDown={handleKeyDown} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 10, overflow: "hidden", maxWidth: 660, width: "100%", maxHeight: "90vh" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 10, overflow: "hidden", maxWidth: item.type === "facebook" ? 360 : 660, width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
         {item.type === "video" ? (
           <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
             <iframe src={`https://www.youtube.com/embed/${ytId(item.videoId)}?autoplay=1`} title="Video player" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen/>
           </div>
         ) : item.type === "facebook" ? (
-          <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
+          <div style={{ position: "relative", paddingTop: "177.78%", background: "#000", maxHeight: "70vh" }}>
             <iframe src={fbEmbedUrl(item.src)} title="Facebook video" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }} allow="autoplay; encrypted-media" allowFullScreen/>
           </div>
         ) : (
