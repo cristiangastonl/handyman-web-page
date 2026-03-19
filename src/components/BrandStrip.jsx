@@ -35,7 +35,7 @@ export default function BrandStrip() {
                   src={`/brands/${b.file}`}
                   alt={b.name}
                   loading="lazy"
-                  style={{ maxHeight: 36, maxWidth: 90, objectFit: "contain", filter: "grayscale(100%) opacity(0.55)", transition: "filter 0.3s" }}
+                  style={{ maxHeight: 28, maxWidth: 80, objectFit: "contain", filter: "grayscale(100%) opacity(0.55)", transition: "filter 0.3s" }}
                   onMouseEnter={e => e.currentTarget.style.filter = "grayscale(0%) opacity(1)"}
                   onMouseLeave={e => e.currentTarget.style.filter = "grayscale(100%) opacity(0.55)"}
                 />
