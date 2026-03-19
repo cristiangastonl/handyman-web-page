@@ -10,8 +10,8 @@ function ItemCard({ item, setLb }) {
       onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
       <div style={{ position: "relative", paddingTop: "62%" }}>
-        <img src={item.type === "video" ? itemThumb(item) : item.src} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
-        {item.type === "video" && (
+        <img src={item.type === "image" ? item.src : itemThumb(item)} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+        {(item.type === "video" || item.type === "facebook") && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.08)" }}>
             <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="13" height="13" viewBox="0 0 20 20" fill={R}><path d="M6 4l10 6-10 6V4z"/></svg>
@@ -30,7 +30,7 @@ function ItemCard({ item, setLb }) {
 // Tabs for photos/videos + grid
 function ItemsGrid({ items, activeTab, onTabChange, setLb, t }) {
   const photos = items.filter(w => w.type === "image");
-  const videos = items.filter(w => w.type === "video");
+  const videos = items.filter(w => w.type === "video" || w.type === "facebook");
   const displayItems = activeTab === "photos" ? photos : videos;
 
   return (
@@ -90,7 +90,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
   const { t } = useTranslation();
   const activeCats = cats.filter(c => c.id !== "all" && (items.some(w => w.cat === c.id) || (subcats || []).some(s => s.category_id === c.id)));
   const totalPhotos = items.filter(w => w.type === "image").length;
-  const totalVideos = items.filter(w => w.type === "video").length;
+  const totalVideos = items.filter(w => w.type === "video" || w.type === "facebook").length;
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
@@ -110,7 +110,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
             {activeCats.map(c => {
               const catItems = items.filter(w => w.cat === c.id);
               const catSubcats = (subcats || []).filter(s => s.category_id === c.id);
-              const thumb = c.header_image || (catItems[0]?.type === "video" ? itemThumb(catItems[0]) : catItems[0]?.src) || "";
+              const thumb = c.header_image || (catItems[0]?.type === "image" ? catItems[0]?.src : itemThumb(catItems[0])) || "";
               return (
                 <div key={c.id}
                   onClick={() => { setPortfolioView({ cat: c.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
@@ -151,10 +151,10 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
         const catItems = items.filter(w => w.cat === portfolioView.cat);
         const catSubcats = (subcats || []).filter(s => s.category_id === portfolioView.cat);
         const looseItems = catItems.filter(w => !w.subcategory_id);
-        const catThumb = currentCat?.header_image || (catItems[0]?.type === "video" ? itemThumb(catItems[0]) : catItems[0]?.src) || "";
+        const catThumb = currentCat?.header_image || (catItems[0]?.type === "image" ? catItems[0]?.src : itemThumb(catItems[0])) || "";
         const activeTab = portfolioView.tab || "photos";
         const loosePhotos = looseItems.filter(w => w.type === "image").length;
-        const looseVideos = looseItems.filter(w => w.type === "video").length;
+        const looseVideos = looseItems.filter(w => w.type === "video" || w.type === "facebook").length;
 
         return (
           <>
@@ -187,7 +187,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))", gap: 14 }}>
                   {catSubcats.map(sc => {
                     const scItems = catItems.filter(w => w.subcategory_id === sc.id);
-                    const scThumb = sc.header_image || (scItems[0]?.type === "video" ? itemThumb(scItems[0]) : scItems[0]?.src) || "";
+                    const scThumb = sc.header_image || (scItems[0]?.type === "image" ? scItems[0]?.src : itemThumb(scItems[0])) || "";
                     return (
                       <div key={sc.id}
                         onClick={() => { setPortfolioView({ cat: portfolioView.cat, subcat: sc.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
@@ -259,7 +259,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
         const currentSubcat = (subcats || []).find(s => s.id === portfolioView.subcat);
         const scItems = items.filter(w => w.cat === portfolioView.cat && w.subcategory_id === portfolioView.subcat);
         const activeTab = portfolioView.tab || "photos";
-        const scThumb = currentSubcat?.header_image || (scItems[0]?.type === "video" ? itemThumb(scItems[0]) : scItems[0]?.src) || "";
+        const scThumb = currentSubcat?.header_image || (scItems[0]?.type === "image" ? scItems[0]?.src : itemThumb(scItems[0])) || "";
 
         return (
           <>

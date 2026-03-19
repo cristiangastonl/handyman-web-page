@@ -9,7 +9,7 @@ export function RecentWork({ items, curatedItems = [], setLb, nav, siteConfig = 
   // Use curated items if available, otherwise fallback to latest work items
   const source = curatedItems.length > 0 ? curatedItems : items;
   const photos = source.filter(w => w.type === "image");
-  const videos = source.filter(w => w.type === "video");
+  const videos = source.filter(w => w.type === "video" || w.type === "facebook");
   const [tab, setTab] = useState("all");
   const titleStyle = getStyleConfig(siteConfig, "carousel_recent_work_title_style");
   if (!source.length) return null;
