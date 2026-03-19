@@ -1,3 +1,11 @@
+/** Extract YouTube video ID from a full URL or return as-is if already an ID */
+export function ytId(raw) {
+  if (!raw) return raw;
+  const s = raw.trim();
+  const m = s.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?.*v=))([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : s;
+}
+
 export const R = "#D4781F";
 export const G = "#4A4A4A";
 export const PHONE = "+41 76 594 95 81";
@@ -86,7 +94,7 @@ export const socialUrls = {
   wa: WA_LINK,
 };
 
-export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` : "");
+export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "");
 
 // ─── Site text definitions (known keys with defaults) ───
 export const SITE_TEXTS = {
@@ -155,7 +163,7 @@ export const getStyleConfig = (siteConfig, key) => {
 export const fbEmbedUrl = (url) => `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
 export const itemThumb = (item) => {
   if (item.thumb) return item.thumb;
-  if (item.type === "video") return item.videoId ? `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` : "";
+  if (item.type === "video") return item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "";
   if (item.type === "facebook") return item.thumb || "/anibal/facebook_icon.jpeg";
   return item.src;
 };

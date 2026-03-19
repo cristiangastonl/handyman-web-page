@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { itemThumb, fbEmbedUrl } from "../../lib/constants";
+import { itemThumb, fbEmbedUrl, ytId } from "../../lib/constants";
 import { colors, spacing, typography, shadows, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminTextarea, AdminCard, AdminLabel, AdminSelect, AdminFlash, AdminStyles } from "./adminUI";
 import { translateFaq } from "../../lib/translate";
@@ -861,7 +861,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                       {previewItem.type === "video" ? (
                         <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
                           <iframe
-                            src={`https://www.youtube.com/embed/${previewItem.videoId}?autoplay=1`}
+                            src={`https://www.youtube.com/embed/${ytId(previewItem.videoId)}?autoplay=1`}
                             title="Video preview"
                             style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
                             frameBorder="0"
