@@ -2,15 +2,15 @@ import { useTranslation } from "react-i18next";
 import { FadeIn } from "./FadeIn";
 
 const BRANDS = [
-  { name: "Bosch Professional", file: "bosch.png" },
-  { name: "PB Swiss Tools", file: "pb-swiss-tools.png" },
-  { name: "Stanley", file: "stanley.png" },
-  { name: "Fischer", file: "fischer.png" },
-  { name: "Strauss", file: "strauss.png" },
-  { name: "WAGO", file: "wago.png" },
-  { name: "Laserliner", file: "laserliner.png" },
-  { name: "3M", file: "3m.png" },
-  { name: "Tesa", file: "tesa.png" },
+  { name: "Bosch Professional", file: "bosch.svg", h: 32 },
+  { name: "PB Swiss Tools", file: "pb-swiss-tools.png", h: 18 },
+  { name: "Stanley", file: "stanley.svg", h: 22 },
+  { name: "Fischer", file: "fischer.png", h: 24 },
+  { name: "Strauss", file: "strauss.png", h: 26 },
+  { name: "WAGO", file: "wago.svg", h: 22 },
+  { name: "Laserliner", file: "laserliner.png", h: 24 },
+  { name: "3M", file: "3m.svg", h: 28 },
+  { name: "Tesa", file: "tesa.svg", h: 20 },
 ];
 
 // Duplicate list for seamless infinite scroll
@@ -35,7 +35,7 @@ export default function BrandStrip() {
                   src={`/brands/${b.file}`}
                   alt={b.name}
                   loading="lazy"
-                  style={{ maxHeight: 28, maxWidth: 80, objectFit: "contain", filter: "grayscale(100%) opacity(0.55)", transition: "filter 0.3s" }}
+                  style={{ maxHeight: b.h, maxWidth: 90, objectFit: "contain", filter: "grayscale(100%) opacity(0.55)", transition: "filter 0.3s" }}
                   onMouseEnter={e => e.currentTarget.style.filter = "grayscale(0%) opacity(1)"}
                   onMouseLeave={e => e.currentTarget.style.filter = "grayscale(100%) opacity(0.55)"}
                 />
