@@ -5,7 +5,7 @@ const BRANDS = [
   { name: "Bosch Professional", file: "bosch.svg" },
   { name: "PB Swiss Tools", file: "pb-swiss-tools.png" },
   { name: "Stanley", file: "stanley.svg" },
-  { name: "Fischer", file: "fischer.svg" },
+  { name: "Fischer", file: "fischer.png" },
   { name: "Strauss", file: "strauss.png" },
   { name: "WAGO", file: "wago.svg" },
   { name: "Laserliner", file: "laserliner.png" },
@@ -30,15 +30,16 @@ export default function BrandStrip() {
           <div className="brand-fade-right" style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(to left, #fafafa, transparent)", zIndex: 1, pointerEvents: "none" }}/>
           <div className="brand-marquee">
             {ITEMS.map((b, i) => (
-              <img
-                key={i}
-                src={`/brands/${b.file}`}
-                alt={b.name}
-                loading="lazy"
-                style={{ height: 40, maxWidth: 120, objectFit: "contain", flexShrink: 0, filter: "grayscale(100%) opacity(0.55)", transition: "filter 0.3s" }}
-                onMouseEnter={e => e.currentTarget.style.filter = "grayscale(0%) opacity(1)"}
-                onMouseLeave={e => e.currentTarget.style.filter = "grayscale(100%) opacity(0.55)"}
-              />
+              <div key={i} style={{ width: 100, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <img
+                  src={`/brands/${b.file}`}
+                  alt={b.name}
+                  loading="lazy"
+                  style={{ maxHeight: 36, maxWidth: 90, objectFit: "contain", filter: "grayscale(100%) opacity(0.55)", transition: "filter 0.3s" }}
+                  onMouseEnter={e => e.currentTarget.style.filter = "grayscale(0%) opacity(1)"}
+                  onMouseLeave={e => e.currentTarget.style.filter = "grayscale(100%) opacity(0.55)"}
+                />
+              </div>
             ))}
           </div>
         </div>
