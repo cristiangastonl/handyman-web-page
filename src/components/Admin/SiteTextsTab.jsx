@@ -34,6 +34,7 @@ const KNOWN_KEYS = new Set([
   "facebook_url",
   "youtube_url",
   "brand_subtitle",
+  "storage_limit_gb",
 ]);
 
 // ── Preview wrapper ──
@@ -338,6 +339,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <FooterField label="Brand Subtitle" configKey="brand_subtitle" defaultValue={siteConfig.brand_subtitle || "Specialist Technician At Domestic Matters"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Business Hours" configKey="site_hours" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Service Areas" configKey="site_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />
+        <FooterField label="Storage Limit (GB)" configKey="storage_limit_gb" defaultValue={siteConfig.storage_limit_gb || "10"} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Max GB for this project (shown in header bar)" />
       </AdminCard>
 
       {/* ── 1. Hero Section ── */}
