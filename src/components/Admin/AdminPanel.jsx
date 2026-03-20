@@ -5,7 +5,7 @@ import { AdminButton, AdminInput, AdminTextarea, AdminCard, AdminLabel, AdminSel
 import { translateFaq } from "../../lib/translate";
 import DragList from "./DragList";
 import {
-  supabase, uploadImage,
+  supabase, uploadImage, fetchStorageUsage,
   fetchCategories, addCategory, updateCategory, deleteCategory,
   fetchWorkItems, addWorkItem, updateWorkItem, deleteWorkItem,
   fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow, updateFaqOrder,
@@ -38,6 +38,9 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [loginPass, setLoginPass] = useState("");
   const [loginErr, setLoginErr] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+
+  // Storage usage
+  const [storageUsage, setStorageUsage] = useState(null);
 
   // Admin UI
   // adminTab and setAdminTab come from props (lifted to App.jsx to survive re-renders)
@@ -121,6 +124,8 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
       try {
         const dbConfig = await fetchSiteConfig();
         if (dbConfig) setSiteConfig(dbConfig);
+        const usage = await fetchStorageUsage();
+        if (usage) setStorageUsage(usage);
       } catch (err) {
         console.warn("Config load failed:", err.message);
       }
@@ -401,7 +406,23 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
       <AdminStyles />
       <div className="admin-container" style={{ maxWidth: 900, width: "100%", margin: "0 auto", padding: "28px 20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing["2xl"] }}>
-          <h2 style={typography.pageTitle}>Admin Panel</h2>
+          <div>
+            <h2 style={typography.pageTitle}>Admin Panel</h2>
+            {storageUsage && (() => {
+              const mb = (storageUsage.bytes / (1024 * 1024)).toFixed(1);
+              const gb = (storageUsage.bytes / (1024 * 1024 * 1024)).toFixed(2);
+              const limitGb = 1;
+              const pct = Math.min(100, ((storageUsage.bytes / (limitGb * 1024 * 1024 * 1024)) * 100)).toFixed(1);
+              return (
+                <div style={{ fontSize: 11, color: "#888", marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>{storageUsage.files} files · {mb < 1000 ? `${mb} MB` : `${gb} GB`} / {limitGb} GB ({pct}%)</span>
+                  <div style={{ width: 80, height: 6, borderRadius: 3, background: "#eee", overflow: "hidden" }}>
+                    <div style={{ width: `${pct}%`, height: "100%", borderRadius: 3, background: pct > 80 ? "#e53e3e" : pct > 50 ? "#d69e2e" : "#38a169" }}/>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
           <div style={{ display: "flex", gap: spacing.sm }}>
             {session && (
               <AdminButton variant="danger" size="small" onClick={handleLogout}>

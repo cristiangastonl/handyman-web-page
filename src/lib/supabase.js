@@ -25,6 +25,23 @@ export async function uploadImage(file, folder) {
   return data.publicUrl;
 }
 
+// ─── Storage usage ───
+export async function fetchStorageUsage() {
+  if (!supabase) return null;
+  const folders = ["work", "categories", "subcategories"];
+  let totalBytes = 0;
+  let totalFiles = 0;
+  for (const folder of folders) {
+    const { data } = await supabase.storage.from("images").list(folder, { limit: 1000 });
+    if (data) {
+      for (const f of data) {
+        if (f.metadata?.size) { totalBytes += f.metadata.size; totalFiles++; }
+      }
+    }
+  }
+  return { bytes: totalBytes, files: totalFiles };
+}
+
 // ─── Categories ───
 export async function fetchCategories() {
   if (!supabase) return null;
