@@ -411,7 +411,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {storageUsage && (() => {
               const mb = (storageUsage.bytes / (1024 * 1024)).toFixed(1);
               const gb = (storageUsage.bytes / (1024 * 1024 * 1024)).toFixed(2);
-              const limitGb = 1;
+              const limitGb = 100;
               const pct = Math.min(100, ((storageUsage.bytes / (limitGb * 1024 * 1024 * 1024)) * 100)).toFixed(1);
               return (
                 <div style={{ fontSize: 11, color: "#888", marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
