@@ -162,6 +162,7 @@ export const getStyleConfig = (siteConfig, key) => {
 
 export const fbEmbedUrl = (url) => `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
 export const itemThumb = (item) => {
+  if (!item) return "";
   if (item.thumb) return item.thumb;
   if (item.type === "video") return item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "";
   if (item.type === "facebook") return item.thumb || "/anibal/facebook_icon.jpeg";
