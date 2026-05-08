@@ -11,8 +11,10 @@ Handyman services landing page for Zurich, Switzerland. Multi-page React app wit
 - `npm run dev` — Start dev server on http://localhost:3000 (auto-opens browser)
 - `npm run build` — Production build to `dist/`
 - `npm run preview` — Preview production build
+- `npm test` — Run Vitest unit tests once
+- `npm run test:watch` — Run Vitest in watch mode
 
-No test runner or linter is configured.
+No linter is configured.
 
 ## Architecture
 
