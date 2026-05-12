@@ -7,7 +7,7 @@ import DragList from "./DragList";
 import {
   supabase, uploadImage, fetchStorageUsage,
   fetchCategories, addCategory, updateCategory, deleteCategory,
-  fetchWorkItems, addWorkItem, updateWorkItem, deleteWorkItem,
+  fetchWorkItems, addWorkItem, updateWorkItem, deleteWorkItem, updateWorkItemsOrder,
   fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow, updateFaqOrder,
   fetchSiteConfig, upsertSiteConfig,
   fetchSubcategories, addSubcategory, updateSubcategory, deleteSubcategory,
@@ -209,20 +209,55 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
       if (wiType === "image" && wiFile) src = await uploadImage(wiFile, "work");
       if ((wiType === "video" || wiType === "facebook") && wiThumbFile) thumb = await uploadImage(wiThumbFile, "work");
       if (wiType === "facebook") src = wiVideoId.trim() || null; // Store FB URL in src
+      // Assign sort_order = max(siblings in same cat/subcat) + 1 so new items go to the END
+      const siblings = items.filter(it =>
+        it.cat === wiCat && (it.subcategory_id || null) === (wiSubcat || null)
+      );
+      const nextSortOrder = siblings.length > 0
+        ? Math.max(...siblings.map(it => it.sort_order ?? 0)) + 1
+        : 0;
       const row = {
         type: wiType, cat: wiCat, title: wiTitle.trim(),
         description: wiDesc.trim() || null, src, thumb,
         video_id: wiType === "video" ? wiVideoId.trim() || null : null,
         subcategory_id: wiSubcat || null,
+        sort_order: nextSortOrder,
       };
       const saved = await addWorkItem(row);
       setItems(prev => [...prev, {
         id: saved.id, type: saved.type, cat: saved.cat, src: saved.src,
         thumb: saved.thumb, title: saved.title, desc: saved.description, videoId: saved.video_id,
         subcategory_id: saved.subcategory_id || null,
+        sort_order: saved.sort_order ?? nextSortOrder,
       }]);
       setWiTitle(""); setWiDesc(""); setWiFile(null); setWiVideoId(""); setWiThumbFile(null); setWiSubcat(""); resetFiles();
       flash("Work item added");
+    } catch (err) { flash("Error: " + err.message); }
+    finally { setAdminLoading(false); }
+  };
+
+  // Reorder a work item within the current filter (only when filter is active).
+  // Normalizes sort_order across the filtered subset on every move — safe because
+  // ordering only matters within a category/subcategory at the public site.
+  const handleMoveItem = async (itemId, direction) => {
+    if (!filterCat) return;
+    const filtered = items
+      .filter(it => it.cat === filterCat && (!filterSubcat || it.subcategory_id === filterSubcat))
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const idx = filtered.findIndex(it => it.id === itemId);
+    if (idx === -1) return;
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= filtered.length) return;
+    const reordered = [...filtered];
+    [reordered[idx], reordered[swapIdx]] = [reordered[swapIdx], reordered[idx]];
+    try {
+      setAdminLoading(true);
+      await updateWorkItemsOrder(reordered.map(it => it.id));
+      setItems(prev => prev.map(it => {
+        const newIdx = reordered.findIndex(r => r.id === it.id);
+        return newIdx >= 0 ? { ...it, sort_order: newIdx } : it;
+      }));
+      flash("Order updated");
     } catch (err) { flash("Error: " + err.message); }
     finally { setAdminLoading(false); }
   };
@@ -699,11 +734,14 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   </div>
                   {/* Filtered + paginated items */}
                   {(() => {
-                    const filteredItems = items.filter(item => {
-                      if (filterCat && item.cat !== filterCat) return false;
-                      if (filterSubcat && item.subcategory_id !== filterSubcat) return false;
-                      return true;
-                    });
+                    const filteredItems = items
+                      .filter(item => {
+                        if (filterCat && item.cat !== filterCat) return false;
+                        if (filterSubcat && item.subcategory_id !== filterSubcat) return false;
+                        return true;
+                      })
+                      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+                    const canReorder = !!filterCat;
                     const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
                     const safePage = Math.min(page, totalPages);
                     const pagedItems = filteredItems.slice((safePage - 1) * pageSize, safePage * pageSize);
@@ -736,8 +774,18 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                           : filteredItems.length === 0
                             ? emptyMsg("No items match the current filters.")
                             : (
+                              <>
+                              {canReorder && (
+                                <div style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>
+                                  Tip: use the ↑ ↓ arrows on each item to reorder. Order is saved automatically.
+                                </div>
+                              )}
                               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: spacing.md }}>
-                                {pagedItems.map(item => (
+                                {pagedItems.map((item, idxInPage) => {
+                                  const globalIdx = filteredItems.findIndex(it => it.id === item.id);
+                                  const isFirst = globalIdx === 0;
+                                  const isLast = globalIdx === filteredItems.length - 1;
+                                  return (
                                   <div
                                     key={item.id}
                                     onClick={() => setPreviewItem(item)}
@@ -765,6 +813,36 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                                           objectFit: "cover",
                                         }}
                                       />
+                                      {canReorder && (
+                                        <div style={{ position: "absolute", top: 4, left: 4, display: "flex", flexDirection: "column", gap: 2 }}>
+                                          <button
+                                            type="button"
+                                            disabled={isFirst || adminLoading}
+                                            onClick={e => { e.stopPropagation(); handleMoveItem(item.id, "up"); }}
+                                            title="Move up"
+                                            style={{
+                                              width: 22, height: 22, borderRadius: radii.sm, border: "none",
+                                              background: "rgba(0,0,0,0.65)", color: isFirst ? "rgba(255,255,255,0.3)" : "#fff",
+                                              cursor: isFirst || adminLoading ? "not-allowed" : "pointer",
+                                              fontSize: 13, lineHeight: 1, padding: 0,
+                                              display: "flex", alignItems: "center", justifyContent: "center",
+                                            }}
+                                          >↑</button>
+                                          <button
+                                            type="button"
+                                            disabled={isLast || adminLoading}
+                                            onClick={e => { e.stopPropagation(); handleMoveItem(item.id, "down"); }}
+                                            title="Move down"
+                                            style={{
+                                              width: 22, height: 22, borderRadius: radii.sm, border: "none",
+                                              background: "rgba(0,0,0,0.65)", color: isLast ? "rgba(255,255,255,0.3)" : "#fff",
+                                              cursor: isLast || adminLoading ? "not-allowed" : "pointer",
+                                              fontSize: 13, lineHeight: 1, padding: 0,
+                                              display: "flex", alignItems: "center", justifyContent: "center",
+                                            }}
+                                          >↓</button>
+                                        </div>
+                                      )}
                                       {item.type !== "image" && (
                                         <span style={{
                                           position: "absolute",
@@ -791,8 +869,10 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                                       </div>
                                     </div>
                                   </div>
-                                ))}
+                                  );
+                                })}
                               </div>
+                              </>
                             )
                         }
                         {/* Pagination controls */}
@@ -908,16 +988,12 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                         />
                       )}
                       {/* Info bar */}
-                      <div style={{ padding: `${spacing.md}px ${spacing.lg}px`, borderTop: `1px solid ${colors.gray200}` }}>
+                      <div style={{ padding: `${spacing.md}px ${spacing.lg}px`, borderTop: `1px solid ${colors.gray200}`, overflowY: "auto" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.sm }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 14, fontWeight: 600, color: colors.gray900 }}>{previewItem.title || "(untitled)"}</div>
-                            <div style={{ ...typography.caption, marginTop: 2 }}>
-                              {cats.find(c => c.id === previewItem.cat)?.label}
-                              {previewItem.subcategory_id && subcats.find(s => s.id === previewItem.subcategory_id)?.name && ` / ${subcats.find(s => s.id === previewItem.subcategory_id).name}`}
-                              {" · "}{previewItem.type === "image" ? "Photo" : previewItem.type === "video" ? "YouTube" : "Facebook"}
-                            </div>
-                            {previewItem.desc && <div style={{ ...typography.caption, color: colors.gray400, marginTop: 2 }}>{previewItem.desc}</div>}
+                          <div style={{ ...typography.caption, flex: 1, minWidth: 0 }}>
+                            {cats.find(c => c.id === previewItem.cat)?.label}
+                            {previewItem.subcategory_id && subcats.find(s => s.id === previewItem.subcategory_id)?.name && ` / ${subcats.find(s => s.id === previewItem.subcategory_id).name}`}
+                            {" · "}{previewItem.type === "image" ? "Photo" : previewItem.type === "video" ? "YouTube" : "Facebook"}
                           </div>
                           <div style={{ display: "flex", gap: spacing.sm, alignItems: "center", marginLeft: spacing.md }}>
                             <AdminButton variant="danger" size="small" onClick={() => { handleDeleteWorkItem(previewItem.id); setPreviewItem(null); }} loading={adminLoading}>
@@ -940,6 +1016,74 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                             </button>
                           </div>
                         </div>
+                        {/* Edit title */}
+                        <AdminInput
+                          label="Title"
+                          value={previewItem.title || ""}
+                          onChange={e => setPreviewItem(prev => ({ ...prev, title: e.target.value }))}
+                          onBlur={async e => {
+                            const newTitle = e.target.value.trim();
+                            const original = items.find(it => it.id === previewItem.id)?.title || "";
+                            if (newTitle === original) return;
+                            try {
+                              setAdminLoading(true);
+                              await updateWorkItem(previewItem.id, { title: newTitle });
+                              setItems(prev => prev.map(it => it.id === previewItem.id ? { ...it, title: newTitle } : it));
+                              flash("Title updated");
+                            } catch (err) { flash("Error: " + err.message); }
+                            finally { setAdminLoading(false); }
+                          }}
+                          style={{ marginBottom: spacing.sm }}
+                        />
+                        {/* Edit description */}
+                        <AdminTextarea
+                          label="Description"
+                          rows={2}
+                          value={previewItem.desc || ""}
+                          onChange={e => setPreviewItem(prev => ({ ...prev, desc: e.target.value }))}
+                          onBlur={async e => {
+                            const newDesc = e.target.value.trim();
+                            const original = items.find(it => it.id === previewItem.id)?.desc || "";
+                            if (newDesc === original) return;
+                            try {
+                              setAdminLoading(true);
+                              await updateWorkItem(previewItem.id, { description: newDesc || null });
+                              setItems(prev => prev.map(it => it.id === previewItem.id ? { ...it, desc: newDesc || null } : it));
+                              flash("Description updated");
+                            } catch (err) { flash("Error: " + err.message); }
+                            finally { setAdminLoading(false); }
+                          }}
+                          style={{ marginBottom: spacing.sm }}
+                        />
+                        {/* Replace image / thumbnail */}
+                        {(previewItem.type === "image" || previewItem.type === "video" || previewItem.type === "facebook") && (
+                          <div style={{ marginBottom: spacing.md }}>
+                            <label style={A.inputLabel}>
+                              {previewItem.type === "image" ? "Replace photo" : "Replace thumbnail"}
+                            </label>
+                            <input
+                              key={`replace-${previewItem.id}-${fileKey}`}
+                              type="file"
+                              accept="image/*"
+                              onChange={async e => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const field = previewItem.type === "image" ? "src" : "thumb";
+                                try {
+                                  setAdminLoading(true);
+                                  const newUrl = await uploadImage(file, "work");
+                                  await updateWorkItem(previewItem.id, { [field]: newUrl });
+                                  setItems(prev => prev.map(it => it.id === previewItem.id ? { ...it, [field]: newUrl } : it));
+                                  setPreviewItem(prev => ({ ...prev, [field]: newUrl }));
+                                  resetFiles();
+                                  flash(previewItem.type === "image" ? "Photo replaced" : "Thumbnail replaced");
+                                } catch (err) { flash("Error: " + err.message); }
+                                finally { setAdminLoading(false); }
+                              }}
+                              style={{ display: "block", fontSize: 12 }}
+                            />
+                          </div>
+                        )}
                         {/* Edit category / subcategory */}
                         <div style={{ display: "flex", gap: spacing.md, alignItems: "flex-end", paddingTop: spacing.sm, borderTop: `1px solid ${colors.gray100}` }}>
                           <div style={{ flex: 1 }}>

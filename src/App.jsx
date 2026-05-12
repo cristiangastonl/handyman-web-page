@@ -88,6 +88,11 @@ export default function App() {
 
   // ── UI state ──
   const [lb, setLb] = useState(null);
+  const [lbItems, setLbItems] = useState([]);
+  const openLightbox = (item, contextItems) => {
+    setLb(item);
+    setLbItems(Array.isArray(contextItems) && contextItems.length > 0 ? contextItems : (item ? [item] : []));
+  };
   const [portfolioView, setPortfolioView] = useState("categories");
   const [loading, setLoading] = useState(!!supabase);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -142,7 +147,7 @@ export default function App() {
         safe(() => fetchCarouselItems('tailor_jobs')),
       ]);
       if (dbCats?.length > 0) setCats([{ id: "all", label: "All" }, ...dbCats.map(c => ({ id: c.id, label: c.label, header_image: c.header_image }))]);
-      if (dbItems?.length > 0) setItems(dbItems.map(w => ({ id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb, title: w.title, desc: w.description, videoId: w.video_id, subcategory_id: w.subcategory_id || null })));
+      if (dbItems?.length > 0) setItems(dbItems.map(w => ({ id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb, title: w.title, desc: w.description, videoId: w.video_id, subcategory_id: w.subcategory_id || null, sort_order: w.sort_order ?? 0 })));
       if (dbFaqs?.length > 0) setFaqs(dbFaqs.map(f => ({
         id: f.id, q: f.question, a: f.answer,
         question_de: f.question_de, answer_de: f.answer_de,
@@ -186,11 +191,11 @@ export default function App() {
           <StatsBar siteConfig={siteConfig}/>
           <About nav={nav} navToCategory={navToCategory} siteConfig={siteConfig}/>
           <ServiceAreasCTA siteConfig={siteConfig}/>
-          <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={setLb} nav={nav} siteConfig={siteConfig}/>
-          <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={setLb} siteConfig={siteConfig}/>
-          <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={setLb} siteConfig={siteConfig}/>
+          <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={openLightbox} nav={nav} siteConfig={siteConfig}/>
+          <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={openLightbox} siteConfig={siteConfig}/>
+          <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={openLightbox} siteConfig={siteConfig}/>
           <TailoringCTA nav={nav} siteConfig={siteConfig}/>
-          <TailorJobs items={carouselData.tailor_jobs} setLb={setLb} siteConfig={siteConfig}/>
+          <TailorJobs items={carouselData.tailor_jobs} setLb={openLightbox} siteConfig={siteConfig}/>
           <BrandStrip/>
           <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews} siteConfig={siteConfig}/>
           <FAQHome faqs={faqs} nav={nav}/>
@@ -229,7 +234,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage/>}/>
             <Route path="/portfolio" element={
-              <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={setLb}/>
+              <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={openLightbox}/>
             }/>
             <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews}/>}/>
             <Route path="/faq" element={<FAQPage faqs={faqs}/>}/>
@@ -242,7 +247,7 @@ export default function App() {
         <>
           <Footer nav={nav} siteConfig={siteConfig}/>
           <StickyBar nav={nav}/>
-          <Lightbox item={lb} items={items} onClose={() => setLb(null)} onNavigate={setLb}/>
+          <Lightbox item={lb} items={lbItems} onClose={() => { setLb(null); setLbItems([]); }} onNavigate={setLb}/>
           <WhatsAppFAB/>
         </>
       )}

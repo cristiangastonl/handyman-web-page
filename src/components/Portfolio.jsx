@@ -3,9 +3,9 @@ import { R, G, WA_LINK, itemThumb, svgP } from "../lib/constants";
 import { SocialIcon } from "./ui";
 
 // Reusable item card
-function ItemCard({ item, setLb }) {
+function ItemCard({ item, setLb, contextItems }) {
   return (
-    <div key={item.id} onClick={() => setLb(item)}
+    <div key={item.id} onClick={() => setLb(item, contextItems)}
       style={{ borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
       onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
@@ -50,7 +50,7 @@ function ItemsGrid({ items, activeTab, onTabChange, setLb, t }) {
         ))}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 10 }}>
-        {displayItems.map(item => <ItemCard key={item.id} item={item} setLb={setLb}/>)}
+        {displayItems.map(item => <ItemCard key={item.id} item={item} setLb={setLb} contextItems={displayItems}/>)}
       </div>
       {!displayItems.length && (
         <div style={{ textAlign: "center", padding: "48px 20px" }}>

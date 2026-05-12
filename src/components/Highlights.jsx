@@ -23,7 +23,7 @@ export default function Highlights({ highlights, curatedItems = [], setLb, siteC
       </div>
       <Carousel
         items={displayItems}
-        onClickItem={item => setLb(item)}
+        onClickItem={item => setLb(item, displayItems)}
       />
       <div style={{ textAlign: "center", marginTop: 12 }}>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer"

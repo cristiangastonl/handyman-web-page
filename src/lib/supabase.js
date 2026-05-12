@@ -89,6 +89,15 @@ export async function deleteWorkItem(id) {
   const { error } = await supabase.from("work_items").delete().eq("id", id);
   if (error) throw error;
 }
+export async function updateWorkItemsOrder(orderedIds) {
+  if (!supabase) return;
+  const updates = orderedIds.map((id, i) =>
+    supabase.from("work_items").update({ sort_order: i }).eq("id", id)
+  );
+  const results = await Promise.all(updates);
+  const firstError = results.find(r => r.error);
+  if (firstError) throw firstError.error;
+}
 
 // ─── FAQs ───
 export async function fetchFaqs() {

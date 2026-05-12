@@ -13,7 +13,7 @@ export default function TailorJobs({ items, setLb, siteConfig = {} }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
         <h2 style={{ fontSize: titleStyle.fontSize, fontFamily: `'${titleStyle.fontFamily}', sans-serif`, fontWeight: 700 }}>{t("tailorJobs.title")}</h2>
       </div>
-      <Carousel items={items} onClickItem={item => setLb(item)}/>
+      <Carousel items={items} onClickItem={item => setLb(item, items)}/>
       <div style={{ textAlign: "center", marginTop: 12 }}>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>

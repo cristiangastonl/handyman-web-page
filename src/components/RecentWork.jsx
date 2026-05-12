@@ -45,7 +45,7 @@ export function RecentWork({ items, curatedItems = [], setLb, nav, siteConfig = 
         </div>
         <button onClick={() => nav("portfolio")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("recentWork.viewAll")}</button>
       </div>
-      {displayItems.length > 0 && <Carousel items={displayItems} onClickItem={setLb}/>}
+      {displayItems.length > 0 && <Carousel items={displayItems} onClickItem={item => setLb(item, displayItems)}/>}
     </section>
     </FadeIn>
   );
