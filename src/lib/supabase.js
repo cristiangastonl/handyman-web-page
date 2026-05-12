@@ -54,9 +54,9 @@ export async function addCategory(id, label, headerImage) {
   const { error } = await supabase.from("categories").insert({ id, label, header_image: headerImage });
   if (error) throw error;
 }
-export async function updateCategory(id, label) {
+export async function updateCategory(id, updates) {
   if (!supabase) return;
-  const { error } = await supabase.from("categories").update({ label }).eq("id", id);
+  const { error } = await supabase.from("categories").update(updates).eq("id", id);
   if (error) throw error;
 }
 export async function deleteCategory(id) {
@@ -156,9 +156,9 @@ export async function addSubcategory(categoryId, name, headerImage, playlistId) 
   if (error) throw error;
   return data;
 }
-export async function updateSubcategory(id, name) {
+export async function updateSubcategory(id, updates) {
   if (!supabase) return;
-  const { error } = await supabase.from("subcategories").update({ name }).eq("id", id);
+  const { error } = await supabase.from("subcategories").update(updates).eq("id", id);
   if (error) throw error;
 }
 export async function deleteSubcategory(id) {

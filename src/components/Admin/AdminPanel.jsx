@@ -91,6 +91,10 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   // Inline editing state: { type: "cat"|"subcat"|"fbr", id, value, ... }
   const [editing, setEditing] = useState(null);
 
+  // Image picker modal for cat/subcat header images: { kind: "cat"|"subcat", id, label, currentImage }
+  const [imagePicker, setImagePicker] = useState(null);
+  const [imagePickerMode, setImagePickerMode] = useState("upload");
+
   // FB Review form
   const [fbrName, setFbrName] = useState("");
   const [fbrRating, setFbrRating] = useState("5");
@@ -374,17 +378,37 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     finally { setAdminLoading(false); }
   };
 
+  // ── Header image (categories & subcategories) ──
+  const handleSetCatSubcatImage = async (newUrl) => {
+    if (!imagePicker) return;
+    const { kind, id } = imagePicker;
+    try {
+      setAdminLoading(true);
+      if (kind === "cat") {
+        await updateCategory(id, { header_image: newUrl });
+        setCats(prev => prev.map(c => c.id === id ? { ...c, header_image: newUrl } : c));
+      } else {
+        await updateSubcategory(id, { header_image: newUrl });
+        setSubcats(prev => prev.map(s => s.id === id ? { ...s, header_image: newUrl } : s));
+      }
+      flash(newUrl ? "Image updated" : "Image removed");
+      setImagePicker(null);
+      resetFiles();
+    } catch (err) { flash("Error: " + err.message); }
+    finally { setAdminLoading(false); }
+  };
+
   // ── Inline edit handlers ──
   const handleSaveEdit = async () => {
     if (!editing) return;
     setAdminLoading(true);
     try {
       if (editing.type === "cat") {
-        await updateCategory(editing.id, editing.value.trim());
+        await updateCategory(editing.id, { label: editing.value.trim() });
         setCats(prev => prev.map(c => c.id === editing.id ? { ...c, label: editing.value.trim() } : c));
         flash("Category updated");
       } else if (editing.type === "subcat") {
-        await updateSubcategory(editing.id, editing.value.trim());
+        await updateSubcategory(editing.id, { name: editing.value.trim() });
         setSubcats(prev => prev.map(s => s.id === editing.id ? { ...s, name: editing.value.trim() } : s));
         flash("Subcategory updated");
       } else if (editing.type === "fbr") {
@@ -559,7 +583,17 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                       <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm }}>
                         {cats.filter(c => c.id !== "all").map(c => (
                           <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
-                            {c.header_image && <img src={c.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
+                            <button
+                              type="button"
+                              onClick={() => { setImagePicker({ kind: "cat", id: c.id, label: c.label, currentImage: c.header_image }); setImagePickerMode("upload"); }}
+                              title={c.header_image ? "Change cover image" : "Set cover image"}
+                              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "inline-flex", alignItems: "center" }}
+                            >
+                              {c.header_image
+                                ? <img src={c.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover", display: "block" }}/>
+                                : <span style={{ width: 18, height: 18, borderRadius: radii.sm, background: colors.gray300, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: colors.gray600 }}>📷</span>
+                              }
+                            </button>
                             {editing?.type === "cat" && editing.id === c.id ? (
                               <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                                 <input
@@ -572,7 +606,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                                 />
                               </form>
                             ) : (
-                              <span onClick={() => setEditing({ type: "cat", id: c.id, value: c.label })} style={{ cursor: "pointer" }} title="Click to edit">
+                              <span onClick={() => setEditing({ type: "cat", id: c.id, value: c.label })} style={{ cursor: "pointer" }} title="Click to edit name">
                                 {c.label}
                               </span>
                             )}
@@ -598,7 +632,17 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                             <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm }}>
                               {children.map(sc => (
                                 <span key={sc.id} style={{ display: "inline-flex", alignItems: "center", gap: spacing.sm, background: colors.gray100, padding: `5px ${spacing.md}px`, borderRadius: radii.full, fontSize: 12 }}>
-                                  {sc.header_image && <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover" }}/>}
+                                  <button
+                                    type="button"
+                                    onClick={() => { setImagePicker({ kind: "subcat", id: sc.id, label: sc.name, currentImage: sc.header_image, parentCat: sc.category_id }); setImagePickerMode("upload"); }}
+                                    title={sc.header_image ? "Change cover image" : "Set cover image"}
+                                    style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "inline-flex", alignItems: "center" }}
+                                  >
+                                    {sc.header_image
+                                      ? <img src={sc.header_image} alt="" style={{ width: 18, height: 18, borderRadius: radii.sm, objectFit: "cover", display: "block" }}/>
+                                      : <span style={{ width: 18, height: 18, borderRadius: radii.sm, background: colors.gray300, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: colors.gray600 }}>📷</span>
+                                    }
+                                  </button>
                                   {editing?.type === "subcat" && editing.id === sc.id ? (
                                     <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                                       <input
@@ -611,7 +655,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                                       />
                                     </form>
                                   ) : (
-                                    <span onClick={() => setEditing({ type: "subcat", id: sc.id, value: sc.name })} style={{ cursor: "pointer" }} title="Click to edit">
+                                    <span onClick={() => setEditing({ type: "subcat", id: sc.id, value: sc.name })} style={{ cursor: "pointer" }} title="Click to edit name">
                                       {sc.name}
                                     </span>
                                   )}
@@ -1315,6 +1359,127 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
           </>
         )}
       </div>
+      {/* Image picker modal for category / subcategory cover image */}
+      {imagePicker && (() => {
+        const portfolioImages = items
+          .filter(it => it.type === "image" && it.src)
+          .sort((a, b) => {
+            const parentCat = imagePicker.kind === "subcat" ? imagePicker.parentCat : imagePicker.id;
+            const aMatch = a.cat === parentCat ? 0 : 1;
+            const bMatch = b.cat === parentCat ? 0 : 1;
+            if (aMatch !== bMatch) return aMatch - bMatch;
+            return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+          });
+        return (
+          <div onClick={() => setImagePicker(null)} style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: colors.white, borderRadius: radii.lg, maxWidth: 720, width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: shadows.lg, overflow: "hidden" }}>
+              {/* Header */}
+              <div style={{ padding: `${spacing.md}px ${spacing.lg}px`, borderBottom: `1px solid ${colors.gray200}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>
+                    Cover image — {imagePicker.kind === "cat" ? "Category" : "Subcategory"}: {imagePicker.label}
+                  </div>
+                  {imagePicker.currentImage && (
+                    <div style={{ ...typography.caption, marginTop: 4, display: "flex", alignItems: "center", gap: spacing.sm }}>
+                      <img src={imagePicker.currentImage} alt="" style={{ width: 24, height: 24, borderRadius: radii.sm, objectFit: "cover" }}/>
+                      <span>Current image</span>
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => setImagePicker(null)} style={{ background: "none", border: `1px solid ${colors.gray300}`, borderRadius: radii.sm, cursor: "pointer", fontSize: 13, color: colors.gray600, height: 28, padding: "0 12px" }}>Close</button>
+              </div>
+              {/* Mode tabs */}
+              <div style={{ display: "flex", borderBottom: `1px solid ${colors.gray200}` }}>
+                {[["upload", "Upload from disk"], ["portfolio", "Pick from portfolio"]].map(([mode, label]) => (
+                  <button key={mode} onClick={() => setImagePickerMode(mode)}
+                    style={{
+                      padding: `${spacing.sm}px ${spacing.lg}px`, background: "none", border: "none", cursor: "pointer",
+                      fontSize: 13, fontWeight: imagePickerMode === mode ? 600 : 400,
+                      color: imagePickerMode === mode ? colors.brand : colors.gray600,
+                      borderBottom: imagePickerMode === mode ? `2px solid ${colors.brand}` : "2px solid transparent",
+                      marginBottom: -1,
+                    }}>{label}</button>
+                ))}
+              </div>
+              {/* Mode content */}
+              <div style={{ padding: spacing.lg, overflowY: "auto", flex: 1 }}>
+                {imagePickerMode === "upload" && (
+                  <div>
+                    <p style={{ ...typography.caption, marginBottom: spacing.md }}>
+                      Pick an image from your computer. It will be uploaded and set as the cover.
+                    </p>
+                    <input
+                      key={`cover-${imagePicker.kind}-${imagePicker.id}-${fileKey}`}
+                      type="file"
+                      accept="image/*"
+                      onChange={async e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          setAdminLoading(true);
+                          const folder = imagePicker.kind === "cat" ? "categories" : "subcategories";
+                          const url = await uploadImage(file, folder);
+                          await handleSetCatSubcatImage(url);
+                        } catch (err) { flash("Error: " + err.message); }
+                        finally { setAdminLoading(false); }
+                      }}
+                      style={{ display: "block", fontSize: 13 }}
+                    />
+                  </div>
+                )}
+                {imagePickerMode === "portfolio" && (
+                  <div>
+                    <p style={{ ...typography.caption, marginBottom: spacing.md }}>
+                      Click any photo from your portfolio to use it as the cover. Photos from this {imagePicker.kind === "cat" ? "category" : "subcategory's category"} appear first.
+                    </p>
+                    {portfolioImages.length === 0
+                      ? emptyMsg("No photos in your portfolio yet. Upload some via the Portfolio tab first.")
+                      : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: spacing.sm }}>
+                          {portfolioImages.map(it => {
+                            const isSelected = it.src === imagePicker.currentImage;
+                            return (
+                              <button
+                                key={it.id}
+                                type="button"
+                                onClick={() => handleSetCatSubcatImage(it.src)}
+                                disabled={adminLoading}
+                                title={it.title || ""}
+                                style={{
+                                  background: "none",
+                                  border: isSelected ? `2px solid ${colors.brand}` : `1px solid ${colors.gray200}`,
+                                  borderRadius: radii.md,
+                                  overflow: "hidden",
+                                  cursor: adminLoading ? "not-allowed" : "pointer",
+                                  padding: 0,
+                                  position: "relative",
+                                  aspectRatio: "1 / 1",
+                                }}>
+                                <img src={it.src} alt={it.title || ""} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
+                                {isSelected && (
+                                  <span style={{ position: "absolute", top: 4, right: 4, background: colors.brand, color: colors.white, fontSize: 9, padding: "2px 6px", borderRadius: radii.full, fontWeight: 600 }}>CURRENT</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )
+                    }
+                  </div>
+                )}
+              </div>
+              {/* Footer: remove image */}
+              {imagePicker.currentImage && (
+                <div style={{ padding: `${spacing.sm}px ${spacing.lg}px`, borderTop: `1px solid ${colors.gray200}`, display: "flex", justifyContent: "flex-end" }}>
+                  <AdminButton variant="danger" size="small" onClick={() => handleSetCatSubcatImage(null)} loading={adminLoading}>
+                    Remove cover image
+                  </AdminButton>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
