@@ -19,6 +19,51 @@ import SiteTextsTab from "./SiteTextsTab";
 
 const emptyMsg = (text) => <p style={{ ...A.emptyState, padding: `${spacing.lg}px 0` }}>{text}</p>;
 
+function HelpTooltip({ children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span style={{ position: "relative", display: "inline-flex", alignItems: "center", marginLeft: 6 }}>
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+        aria-label="Help"
+        title="How does this work?"
+        style={{
+          width: 18, height: 18, borderRadius: "50%",
+          border: `1px solid ${colors.gray300}`,
+          background: open ? colors.brand : colors.white,
+          color: open ? colors.white : colors.gray600,
+          cursor: "pointer", fontSize: 11, fontWeight: 700,
+          lineHeight: 1, padding: 0,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+        }}
+      >?</button>
+      {open && (
+        <>
+          <span
+            onClick={() => setOpen(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 50 }}
+          />
+          <span style={{
+            position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 51,
+            background: colors.gray900, color: colors.white,
+            padding: `${spacing.sm}px ${spacing.md}px`,
+            borderRadius: radii.md, fontSize: 12, lineHeight: 1.5,
+            width: 280, boxShadow: shadows.lg, fontWeight: 400,
+          }}>
+            {children}
+            <span style={{
+              position: "absolute", top: -5, left: 6,
+              width: 10, height: 10, background: colors.gray900,
+              transform: "rotate(45deg)",
+            }}/>
+          </span>
+        </>
+      )}
+    </span>
+  );
+}
+
 function generatePageNumbers(current, total) {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const pages = [1];
@@ -576,7 +621,19 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                   </form>
                 </AdminCard>
 
-                <AdminCard title={`Categories (${cats.filter(c => c.id !== "all").length})`} style={{ marginTop: spacing.xl }}>
+                <AdminCard title={
+                  <span style={{ display: "inline-flex", alignItems: "center" }}>
+                    Categories ({cats.filter(c => c.id !== "all").length})
+                    <HelpTooltip>
+                      <strong>Cómo cambiar la imagen de portada:</strong><br/>
+                      Hacé click en la <strong>miniatura</strong> ☐ que está al lado del nombre de la categoría.<br/><br/>
+                      Se abre una ventana con dos opciones:<br/>
+                      • <strong>Upload from disk</strong> — subir una foto desde tu computadora.<br/>
+                      • <strong>Pick from portfolio</strong> — elegir una foto que ya cargaste en el Portfolio.<br/><br/>
+                      Para sacar la imagen y volver al modo automático, usá <em>Remove cover image</em> al final de la ventana.
+                    </HelpTooltip>
+                  </span>
+                } style={{ marginTop: spacing.xl }}>
                   {cats.filter(c => c.id !== "all").length === 0
                     ? emptyMsg("No categories yet. Add your first category above to organize your Portfolio.")
                     : (
@@ -620,7 +677,19 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 </AdminCard>
 
                 {/* Subcategories section */}
-                <AdminCard title={`Subcategories (${subcats.length})`} style={{ marginTop: spacing.xl }}>
+                <AdminCard title={
+                  <span style={{ display: "inline-flex", alignItems: "center" }}>
+                    Subcategories ({subcats.length})
+                    <HelpTooltip>
+                      <strong>Cómo cambiar la imagen de portada:</strong><br/>
+                      Hacé click en la <strong>miniatura</strong> ☐ que está al lado del nombre de la subcategoría.<br/><br/>
+                      Se abre una ventana con dos opciones:<br/>
+                      • <strong>Upload from disk</strong> — subir una foto desde tu computadora.<br/>
+                      • <strong>Pick from portfolio</strong> — elegir una foto del Portfolio (las fotos de la categoría padre aparecen primero).<br/><br/>
+                      Para sacar la imagen y volver al modo automático, usá <em>Remove cover image</em> al final de la ventana.
+                    </HelpTooltip>
+                  </span>
+                } style={{ marginTop: spacing.xl }}>
                   {subcats.length === 0
                     ? emptyMsg("No subcategories yet. These are optional — use them to group items within a category.")
                     : cats.filter(c => c.id !== "all").map(parentCat => {

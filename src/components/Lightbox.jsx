@@ -56,9 +56,15 @@ export default function Lightbox({ item, items = [], onClose, onNavigate }) {
   if (!item) return null;
   const isFacebook = item.type === "facebook";
   const isVideo = item.type === "video";
+  const isImage = !isVideo && !isFacebook;
+  // When navigating between photos, lock the modal height so the Next/Prev
+  // buttons stay in the same screen position across images with different
+  // aspect ratios — otherwise the modal resizes and the user has to chase
+  // the arrows with the cursor.
+  const lockHeight = isImage && canNavigate;
   return (
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Image viewer" onClick={onClose} onKeyDown={handleKeyDown} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 10, overflow: "hidden", maxWidth: isFacebook ? 360 : 660, width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 10, overflow: "hidden", maxWidth: isFacebook ? 360 : 660, width: "100%", height: lockHeight ? "min(85vh, 720px)" : undefined, maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
         {isVideo ? (
           <div style={{ position: "relative", paddingTop: "56.25%", background: "#000", flexShrink: 0 }}>
             <iframe src={`https://www.youtube.com/embed/${ytId(item.videoId)}?autoplay=1`} title="Video player" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen/>
