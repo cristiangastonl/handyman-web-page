@@ -59,7 +59,7 @@ export default function Hero({ nav, siteConfig = {}, isAdmin = false, onConfigUp
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}>
-      <img src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchPriority="high" width={1200} height={800} draggable={false}
+      <img src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchpriority="high" width={1200} height={800} draggable={false}
         style={{ width: "100%", height: "120%", objectFit: "cover", objectPosition: `${posX}% ${posY}%`, transform: editing ? "none" : `translateY(${scrollY * -0.08}px)`, willChange: "transform", pointerEvents: "none" }}/>
       <div style={{ position: "absolute", inset: 0, background: editing ? "rgba(0,0,0,0.3)" : "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.72) 100%)" }}/>
 

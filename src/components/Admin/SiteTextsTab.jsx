@@ -12,10 +12,10 @@ const FONT_OPTIONS = ["DM Sans", "Inter", "Roboto", "Open Sans", "Lato", "Montse
 
 // ── Stats definitions ──
 const STATS = [
-  { key: "stat_experience", label: "Years Experience", defaultVal: "20" },
-  { key: "stat_videos", label: "Video Shows", defaultVal: "400" },
-  { key: "stat_yt_views", label: "YouTube Views (in K)", defaultVal: "900" },
-  { key: "stat_fb_followers", label: "Facebook Followers", defaultVal: "1400" },
+  { key: "stat_experience", label: "Years Experience", defaultVal: "20", suffix: "+" },
+  { key: "stat_videos", label: "Video Shows", defaultVal: "400", suffix: "+" },
+  { key: "stat_yt_views", label: "YouTube Views (in M)", defaultVal: "1.3", suffix: "M+" },
+  { key: "stat_fb_followers", label: "Facebook Followers (in K)", defaultVal: "1.4", suffix: "K+" },
 ];
 
 // ── Keys that are handled by named sections (not shown in "Other Settings") ──
@@ -424,7 +424,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
               const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
               return (
                 <div key={stat.key} style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 700, color: colors.brand }}>{val}{stat.key === "stat_yt_views" ? "K+" : "+"}</div>
+                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 700, color: colors.brand }}>{val}{stat.suffix}</div>
                   <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
                 </div>
               );
