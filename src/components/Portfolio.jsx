@@ -169,13 +169,9 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
             </div>
             <DetailHeader
               title={currentCat?.label}
-              subtitle={<>
-                {catItems.length} {t("portfolio.items")}
-                {catSubcats.length > 0 && <> · {catSubcats.length} {t("portfolio.subcategories", "subcategories")}</>}
-              </>}
               thumb={catThumb}
               onBack={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
-              backLabel={`← ${t("portfolio.backToCategories")}`}
+              backLabel={t("portfolio.backToCategories")} /* the translation already carries the ← */
             />
 
             {/* Subcategory cards */}
@@ -207,10 +203,18 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }}/>
                           <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
                             <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{sc.name}</div>
-                            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
-                              {scItems.length > 0 && <>{scItems.length} {scItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
-                              {sc.playlist_id && <>{scItems.length > 0 && " · "}<svg width="10" height="10" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" style={{ verticalAlign: "middle", marginRight: 3 }}><path d="M23 12l-10.5-7v14L23 12zM1 5h2v14H1V5zm4 0h2v14H5V5zm4 0h2v14H9V5z"/></svg>{t("portfolio.playlist", "Playlist")}</>}
-                            </div>
+                            {/* Counts belong on the cards you can click into, never on the
+                                banner of the level you are already looking at. */}
+                            {(scItems.length > 0 || sc.playlist_id) && (
+                              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
+                                {scItems.length > 0 && <>{scItems.length} {scItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
+                                {sc.playlist_id && <>
+                                  {scItems.length > 0 && " · "}
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" style={{ verticalAlign: "middle", marginRight: 3 }}><path d="M23 12l-10.5-7v14L23 12zM1 5h2v14H1V5zm4 0h2v14H5V5zm4 0h2v14H9V5z"/></svg>
+                                  {t("portfolio.playlist", "Playlist")}
+                                </>}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -279,10 +283,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
             </div>
             <DetailHeader
               title={currentSubcat?.name}
-              subtitle={<>
-                {currentCat?.label}
-                {scItems.length > 0 && <> · {scItems.length} {scItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
-              </>}
+              /* No subtitle: the back link and the breadcrumb already name the parent category. */
               thumb={scThumb}
               onBack={() => { setPortfolioView({ cat: portfolioView.cat, tab: "photos" }); window.scrollTo?.(0, 0); }}
               backLabel={`← ${currentCat?.label}`}

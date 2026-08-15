@@ -62,9 +62,9 @@ export default function Footer({ nav, siteConfig = {} }) {
               { type: "wa", url: WA_LINK, label: "WhatsApp" },
             ].map(s => (
               <a key={s.type} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", transition: "background .2s, transform .2s" }}
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+                style={{ width: 44, height: 44, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", transition: "box-shadow .2s, transform .2s" }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.35)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}>
                 <SocialIcon type={s.type} size={22}/>
               </a>
             ))}

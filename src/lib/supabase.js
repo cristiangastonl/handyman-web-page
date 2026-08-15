@@ -236,11 +236,39 @@ export async function fetchGoogleReviews() {
   if (error) throw error;
   return data;
 }
-export async function addGoogleReview(name, rating, text, timeLabel) {
+// review_date is added by client-feedback-migration.sql. Until that runs the write is
+// rejected — PostgREST reports PGRST204 from its schema cache on insert/update, Postgres
+// reports 42703 directly. Degrade to saving without the column rather than failing the
+// whole write, so the admin keeps working in the meantime.
+const MISSING_COLUMN_CODES = new Set(["PGRST204", "42703"]);
+const isMissingColumn = (error) => MISSING_COLUMN_CODES.has(error?.code);
+
+export async function addGoogleReview(name, rating, text, timeLabel, reviewDate) {
   if (!supabase) return;
-  const { data, error } = await supabase.from("google_reviews").insert({ name, rating, text, time_label: timeLabel }).select().single();
-  if (error) throw error;
-  return data;
+  const base = { name, rating, text, time_label: timeLabel };
+  const { data, error } = await supabase.from("google_reviews")
+    .insert({ ...base, review_date: reviewDate || null })
+    .select().single();
+  if (!error) return data;
+  if (!isMissingColumn(error)) throw error;
+
+  console.warn("google_reviews.review_date missing — run client-feedback-migration.sql");
+  const retry = await supabase.from("google_reviews").insert(base).select().single();
+  if (retry.error) throw retry.error;
+  return retry.data;
+}
+/** Returns { dateSaved } so callers can tell the user the date did not persist. */
+export async function updateGoogleReview(id, fields) {
+  if (!supabase) return { dateSaved: false };
+  const { error } = await supabase.from("google_reviews").update(fields).eq("id", id);
+  if (!error) return { dateSaved: true };
+  if (!isMissingColumn(error) || !("review_date" in fields)) throw error;
+
+  console.warn("google_reviews.review_date missing — run client-feedback-migration.sql");
+  const { review_date, ...rest } = fields;
+  const retry = await supabase.from("google_reviews").update(rest).eq("id", id);
+  if (retry.error) throw retry.error;
+  return { dateSaved: false };
 }
 export async function deleteGoogleReview(id) {
   if (!supabase) return;

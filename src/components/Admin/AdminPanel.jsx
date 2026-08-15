@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { itemThumb, fbEmbedUrl, ytId } from "../../lib/constants";
+import { itemThumb, fbEmbedUrl, ytId, toDateInput } from "../../lib/constants";
 import { colors, spacing, typography, shadows, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminTextarea, AdminCard, AdminLabel, AdminSelect, AdminFlash, AdminStyles } from "./adminUI";
 import { translateFaq } from "../../lib/translate";
@@ -9,10 +9,10 @@ import {
   fetchCategories, addCategory, updateCategory, deleteCategory,
   fetchWorkItems, addWorkItem, updateWorkItem, deleteWorkItem, updateWorkItemsOrder,
   fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow, updateFaqOrder,
-  fetchSiteConfig, upsertSiteConfig,
+  upsertSiteConfig,
   fetchSubcategories, addSubcategory, updateSubcategory, deleteSubcategory,
   fetchFbReviews, addFbReview, updateFbReview, deleteFbReview,
-  fetchGoogleReviews, addGoogleReview, deleteGoogleReview,
+  fetchGoogleReviews, addGoogleReview, updateGoogleReview, deleteGoogleReview,
 } from "../../lib/supabase";
 import CarouselsTab from "./CarouselsTab";
 import SiteTextsTab from "./SiteTextsTab";
@@ -76,7 +76,7 @@ function generatePageNumbers(current, total) {
   return pages;
 }
 
-export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, returningCustomers, setReturningCustomers, fbReviews, setFbReviews, googleReviews, setGoogleReviews, carouselData, setCarouselData, adminTab, setAdminTab }) {
+export default function AdminPanel({ onBack, cats, setCats, items, setItems, faqs, setFaqs, subcats, setSubcats, highlights, setHighlights, fbReviews, setFbReviews, googleReviews, setGoogleReviews, carouselData, setCarouselData, adminTab, setAdminTab, siteConfig = {}, setSiteConfig }) {
   // Auth
   const [session, setSession] = useState(null);
   const [loginEmail, setLoginEmail] = useState("");
@@ -91,7 +91,6 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   // adminTab and setAdminTab come from props (lifted to App.jsx to survive re-renders)
   const [adminMsg, setAdminMsg] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
-  const [siteConfig, setSiteConfig] = useState({});
   // File input reset key — increment to clear file inputs after submit
   const [fileKey, setFileKey] = useState(0);
   const resetFiles = () => setFileKey(k => k + 1);
@@ -151,6 +150,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
   const [grRating, setGrRating] = useState("5");
   const [grText, setGrText] = useState("");
   const [grTime, setGrTime] = useState("");
+  const [grDate, setGrDate] = useState("");
 
   // Config form (controlled inputs)
   const [cfgKey, setCfgKey] = useState("");
@@ -171,12 +171,10 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     if (!supabase) return;
     (async () => {
       try {
-        const dbConfig = await fetchSiteConfig();
-        if (dbConfig) setSiteConfig(dbConfig);
         const usage = await fetchStorageUsage();
         if (usage) setStorageUsage(usage);
       } catch (err) {
-        console.warn("Config load failed:", err.message);
+        console.warn("Storage usage load failed:", err.message);
       }
     })();
   }, []);
@@ -457,9 +455,23 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
         setSubcats(prev => prev.map(s => s.id === editing.id ? { ...s, name: editing.value.trim() } : s));
         flash("Subcategory updated");
       } else if (editing.type === "fbr") {
-        await updateFbReview(editing.id, { name: editing.name.trim(), text: editing.text.trim() });
-        setFbReviews(prev => prev.map(r => r.id === editing.id ? { ...r, name: editing.name.trim(), text: editing.text.trim() } : r));
+        const fields = { name: editing.name.trim(), text: editing.text.trim(), review_date: editing.date || null };
+        await updateFbReview(editing.id, fields);
+        setFbReviews(prev => prev.map(r => r.id === editing.id ? { ...r, ...fields } : r));
         flash("Review updated");
+      } else if (editing.type === "grv") {
+        const fields = {
+          name: editing.name.trim(),
+          text: editing.text.trim(),
+          rating: parseInt(editing.rating),
+          time_label: editing.timeLabel.trim() || null,
+          review_date: editing.date || null,
+        };
+        const { dateSaved } = await updateGoogleReview(editing.id, fields);
+        // Don't show a date the database didn't actually accept.
+        const applied = dateSaved ? fields : { ...fields, review_date: undefined };
+        setGoogleReviews(prev => prev.map(r => r.id === editing.id ? { ...r, ...applied } : r));
+        flash(dateSaved ? "Review updated" : "Review updated — date NOT saved, run client-feedback-migration.sql first");
       }
       setEditing(null);
     } catch (err) { flash("Error: " + err.message); }
@@ -471,9 +483,9 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     if (!grName.trim() || !grText.trim()) return;
     setAdminLoading(true);
     try {
-      const saved = await addGoogleReview(grName.trim(), parseInt(grRating), grText.trim(), grTime.trim() || null);
+      const saved = await addGoogleReview(grName.trim(), parseInt(grRating), grText.trim(), grTime.trim() || null, grDate || null);
       setGoogleReviews(prev => [...prev, saved]);
-      setGrName(""); setGrRating("5"); setGrText(""); setGrTime("");
+      setGrName(""); setGrRating("5"); setGrText(""); setGrTime(""); setGrDate("");
       flash("Google review added");
     } catch (err) { flash("Error: " + err.message); }
     finally { setAdminLoading(false); }
@@ -1312,7 +1324,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {adminTab === "fbreview" && (
               <div>
                 <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
-                  <strong>How it works:</strong> Facebook reviews show as "Recommends" (no star ratings). They appear in the Reviews section on home page and the Reviews page, mixed with Google reviews.
+                  <strong>How it works:</strong> Facebook reviews show as "Recommends" (no star ratings). They appear in the Reviews section on home page and the Reviews page, mixed with Google reviews. Reviews are listed newest first, so fill in the review date — undated ones fall to the bottom of the list.
                 </div>
 
                 <AdminCard title="Add Facebook Review">
@@ -1336,6 +1348,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                             <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ flex: 1, minWidth: 0 }}>
                               <AdminInput label="Name" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
                               <AdminTextarea label="Review text" value={editing.text} onChange={e => setEditing({ ...editing, text: e.target.value })} rows={3} />
+                              <AdminInput label="Review date" type="date" value={editing.date} onChange={e => setEditing({ ...editing, date: e.target.value })} />
                               <div style={{ display: "flex", gap: spacing.sm, marginTop: spacing.sm }}>
                                 <AdminButton type="submit" loading={adminLoading} disabled={!editing.name.trim() || !editing.text.trim()}>Save</AdminButton>
                                 <AdminButton variant="secondary" onClick={() => setEditing(null)}>Cancel</AdminButton>
@@ -1352,7 +1365,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                                 <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
                               </div>
                               <div style={{ display: "flex", gap: spacing.sm, alignItems: "center" }}>
-                                <AdminButton variant="secondary" size="small" onClick={() => setEditing({ type: "fbr", id: r.id, name: r.name, text: r.text })}>
+                                <AdminButton variant="secondary" size="small" onClick={() => setEditing({ type: "fbr", id: r.id, name: r.name, text: r.text, date: toDateInput(r.review_date) })}>
                                   Edit
                                 </AdminButton>
                                 <AdminButton variant="danger" size="small" onClick={() => handleDeleteFbReview(r.id)} loading={adminLoading}>
@@ -1372,7 +1385,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {adminTab === "greview" && (
               <div>
                 <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
-                  <strong>How it works:</strong> Google reviews with star ratings (1-5). They appear in the Reviews section on home page and the Reviews page. The star average is calculated only from these.
+                  <strong>How it works:</strong> Google reviews with star ratings (1-5). They appear in the Reviews section on home page and the Reviews page. The star average is calculated only from these. Reviews are listed newest first, so fill in the review date — undated ones fall to the bottom of the list.
                 </div>
 
                 <AdminCard title="Add Google Review">
@@ -1382,7 +1395,8 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                       {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} star{n !== 1 ? "s" : ""}</option>)}
                     </AdminSelect>
                     <AdminTextarea label="Review text" value={grText} onChange={e => setGrText(e.target.value)} placeholder="Review text" rows={3} />
-                    <AdminInput label="Time label" value={grTime} onChange={e => setGrTime(e.target.value)} placeholder="e.g. '2 weeks ago'" />
+                    <AdminInput label="Review date" type="date" value={grDate} onChange={e => setGrDate(e.target.value)} />
+                    <AdminInput label="Time label (optional)" value={grTime} onChange={e => setGrTime(e.target.value)} placeholder="e.g. '2 weeks ago' — shown instead of the date" />
                     <AdminButton type="submit" loading={adminLoading} disabled={!grName.trim() || !grText.trim()}
                       style={{ marginTop: spacing.md }}>
                       Add Review
@@ -1395,17 +1409,42 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                     ? emptyMsg("No Google reviews yet. Add reviews from your Google Business profile above.")
                     : (googleReviews || []).map(r => (
                         <div key={r.id} style={A.listItem}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div>
-                              <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
-                              <span style={{ fontSize: 11, color: "#E8A317", marginLeft: spacing.sm }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
-                              {r.time_label && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.time_label}</span>}
-                            </div>
-                            <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
-                          </div>
-                          <AdminButton variant="danger" size="small" onClick={() => handleDeleteGoogleReview(r.id)} loading={adminLoading}>
-                            Remove
-                          </AdminButton>
+                          {editing?.type === "grv" && editing.id === r.id ? (
+                            <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ flex: 1, minWidth: 0 }}>
+                              <AdminInput label="Name" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
+                              <AdminSelect label="Rating" value={editing.rating} onChange={e => setEditing({ ...editing, rating: e.target.value })}>
+                                {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} star{n !== 1 ? "s" : ""}</option>)}
+                              </AdminSelect>
+                              <AdminTextarea label="Review text" value={editing.text} onChange={e => setEditing({ ...editing, text: e.target.value })} rows={3} />
+                              <AdminInput label="Review date" type="date" value={editing.date} onChange={e => setEditing({ ...editing, date: e.target.value })} />
+                              <AdminInput label="Time label (optional)" value={editing.timeLabel} onChange={e => setEditing({ ...editing, timeLabel: e.target.value })} placeholder="e.g. '2 weeks ago'" />
+                              <div style={{ display: "flex", gap: spacing.sm, marginTop: spacing.sm }}>
+                                <AdminButton type="submit" loading={adminLoading} disabled={!editing.name.trim() || !editing.text.trim()}>Save</AdminButton>
+                                <AdminButton variant="secondary" onClick={() => setEditing(null)}>Cancel</AdminButton>
+                              </div>
+                            </form>
+                          ) : (
+                            <>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div>
+                                  <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
+                                  <span style={{ fontSize: 11, color: "#E8A317", marginLeft: spacing.sm }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                                  {(r.time_label || r.review_date) && <span style={{ fontSize: 10, color: colors.gray400, marginLeft: spacing.sm }}>{r.time_label || r.review_date}</span>}
+                                  {!r.review_date && <span style={{ fontSize: 10, color: colors.danger, marginLeft: spacing.sm }}>no date — won't sort</span>}
+                                </div>
+                                <div style={{ ...typography.caption, marginTop: spacing.xs, lineHeight: 1.4 }}>{r.text}</div>
+                              </div>
+                              <div style={{ display: "flex", gap: spacing.sm, alignItems: "center" }}>
+                                <AdminButton variant="secondary" size="small"
+                                  onClick={() => setEditing({ type: "grv", id: r.id, name: r.name, text: r.text, rating: String(r.rating ?? 5), timeLabel: r.time_label || "", date: toDateInput(r.review_date) })}>
+                                  Edit
+                                </AdminButton>
+                                <AdminButton variant="danger" size="small" onClick={() => handleDeleteGoogleReview(r.id)} loading={adminLoading}>
+                                  Remove
+                                </AdminButton>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))
                   }

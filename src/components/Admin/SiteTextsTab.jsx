@@ -3,26 +3,20 @@
 // Extracted from AdminPanel.jsx inline config tab rendering.
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_AREAS } from "../../lib/constants";
+import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_AREAS,
+  STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix } from "../../lib/constants";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminCard } from "./adminUI";
 
 // ── Font options for text editing ──
 const FONT_OPTIONS = ["DM Sans", "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Playfair Display", "Dancing Script", "Georgia", "Arial", "Comic Sans MS", "Comic Neue", "Patrick Hand", "Caveat", "Indie Flower"];
 
-// ── Stats definitions ──
-const STATS = [
-  { key: "stat_experience", label: "Years Experience", defaultVal: "20", suffix: "+" },
-  { key: "stat_videos", label: "Video Shows", defaultVal: "400", suffix: "+" },
-  { key: "stat_yt_views", label: "YouTube Views (in M)", defaultVal: "1.3", suffix: "M+" },
-  { key: "stat_fb_followers", label: "Facebook Followers (in K)", defaultVal: "1.4", suffix: "K+" },
-];
-
 // ── Keys that are handled by named sections (not shown in "Other Settings") ──
 const KNOWN_KEYS = new Set([
   ...Object.keys(SITE_TEXTS),
   ...Object.keys(STYLE_KEYS),
   ...STATS.map(s => s.key),
+  ...STATS.map(s => statUnitKey(s.key)),
   "hero_img_x",
   "hero_img_y",
   "site_phone",
@@ -141,15 +135,25 @@ function HeroPositionControl({ xVal, yVal, onSave, loading }) {
 }
 
 // ── Stat row for stats bar editing ──
-function StatRow({ statKey, label, defaultVal, currentValue, onSave, loading }) {
+function StatRow({ statKey, label, defaultVal, decimals, currentValue, currentUnit, onSave, loading }) {
   const [value, setValue] = useState(currentValue || defaultVal);
+  const [unit, setUnit] = useState(currentUnit);
   useEffect(() => { setValue(currentValue || defaultVal); }, [currentValue, defaultVal]);
+  useEffect(() => { setUnit(currentUnit); }, [currentUnit]);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm }}>
+    <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm, flexWrap: "wrap" }}>
       <label style={{ ...typography.body, fontWeight: 600, minWidth: 160 }}>{label}</label>
-      <input type="number" value={value} onChange={e => setValue(e.target.value)}
+      <input type="number" step={decimals > 0 ? "0.1" : "1"} value={value} onChange={e => setValue(e.target.value)}
         className="admin-input" style={{ ...A.input, flex: 1, margin: 0, maxWidth: 120 }}/>
-      <AdminButton size="small" loading={loading} onClick={() => onSave(statKey, value)}>
+      <select value={unit} onChange={e => setUnit(e.target.value)} title="Magnitude"
+        className="admin-input" style={{ ...A.input, margin: 0, width: 70 }}>
+        {STAT_UNITS.map(u => <option key={u} value={u}>{u === "" ? "\u2013" : u}</option>)}
+      </select>
+      <span style={{ ...typography.caption, minWidth: 70, color: colors.gray500 }}>
+        shows {value || defaultVal}{formatStatSuffix(unit)}
+      </span>
+      <AdminButton size="small" loading={loading}
+        onClick={() => { onSave(statKey, value); onSave(statUnitKey(statKey), unit); }}>
         Save
       </AdminButton>
     </div>
@@ -403,14 +407,27 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <SiteTextRow configKey="bio_text" def={SITE_TEXTS.bio_text} currentValue={siteConfig.bio_text} onSave={onSave} loading={loading} />
 
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Highlight Boxes</p>
-        <StyleControl configKey="about_highlight1_title_style" label="Highlight 1 — Title" hint="What to expect 🤔" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight1_text_style" label="Highlight 1 — Text" hint="Fresh ideas that save you time and stress..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight2_title_style" label="Highlight 2 — Title" hint="What you truly get 🤩" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight2_text_style" label="Highlight 2 — Text" hint="Professional-quality work at affordable prices..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight3_title_style" label="Highlight 3 — Title" hint="Who I serve 🤗" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="about_highlight3_text_style" label="Highlight 3 — Text" hint="Always happy to assist both the local and expat community..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Other Text</p>
-        <StyleControl configKey="about_expat_note_style" label="Expat Note" hint="Fluent in English — proudly serving the expat community 🤗" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <p style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>
+          The three cards under your bio. Leave a field empty to keep the built-in translated text.
+          Anything you type here shows in every language.
+        </p>
+        <PreviewBox>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: spacing.sm }}>
+            {[1, 2, 3].map(n => (
+              <div key={n} style={{ padding: `${spacing.md}px`, borderRadius: radii.md, background: colors.white, border: `1px solid ${colors.gray200}`, borderLeft: `3px solid ${colors.brand}` }}>
+                <div style={{ ...getTextStyle(siteConfig, `about_highlight${n}_title`), fontWeight: 700, color: colors.gray900, marginBottom: 4, whiteSpace: "pre-line" }}>
+                  {getTextValue(siteConfig, `about_highlight${n}_title`)}
+                </div>
+                <div style={{ ...getTextStyle(siteConfig, `about_highlight${n}_text`), color: colors.gray700, lineHeight: 1.5, whiteSpace: "pre-line" }}>
+                  {getTextValue(siteConfig, `about_highlight${n}_text`)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </PreviewBox>
+        {[1, 2, 3].flatMap(n => [`about_highlight${n}_title`, `about_highlight${n}_text`]).map(key => (
+          <SiteTextRow key={key} configKey={key} def={SITE_TEXTS[key]} currentValue={siteConfig[key]} onSave={onSave} loading={loading} />
+        ))}
       </AdminCard>
 
       {/* ── 3. Stats Bar ── */}
@@ -419,12 +436,12 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <PreviewBox dark>
           <div style={{ display: "flex", justifyContent: "space-around", padding: `${spacing.sm}px 0` }}>
             {STATS.map(stat => {
-              const val = siteConfig[stat.key] || stat.defaultVal;
+              const val = getStatValue(siteConfig, stat);
               const numStyle = getStyleConfig(siteConfig, "stats_number_style");
               const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
               return (
                 <div key={stat.key} style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 700, color: colors.brand }}>{val}{stat.suffix}</div>
+                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 700, color: colors.brand }}>{val}{formatStatSuffix(getStatUnit(siteConfig, stat.key, stat.defaultUnit))}</div>
                   <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
                 </div>
               );
@@ -433,11 +450,13 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         </PreviewBox>
 
         {STATS.map(stat => (
-          <StatRow key={stat.key} statKey={stat.key} label={stat.label} defaultVal={stat.defaultVal} currentValue={siteConfig[stat.key]} onSave={onSave} loading={loading} />
+          <StatRow key={stat.key} statKey={stat.key} label={stat.label} defaultVal={stat.defaultVal} decimals={stat.decimals}
+            currentValue={String(getStatValue(siteConfig, stat))} currentUnit={getStatUnit(siteConfig, stat.key, stat.defaultUnit)}
+            onSave={onSave} loading={loading} />
         ))}
 
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Typography</p>
-        <StyleControl configKey="stats_number_style" label="Counter Numbers" hint="20+, 400+, 900K+, 1400+" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="stats_number_style" label="Counter Numbers" hint="20+, 400+, 1.3M+, 1.4K+ — magnitude is set per stat above" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="stats_label_style" label="Counter Labels" hint="Years Experience, Video Shows, YouTube Views, Facebook Followers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
@@ -446,7 +465,6 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <SiteTextRow configKey="highlights_section_title" def={SITE_TEXTS.highlights_section_title} currentValue={siteConfig.highlights_section_title} onSave={onSave} loading={loading} />
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Carousel Title Typography</p>
         <StyleControl configKey="carousel_recent_work_title_style" label="Recent Work — Section Title" hint="Recent work" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="carousel_returning_customers_title_style" label="Returning Customers — Section Title" hint="Returning Customers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="carousel_tailor_jobs_title_style" label="Custom Projects — Section Title" hint="Custom Projects" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <p style={{ ...typography.caption, marginTop: spacing.sm }}>
           Carousel content is managed in the Carousels tab.
@@ -460,7 +478,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <StyleControl configKey="cta_tailoring_text_style" label="Tailoring — Description" hint="I also do tailored work — from unique installations to custom projects..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Bottom CTA (before footer)</p>
         <StyleControl configKey="cta_bottom_title_style" label="Bottom CTA — Title" hint="Ready to get started?" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="cta_bottom_subtitle_style" label="Bottom CTA — Subtitle" hint="Same-day estimates · Reply within 2 hours · Quality guaranteed" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="cta_bottom_subtitle_style" label="Bottom CTA — Subtitle" hint="Reply within 24 hours · Lifetime guarantee" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 6. Reviews ── */}

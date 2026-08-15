@@ -1,18 +1,56 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { R, REVIEWS, svgP, socialUrls, WA_LINK, ab, getStyleConfig } from "../lib/constants";
+import { R, REVIEWS, svgP, WA_LINK, ab, getStyleConfig, parseReviewDate, formatReviewDate } from "../lib/constants";
 import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
 const FbBadge = () => (
   <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "#1877F2", fontWeight: 600 }}>
-    👍 Recommends
+    Recommends
   </span>
 );
 
+/**
+ * Merge both sources into one chronologically sortable list.
+ * `sortedAt` is what we order by; `time` is what the card shows (Google's free-text
+ * label reads better than a formatted date when it exists). Reviews with no usable
+ * date sink to the bottom in either direction so they never displace dated ones.
+ */
+function useAllReviews(googleReviews, fbReviews, lang, direction = "desc") {
+  return useMemo(() => {
+    const gReviews = googleReviews.length > 0
+      ? googleReviews.map(r => ({
+          name: r.name, r: r.rating, text: r.text, source: "google",
+          time: r.time_label || formatReviewDate(r.review_date, lang),
+          sortedAt: parseReviewDate(r.review_date) ?? parseReviewDate(r.created_at),
+        }))
+      : REVIEWS.map(r => ({ ...r, source: "google", sortedAt: null }));
+    const fReviews = fbReviews.map(r => ({
+      name: r.name, r: null, text: r.text, source: "facebook", recommends: true,
+      time: formatReviewDate(r.review_date, lang),
+      sortedAt: parseReviewDate(r.review_date) ?? parseReviewDate(r.created_at),
+    }));
+
+    const all = [...gReviews, ...fReviews];
+    const sign = direction === "asc" ? 1 : -1;
+    return all.slice().sort((a, b) => {
+      if (a.sortedAt === null && b.sortedAt === null) return 0;
+      if (a.sortedAt === null) return 1;
+      if (b.sortedAt === null) return -1;
+      return (a.sortedAt - b.sortedAt) * sign;
+    });
+  }, [googleReviews, fbReviews, lang, direction]);
+}
+
+/** Star average — Facebook reviews are thumbs-up only, so they never count here. */
+const starAverage = (reviews) => {
+  const rated = reviews.filter(r => r.source === "google" && r.r);
+  return rated.length > 0 ? (rated.reduce((a, r) => a + r.r, 0) / rated.length).toFixed(1) : "0.0";
+};
+
 // Unified reviews carousel for the home page (Google + Facebook)
 export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], siteConfig = {} }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const revTitleStyle = getStyleConfig(siteConfig, "reviews_title_style");
   const revRef = useRef(null);
   const [expanded, setExpanded] = useState(new Set());
@@ -24,14 +62,9 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
       return next;
     });
   };
-  const gReviews = googleReviews.length > 0
-    ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label, source: "google" }))
-    : REVIEWS.map(r => ({ ...r, source: "google" }));
-  const fReviews = fbReviews.map(r => ({ name: r.name, r: null, text: r.text, time: r.review_date, source: "facebook", recommends: true }));
-  const allReviews = [...gReviews, ...fReviews];
-  // Average only from Google reviews (FB doesn't have star ratings)
-  const googleOnly = gReviews.filter(r => r.r);
-  const avg = googleOnly.length > 0 ? (googleOnly.reduce((a, r) => a + r.r, 0) / googleOnly.length).toFixed(1) : "0.0";
+  // Home always leads with the newest reviews — the asc/desc control lives on /reviews.
+  const allReviews = useAllReviews(googleReviews, fbReviews, i18n.language, "desc");
+  const avg = starAverage(allReviews);
 
   return (
     <FadeIn>
@@ -89,16 +122,12 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
 
 // Full reviews page
 export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
-  const { t } = useTranslation();
-  const [filter, setFilter] = useState("all");
-  const gReviews = googleReviews.length > 0
-    ? googleReviews.map(r => ({ name: r.name, r: r.rating, text: r.text, time: r.time_label, source: "google" }))
-    : REVIEWS.map(r => ({ ...r, source: "google" }));
-  const fReviews = fbReviews.map(r => ({ name: r.name, r: null, text: r.text, time: r.review_date, source: "facebook", recommends: true }));
-  const allReviews = [...gReviews, ...fReviews];
-  const reviews = filter === "google" ? gReviews : filter === "facebook" ? fReviews : allReviews;
-  const googleOnly = gReviews.filter(r => r.r);
-  const avg = googleOnly.length > 0 ? (googleOnly.reduce((a, r) => a + r.r, 0) / googleOnly.length).toFixed(1) : "0.0";
+  const { t, i18n } = useTranslation();
+  const [direction, setDirection] = useState("desc");
+  const reviews = useAllReviews(googleReviews, fbReviews, i18n.language, direction);
+  const allReviews = reviews;
+  const googleOnly = reviews.filter(r => r.source === "google" && r.r);
+  const avg = starAverage(reviews);
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
@@ -136,14 +165,16 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
           })}
         </div>
 
-        {/* Filter tabs */}
-        <div style={{ display: "inline-flex", gap: 0, justifyContent: "center", marginTop: 20, background: "#f5f5f5", borderRadius: 10, padding: 2 }}>
-          {[["all", `All (${allReviews.length})`], ["google", `Google (${gReviews.length})`], ["facebook", `Facebook (${fReviews.length})`]].map(([key, label]) => (
-            <button key={key} onClick={() => setFilter(key)}
-              style={{ padding: "6px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: filter === key ? "#fff" : "transparent", color: filter === key ? R : "#999", boxShadow: filter === key ? "0 1px 3px rgba(0,0,0,0.1)" : "none", transition: "all .2s" }}>
-              {label}
-            </button>
-          ))}
+        {/* Chronological order toggle */}
+        <div style={{ marginTop: 20 }}>
+          <button onClick={() => setDirection(d => d === "desc" ? "asc" : "desc")}
+            aria-label={t("reviews.sortAria", "Change review order")}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 16px", borderRadius: 10, border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#555", transition: "border-color .2s, color .2s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "#ddd"; e.currentTarget.style.color = "#555"; }}>
+            <span style={{ fontSize: 13, lineHeight: 1 }}>{direction === "desc" ? "↓" : "↑"}</span>
+            {direction === "desc" ? t("reviews.newestFirst", "Newest first") : t("reviews.oldestFirst", "Oldest first")}
+          </button>
         </div>
 
         <a href="https://www.google.com/maps/place/Handyman+Services+in+Zurich/" target="_blank" rel="noopener noreferrer"

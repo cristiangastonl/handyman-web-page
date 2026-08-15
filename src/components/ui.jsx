@@ -37,10 +37,8 @@ export const Socials = ({ sz = 14 }) => (
 );
 
 export const Logo = () => (
-  <>
-    <img className="logo-desktop" src="/anibal/logo-horizontal.jpeg" alt="Handyman Services in Zurich" style={{ height: 30, width: "auto", objectFit: "contain" }}/>
-    <img className="logo-mobile" src="/anibal/icono-circular-hd.jpeg" alt="Handyman Services in Zurich" style={{ height: 40, width: 40, borderRadius: "50%", objectFit: "cover", display: "none" }}/>
-  </>
+  <img className="logo-desktop" src="/anibal/logo-horizontal.jpeg" alt="Handyman Services in Zurich"
+    style={{ height: 30, width: "auto", objectFit: "contain", display: "block" }}/>
 );
 
 export const GoogleG = ({ size = 16 }) => (

@@ -1,18 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { R, G, socialUrls, WA_LINK, getStyleConfig } from "../lib/constants";
+import { R, G, socialUrls, WA_LINK, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix } from "../lib/constants";
 import { SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
 export default function StatsBar({ siteConfig = {} }) {
   const { t } = useTranslation();
-  const stat = (key, fallback) => Number(siteConfig[key]) || fallback;
-  // yt_views / fb_followers switched units (K→M and units→K). Values stored under the old
-  // scheme are large integers (e.g. 950 meaning 950K); ignore them in favour of the current
-  // default until they're re-entered from the admin in the new unit.
-  const unitStat = (key, fallback, legacyThreshold) => {
-    const v = stat(key, fallback);
-    return v >= legacyThreshold ? fallback : v;
-  };
   const numStyle = getStyleConfig(siteConfig, "stats_number_style");
   const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
   return (
@@ -22,17 +14,13 @@ export default function StatsBar({ siteConfig = {} }) {
       <FadeIn>
       <section className="stats-section" style={{ padding: "28px 24px", background: G }}>
         <div className="stats-grid" style={{ maxWidth: 940, margin: "0 auto", display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
-          {[
-            { val: stat("stat_experience", 20), label: t("stats.experience"), suffix: "+", decimals: 0 },
-            { val: stat("stat_videos", 400), label: t("stats.videos"), suffix: "+", decimals: 0 },
-            { val: unitStat("stat_yt_views", 1.3, 100), label: t("stats.ytViews"), suffix: "M+", decimals: 1 },
-            { val: unitStat("stat_fb_followers", 1.4, 100), label: t("stats.fbFollowers"), suffix: "K+", decimals: 1 },
-          ].map((s, i) => (
-            <div key={i} style={{ textAlign: "center", minWidth: 100 }}>
+          {STATS.map(s => (
+            <div key={s.key} style={{ textAlign: "center", minWidth: 100 }}>
               <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 800, color: R }}>
-                {s.prefix || ""}<AnimatedCounter target={s.val} decimals={s.decimals ?? 1}/>{s.suffix}
+                <AnimatedCounter target={getStatValue(siteConfig, s)} decimals={s.decimals}/>
+                {formatStatSuffix(getStatUnit(siteConfig, s.key, s.defaultUnit))}
               </div>
-              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{s.label}</div>
+              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{t(s.i18nKey)}</div>
             </div>
           ))}
         </div>

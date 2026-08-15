@@ -8,6 +8,9 @@ export function AnimatedCounter({ target, duration = 1200, decimals = 0 }) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // A new target means a new number to count to (e.g. the admin just saved a stat),
+    // so the one-shot guard has to be released or the old value would stick forever.
+    started.current = false;
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting && !started.current) {
         started.current = true;

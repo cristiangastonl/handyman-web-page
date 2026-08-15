@@ -96,6 +96,46 @@ export const socialUrls = {
 
 export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "");
 
+// ─── Stats bar ───
+// Single source of truth so the admin preview and the live bar can't drift apart.
+// Each stat stores its number in `key` and its magnitude in `key_unit` ("" = none).
+export const STAT_UNITS = ["", "K", "M"];
+
+// `needsExplicitUnit` marks the two stats whose magnitude changed before the selector
+// existed (views K->M, followers none->K). A number stored back then is ambiguous — 950
+// could mean 950K or 950M — so it is only trusted once a unit is stored alongside it.
+export const STATS = [
+  { key: "stat_experience", label: "Years Experience", i18nKey: "stats.experience", defaultVal: "20", defaultUnit: "", decimals: 0 },
+  { key: "stat_videos", label: "Video Shows", i18nKey: "stats.videos", defaultVal: "400", defaultUnit: "", decimals: 0 },
+  { key: "stat_yt_views", label: "YouTube Views", i18nKey: "stats.ytViews", defaultVal: "1.3", defaultUnit: "M", decimals: 1, needsExplicitUnit: true },
+  { key: "stat_fb_followers", label: "Facebook Followers", i18nKey: "stats.fbFollowers", defaultVal: "1.4", defaultUnit: "K", decimals: 1, needsExplicitUnit: true },
+];
+
+export const statUnitKey = (key) => `${key}_unit`;
+
+/** Saved magnitude for a stat. An explicitly saved "" means "no magnitude". */
+export const getStatUnit = (siteConfig, key, fallback = "") => {
+  const raw = siteConfig?.[statUnitKey(key)];
+  if (raw === undefined || raw === null) return fallback;
+  return STAT_UNITS.includes(raw) ? raw : fallback;
+};
+
+/**
+ * Number to display for a stat. Saving from the admin always writes the value and its
+ * unit together, so a unit-sensitive stat with no stored unit predates the selector and
+ * falls back to the default until it is re-saved.
+ */
+export const getStatValue = (siteConfig, stat) => {
+  const fallback = Number(stat.defaultVal);
+  const stored = Number(siteConfig?.[stat.key]);
+  if (!Number.isFinite(stored) || stored === 0) return fallback;
+  if (stat.needsExplicitUnit && siteConfig?.[statUnitKey(stat.key)] === undefined) return fallback;
+  return stored;
+};
+
+/** "K" -> "K+",  "" -> "+" */
+export const formatStatSuffix = (unit) => `${unit || ""}+`;
+
 // ─── Site text definitions (known keys with defaults) ───
 export const SITE_TEXTS = {
   hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zurich", defaultFontSize: 36, defaultFontFamily: "DM Sans" },
@@ -103,6 +143,13 @@ export const SITE_TEXTS = {
   hero_brand_subtitle: { label: "Hero Brand Subtitle", defaultText: "Specialist Technician At Domestic Matters", defaultFontSize: 15, defaultFontFamily: "Dancing Script" },
   highlights_section_title: { label: "Highlights Section Title", defaultText: "Highlights", defaultFontSize: 17, defaultFontFamily: "DM Sans" },
   bio_text: { label: "About / Bio Text", defaultText: "", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
+  // About highlight boxes — editable copy (defaults mirror the English translations)
+  about_highlight1_title: { label: "Highlight 1 — Title", defaultText: "What to expect", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
+  about_highlight1_text: { label: "Highlight 1 — Text", defaultText: "Fresh ideas that save you time and stress, aiming to your overall satisfaction, my top commitment.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
+  about_highlight2_title: { label: "Highlight 2 — Title", defaultText: "What you truly get", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
+  about_highlight2_text: { label: "Highlight 2 — Text", defaultText: "Professional-quality work at affordable prices — excellent results, a flawless finish, and the peace of mind + guarantee everyone looks for.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
+  about_highlight3_title: { label: "Highlight 3 — Title", defaultText: "Who I serve", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
+  about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always happy to assist both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
 };
 
 // Parse a site config value — supports both plain text (legacy) and JSON {text, fontSize, fontFamily}
@@ -124,7 +171,6 @@ export const STYLE_KEYS = {
   about_highlight2_text_style: { fontSize: 12, fontFamily: "DM Sans" },
   about_highlight3_title_style: { fontSize: 13, fontFamily: "DM Sans" },
   about_highlight3_text_style: { fontSize: 12, fontFamily: "DM Sans" },
-  about_expat_note_style: { fontSize: 13, fontFamily: "DM Sans" },
   // Carousel titles (TYPO-03)
   carousel_recent_work_title_style: { fontSize: 18, fontFamily: "DM Sans" },
   carousel_returning_customers_title_style: { fontSize: 18, fontFamily: "DM Sans" },
@@ -160,6 +206,56 @@ export const getStyleConfig = (siteConfig, key) => {
   }
 };
 
+/**
+ * Reviews carry dates loosely: Google rows have an optional ISO `review_date` plus a
+ * free-text `time_label` ("2 weeks ago"), Facebook rows have `review_date` as text and
+ * older ones only hold a year. Returns epoch ms, or null when nothing parseable is there.
+ */
+export const parseReviewDate = (value) => {
+  if (!value) return null;
+  const s = String(value).trim();
+  if (/^\d{4}$/.test(s)) return Date.UTC(Number(s), 0, 1); // legacy year-only rows
+  const ms = Date.parse(s);
+  return Number.isNaN(ms) ? null : ms;
+};
+
+/**
+ * Value for an <input type="date"> from whatever a review has stored.
+ * Year-only rows ("2025") normalise to Jan 1st so they become sortable once saved;
+ * anything unparseable yields "" so the field shows up empty and can be filled in.
+ */
+export const toDateInput = (value) => {
+  const ms = parseReviewDate(value);
+  if (ms === null) return "";
+  return new Date(ms).toISOString().slice(0, 10);
+};
+
+/** Human-readable date for a review card; falls back to the raw stored value. */
+export const formatReviewDate = (value, lang = "en") => {
+  const ms = parseReviewDate(value);
+  if (ms === null) return value || "";
+  if (/^\d{4}$/.test(String(value).trim())) return String(value).trim();
+  return new Date(ms).toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" });
+};
+
+/**
+ * Resolve one About highlight-box field (title or body).
+ *
+ * The copy now lives in `about_highlightN_title` / `about_highlightN_text` as JSON with
+ * optional font overrides. The older `..._style` keys only ever held font settings, so
+ * they stay as the fallback and any values the client already saved keep applying.
+ * Falls back to the translated string when nothing is configured.
+ */
+export const getHighlightField = (siteConfig, key, fallbackText) => {
+  const parsed = parseSiteText(siteConfig?.[key]) || {};
+  const legacy = getStyleConfig(siteConfig, `${key}_style`);
+  return {
+    text: parsed.text || fallbackText,
+    fontSize: parsed.fontSize || legacy.fontSize,
+    fontFamily: parsed.fontFamily || legacy.fontFamily,
+  };
+};
+
 export const fbEmbedUrl = (url) => `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
 export const itemThumb = (item) => {
   if (!item) return "";
@@ -181,28 +277,32 @@ export const css = `
   .hs { -ms-overflow-style: none; scrollbar-width: none; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes heroFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-  .heroContent { animation: heroFadeUp 0.8s ease 0.2s both; }
-  .heroContent h1 { animation: heroFadeUp 0.8s ease 0.3s both; }
-  .heroContent p { animation: heroFadeUp 0.8s ease 0.45s both; }
-  .heroContent > div:last-child { animation: heroFadeUp 0.8s ease 0.6s both; }
+  @keyframes heroImageIn { from { opacity: 0; } to { opacity: 1; } }
+  /* The photo lands first on its own, then the text block writes itself in on top. */
+  .hero-image { animation: heroImageIn 0.9s ease both; }
+  .heroContent { animation: heroFadeUp 0.7s ease 0.9s both; }
+  .heroContent h1 { animation: heroFadeUp 0.7s ease 1.05s both; }
+  .heroContent p { animation: heroFadeUp 0.7s ease 1.25s both; }
+  .heroContent > div:last-child { animation: heroFadeUp 0.7s ease 1.45s both; }
   @media (max-width: 900px) {
     .sticky-bar { display: none !important; }
   }
   @media (max-width: 640px) {
     .desktop-nav { display: none !important; }
     .mobile-hamburger { display: block !important; }
-    .logo-desktop { display: none !important; }
-    .logo-mobile { display: block !important; }
+    /* Keep the full horizontal wordmark on mobile — the circular icon alone
+       dropped the "Handyman Services in Zurich" name from small screens. */
+    .logo-desktop { height: 26px !important; max-width: 60vw !important; }
     .about-row { justify-content: center !important; text-align: center; }
     .about-row img { margin: 0 auto; }
-    .hero-section { height: auto !important; min-height: 42vh !important; }
+    /* A definite height is what keeps the photo covering the whole hero. With
+       height:auto the image fell back to its intrinsic height while the section
+       stretched to min-height, leaving a grey gradient band under the photo. */
+    .hero-section { height: 46vh !important; min-height: 300px !important; max-height: 420px !important; }
     .hero-section .heroContent { padding-bottom: 0; }
     .hero-section .heroContent h1 { font-size: 31px !important; margin-bottom: 2px !important; }
     .hero-section .heroContent .hero-brand { font-size: 20px !important; }
     .hero-section .heroContent .hero-subtitle { font-size: 18px !important; }
-    .hero-buttons { align-items: center !important; }
-    .hero-buttons a { padding: 12px 24px !important; font-size: 14px !important; min-height: 44px !important; justify-content: center !important; width: 100% !important; }
-    .hero-buttons span { font-size: 12px !important; }
     .mobile-menu-item { min-height: 44px !important; display: flex !important; align-items: center !important; }
     .skill-tag { padding: 8px 14px !important; font-size: 13px !important; min-height: 36px !important; }
     .admin-container { padding: 20px 16px !important; }

@@ -5,11 +5,13 @@ import { AdminButton } from "./adminUI";
 import { fetchCarouselItems, addCarouselItem, removeCarouselItem, updateCarouselOrder } from "../../lib/supabase";
 import DragList from "./DragList";
 
+// "returning_customers" was retired from the site and is intentionally absent here.
+// "happy_customers" is curated in the admin but not rendered on the site yet.
 const CAROUSEL_TYPES = [
-  { key: "recent_works", label: "Recent Works" },
-  { key: "highlights", label: "Highlights" },
-  { key: "returning_customers", label: "Returning Customers" },
-  { key: "tailor_jobs", label: "Tailor Jobs" },
+  { key: "recent_works", label: "Recent Works", note: "Shown on the home page." },
+  { key: "tailor_jobs", label: "Custom Projects", note: "Shown on the home page." },
+  { key: "highlights", label: "Highlights", note: "Shown on the home page." },
+  { key: "happy_customers", label: "Happy Customers", note: "Not shown on the site yet — curate it here and we'll place it later." },
 ];
 
 const PAGE_SIZE = 24;
@@ -68,7 +70,7 @@ export default function CarouselsTab({ items, cats, carouselData, setCarouselDat
       if (saved) {
         setCarouselData(prev => ({
           ...prev,
-          [subTab]: [...prev[subTab], normalizeItem(saved)],
+          [subTab]: [...(prev[subTab] || []), normalizeItem(saved)],
         }));
       }
       flash("Added to carousel");
@@ -82,7 +84,7 @@ export default function CarouselsTab({ items, cats, carouselData, setCarouselDat
       await removeCarouselItem(carouselItemId);
       setCarouselData(prev => ({
         ...prev,
-        [subTab]: prev[subTab].filter(ci => ci.carouselItemId !== carouselItemId),
+        [subTab]: (prev[subTab] || []).filter(ci => ci.carouselItemId !== carouselItemId),
       }));
       flash("Removed from carousel");
     } catch (err) { flash("Error: " + err.message); }
@@ -126,6 +128,11 @@ export default function CarouselsTab({ items, cats, carouselData, setCarouselDat
       </div>
 
       {/* Current items in carousel */}
+      {CAROUSEL_TYPES.find(c => c.key === subTab)?.note && (
+        <p style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>
+          {CAROUSEL_TYPES.find(c => c.key === subTab).note}
+        </p>
+      )}
       <p style={typography.label}>Current items ({currentItems.length})</p>
       {currentItems.length === 0 ? (
         <p style={{ ...A.emptyState, padding: `${spacing.lg}px 0` }}>No items in this carousel. Select from portfolio below.</p>

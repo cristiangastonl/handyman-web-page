@@ -8,7 +8,7 @@ import {
 } from "./lib/constants";
 import {
   supabase, fetchCategories, fetchWorkItems, fetchFaqs,
-  fetchSubcategories, fetchHighlights, fetchReturningCustomers, fetchFbReviews, fetchSiteConfig,
+  fetchSubcategories, fetchHighlights, fetchFbReviews, fetchSiteConfig,
   fetchGoogleReviews, fetchCarouselItems,
 } from "./lib/supabase";
 
@@ -20,7 +20,6 @@ import About from "./components/About";
 import ServiceAreas from "./components/ServiceAreas";
 import { RecentWork } from "./components/RecentWork";
 import Highlights from "./components/Highlights";
-import ReturningCustomers from "./components/ReturningCustomers";
 import TailorJobs from "./components/TailorJobs";
 import BrandStrip from "./components/BrandStrip";
 import { TailoringCTA, ServiceAreasCTA, BottomCTA } from "./components/CTA";
@@ -103,16 +102,18 @@ export default function App() {
   const [faqs, setFaqs] = useState(DEFAULT_FAQS);
   const [subcats, setSubcats] = useState(DEFAULT_SUBCATS);
   const [highlights, setHighlights] = useState(DEFAULT_HIGHLIGHTS);
-  const [returningCustomers, setReturningCustomers] = useState([]);
   const [fbReviews, setFbReviews] = useState(DEFAULT_FB_REVIEWS);
   const [siteConfig, setSiteConfig] = useState({});
   const [googleReviews, setGoogleReviews] = useState([]);
   const [adminTab, setAdminTab] = useState("categories");
+  // returning_customers is retired from the site and the admin, but its rows are
+  // still fetched so nothing breaks if the table is repopulated later.
   const [carouselData, setCarouselData] = useState({
     recent_works: [],
     highlights: [],
     returning_customers: [],
     tailor_jobs: [],
+    happy_customers: [],
   });
 
   // ── Effects ──
@@ -136,10 +137,10 @@ export default function App() {
     if (!supabase) return;
     const safe = (fn) => fn().catch(err => { console.warn('Fetch error:', err.message); return null; });
     (async () => {
-      const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbReturning, dbFbReviews, dbConfig, dbGoogleReviews,
+      const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbFbReviews, dbConfig, dbGoogleReviews,
         dbCarRecentWorks, dbCarHighlights, dbCarReturning, dbCarTailorJobs] = await Promise.all([
         safe(fetchCategories), safe(fetchWorkItems), safe(fetchFaqs),
-        safe(fetchSubcategories), safe(fetchHighlights), safe(fetchReturningCustomers), safe(fetchFbReviews),
+        safe(fetchSubcategories), safe(fetchHighlights), safe(fetchFbReviews),
         safe(fetchSiteConfig), safe(fetchGoogleReviews),
         safe(() => fetchCarouselItems('recent_works')),
         safe(() => fetchCarouselItems('highlights')),
@@ -157,17 +158,17 @@ export default function App() {
       })));
       if (dbSubcats?.length > 0) setSubcats(dbSubcats);
       if (dbHighlights?.length > 0) setHighlights(dbHighlights);
-      if (dbReturning?.length > 0) setReturningCustomers(dbReturning);
       if (dbFbReviews?.length > 0) setFbReviews(dbFbReviews);
       if (dbConfig) setSiteConfig(dbConfig);
       if (dbGoogleReviews?.length > 0) setGoogleReviews(dbGoogleReviews);
       // Carousel curated items
-      setCarouselData({
+      setCarouselData(prev => ({
+        ...prev,
         recent_works: dbCarRecentWorks?.length > 0 ? dbCarRecentWorks.map(normalizeCarouselItem) : [],
         highlights: dbCarHighlights?.length > 0 ? dbCarHighlights.map(normalizeCarouselItem) : [],
         returning_customers: dbCarReturning?.length > 0 ? dbCarReturning.map(normalizeCarouselItem) : [],
         tailor_jobs: dbCarTailorJobs?.length > 0 ? dbCarTailorJobs.map(normalizeCarouselItem) : [],
-      });
+      }));
       setLoading(false);
     })();
   }, []);
@@ -187,15 +188,16 @@ export default function App() {
       )}
       {!loading && (
         <>
-          <Hero nav={nav} siteConfig={siteConfig} isAdmin={isAdmin} onConfigUpdate={setSiteConfig} fbReviewCount={fbReviews.length || 120}/>
+          <Hero siteConfig={siteConfig} isAdmin={isAdmin} onConfigUpdate={setSiteConfig}/>
           <StatsBar siteConfig={siteConfig}/>
-          <About nav={nav} navToCategory={navToCategory} siteConfig={siteConfig}/>
+          <About nav={nav} navToCategory={navToCategory} cats={cats} siteConfig={siteConfig}/>
           <ServiceAreasCTA siteConfig={siteConfig}/>
+          {/* Carousel order per client feedback: Recent works → Custom projects →
+              orange Customs CTA → Highlights. Returning Customers was retired. */}
           <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={openLightbox} nav={nav} siteConfig={siteConfig}/>
-          <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={openLightbox} siteConfig={siteConfig}/>
-          <ReturningCustomers returningCustomers={returningCustomers} curatedItems={carouselData.returning_customers} setLb={openLightbox} siteConfig={siteConfig}/>
-          <TailoringCTA nav={nav} siteConfig={siteConfig}/>
           <TailorJobs items={carouselData.tailor_jobs} setLb={openLightbox} siteConfig={siteConfig}/>
+          <TailoringCTA nav={nav} siteConfig={siteConfig}/>
+          <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={openLightbox} siteConfig={siteConfig}/>
           <BrandStrip/>
           <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews} siteConfig={siteConfig}/>
           <FAQHome faqs={faqs} nav={nav}/>
@@ -214,10 +216,10 @@ export default function App() {
       faqs={faqs} setFaqs={setFaqs}
       subcats={subcats} setSubcats={setSubcats}
       highlights={highlights} setHighlights={setHighlights}
-      returningCustomers={returningCustomers} setReturningCustomers={setReturningCustomers}
       fbReviews={fbReviews} setFbReviews={setFbReviews}
       googleReviews={googleReviews} setGoogleReviews={setGoogleReviews}
       carouselData={carouselData} setCarouselData={setCarouselData}
+      siteConfig={siteConfig} setSiteConfig={setSiteConfig}
       adminTab={adminTab} setAdminTab={setAdminTab}
     />
   );
