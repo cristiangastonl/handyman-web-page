@@ -8,3 +8,12 @@ dist
 .DS_Store
 *.pdf
 test-*.mjs
+
+# harness
+test-results
+playwright-report
+blob-report
+.playwright
+
+# contiene tokens de acceso — nunca commitear
+.claude/settings.local.json

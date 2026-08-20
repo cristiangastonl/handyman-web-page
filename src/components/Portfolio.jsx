@@ -112,7 +112,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
               const catSubcats = (subcats || []).filter(s => s.category_id === c.id);
               const thumb = c.header_image || (catItems[0]?.type === "image" ? catItems[0]?.src : itemThumb(catItems[0])) || "";
               return (
-                <div key={c.id}
+                <div key={c.id} data-testid="category-card"
                   onClick={() => { setPortfolioView({ cat: c.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
                   style={{ borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}

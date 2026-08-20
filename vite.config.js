@@ -7,6 +7,11 @@ export default defineConfig({
     port: 3000,
     open: true
   },
+  test: {
+    // Los .spec de Playwright viven en e2e/ y los corre `npm run e2e`,
+    // no Vitest: importarlos desde acá revienta con "test.describe() here".
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
+  },
   build: {
     rollupOptions: {
       output: {

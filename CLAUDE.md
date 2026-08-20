@@ -16,6 +16,98 @@ Handyman services landing page for Zurich, Switzerland. Multi-page React app wit
 
 No linter is configured.
 
+## Verification harness — READ THIS BEFORE CLAIMING A CHANGE IS DONE
+
+### Definition of done
+
+A change is done when the harness is green. Not when the code looks right,
+not when the diff reads well, not when it "should work".
+
+**Never say "implemented", "works", or "fixed" without a green harness run in
+this session.** If you have not run it, say so instead of implying success.
+If it is red and you cannot fix it, say what is broken and what you tried —
+an honest red beats a claimed green.
+
+### The loop
+
+Every code change goes through this cycle, automatically:
+
+```
+edit → guards (0.1s) → red? fix, repeat
+     → done? → verify --scope → red? fix, repeat (up to 4 rounds)
+     → commit/deploy → full verify → red? blocked
+```
+
+The rounds are the point. The first fix attempt is usually not the best one:
+run, read the failure, fix the cause, run again. Converge, then report.
+
+### Commands
+
+| Command | Stages | Time | When |
+|---|---|---|---|
+| `npm run guards` | i18n + conventions + env | ~0.1s | After every file edit |
+| `npm run verify:fast` | guards + unit | ~5s | Tight iteration loop |
+| `npm run verify:scope` | picks stages from `git diff` | 5s–2min | Default before reporting done |
+| `npm run verify` | guards + unit + build + e2e | ~1–2 min | Before commit / deploy |
+| `npm run verify -- --stage=e2e` | one stage only | — | Debugging a specific failure |
+| `npm run e2e:ui` | Playwright UI mode | — | Writing or fixing E2E tests |
+
+`verify:scope` runs the full cycle when the diff touches anything that reaches
+the browser (`src/components`, `src/lib`, `src/hooks`, `App.jsx`, `i18n.js`,
+`index.html`, `public/`, configs, `e2e/`) and the fast cycle otherwise.
+
+The harness exits non-zero on the **first** failing stage and prints a PASS/FAIL
+summary. A non-zero exit means the change is broken — fix it, do not work around it.
+
+### Fixing red, honestly
+
+When a stage fails, fix the cause. Do **not**:
+
+- weaken or delete a check so it passes
+- add `waitForTimeout`, retries, or `try/catch` to paper over a real error
+- mark a test `.skip` to move on
+- claim the failure is unrelated without verifying it on a clean checkout
+
+If a check itself is wrong, say so explicitly and change it deliberately,
+with the reason in the commit message.
+
+### What the harness checks
+
+- **`scripts/guards/i18n.mjs`** — all 5 locales have the same keys as `en.json`,
+  no empty values, matching `{{placeholders}}`, and brand words
+  (`Handyman`, `Highlights`, `Specialist Technician At Domestic Matters`)
+  are never translated away.
+- **`scripts/guards/conventions.mjs`** — no CSS imports or Tailwind classes
+  (inline styles only), no hardcoded Supabase URLs/JWTs, no `debugger` or
+  `.only`, required env vars present.
+- **`e2e/smoke.spec.js`** (Playwright, desktop + mobile) — the 4 public routes
+  render with no console errors and no raw i18n keys, nav works, language
+  switching persists across pages, portfolio images have `alt`, `/admin` shows
+  the login form and leaks no admin tabs, every route has title + meta description.
+
+### Adding coverage
+
+When you add a feature, add its check to the harness in the same change:
+a static rule goes in `scripts/guards/`, a user-visible behaviour goes in `e2e/`.
+A feature with no check in the harness is a feature that will silently break.
+
+### Automatic loop (Claude Code hooks)
+
+`.claude/settings.json` wires the harness into the agent loop:
+
+- **PostToolUse** on any edit → runs `guards`; a failure blocks with the error
+  text so it gets fixed immediately.
+- **Stop** → runs `verify:fast`; the session cannot end on a broken state.
+
+To disable temporarily, rename `.claude/settings.json`.
+
+### Setup (one time)
+
+```bash
+npm install
+npx playwright install chromium
+```
+
 ## Architecture
 
 Refactored component-based app with Supabase for data persistence.
