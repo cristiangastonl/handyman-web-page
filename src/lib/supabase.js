@@ -314,3 +314,51 @@ export async function updateCarouselOrder(orderedIds) {
   const err = results.find(r => r.error);
   if (err?.error) throw err.error;
 }
+
+// ─── Happy Customers ───
+// Tabla propia y no carousel_items: estas fotos no son portfolio, no tienen
+// categoría, y como work_items no tiene flag de visibilidad, meterlas ahí las
+// publicaría en /portfolio. Ver happy-customers-migration.sql.
+
+export async function fetchHappyCustomers() {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("happy_customers")
+    .select("*")
+    .order("sort_order");
+  if (error) throw error;
+  return data;
+}
+
+export async function addHappyCustomer(src, altText, sortOrder) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("happy_customers")
+    .insert({ src, alt_text: altText || null, sort_order: sortOrder })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateHappyCustomer(id, fields) {
+  if (!supabase) return;
+  const { error } = await supabase.from("happy_customers").update(fields).eq("id", id);
+  if (error) throw error;
+}
+
+export async function removeHappyCustomer(id) {
+  if (!supabase) return;
+  const { error } = await supabase.from("happy_customers").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateHappyCustomerOrder(orderedIds) {
+  if (!supabase) return;
+  const updates = orderedIds.map((id, i) =>
+    supabase.from("happy_customers").update({ sort_order: i }).eq("id", id)
+  );
+  const results = await Promise.all(updates);
+  const err = results.find(r => r.error);
+  if (err?.error) throw err.error;
+}

@@ -329,6 +329,35 @@ export const css = `
   .brand-marquee { display: flex; gap: 48px; align-items: center; width: max-content; animation: marquee 25s linear infinite; }
   .brand-marquee:hover { animation-play-state: paused; }
   @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+  /* ── Happy Customers ──
+     Desktop: dos rieles fijos en los márgenes del viewport, fuera del contenedor
+     de 940px, desplazándose lento y cruzados. Fixed y no sticky para que
+     acompañen TODO el scroll en vez de morir con el bloque de rating.
+     Mobile: no hay márgenes, así que las fotos se intercalan en la grilla. */
+  .hc-edges { display: none; }
+  .hc-marquee-track { display: flex; flex-direction: column; gap: 10px; animation: hcUp 40s linear infinite; }
+  .hc-marquee-track.down { animation-name: hcDown; }
+  @keyframes hcUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+  @keyframes hcDown { 0% { transform: translateY(-50%); } 100% { transform: translateY(0); } }
+  @media (min-width: 1300px) {
+    .hc-edges {
+      display: block; position: fixed; top: 56px; bottom: 0; z-index: 1;
+      width: calc((100vw - 980px) / 2);
+      /* El hueco vacío no debe robar clicks al contenido; las fotos sí los reciben. */
+      pointer-events: none;
+      /* Desvanecido arriba y abajo: sin esto el riel se lee como un panel pegado
+         con bordes duros. Así se funde con la página. */
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 90px, #000 calc(100% - 90px), transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 90px, #000 calc(100% - 90px), transparent);
+    }
+    .hc-edges.left { left: 0; }
+    .hc-edges.right { right: 0; }
+    .hc-edge-scroll { height: 100%; width: 100%; overflow: hidden; padding: 0 18px; pointer-events: auto; }
+    .hc-edge-scroll:hover .hc-marquee-track { animation-play-state: paused; }
+    /* En desktop las fotos viven en los márgenes: los tiles de la grilla sobran. */
+    .hc-inline-tile { display: none; }
+  }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }

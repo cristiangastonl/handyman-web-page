@@ -168,6 +168,10 @@ export default function App() {
         highlights: dbCarHighlights?.length > 0 ? dbCarHighlights.map(normalizeCarouselItem) : [],
         returning_customers: dbCarReturning?.length > 0 ? dbCarReturning.map(normalizeCarouselItem) : [],
         tailor_jobs: dbCarTailorJobs?.length > 0 ? dbCarTailorJobs.map(normalizeCarouselItem) : [],
+        // happy_customers NO se pide acá. Tiene tabla propia y todavía no está
+        // colocado en ninguna página del sitio, así que pedirlo en las 4 rutas
+        // sería un request muerto. Lo carga quien lo necesita: el panel de admin
+        // al abrir su sub-tab, y ReviewsPage sólo cuando se mira el preview.
       }));
       setLoading(false);
     })();
@@ -238,7 +242,7 @@ export default function App() {
             <Route path="/portfolio" element={
               <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={openLightbox}/>
             }/>
-            <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews}/>}/>
+            <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews} happyItems={carouselData.happy_customers} setLb={openLightbox}/>}/>
             <Route path="/faq" element={<FAQPage faqs={faqs}/>}/>
             <Route path="/admin" element={adminPageContent}/>
             <Route path="*" element={<HomePage/>}/>

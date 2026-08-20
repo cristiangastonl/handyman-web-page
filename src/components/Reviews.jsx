@@ -1,8 +1,10 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { R, REVIEWS, svgP, WA_LINK, ab, getStyleConfig, parseReviewDate, formatReviewDate } from "../lib/constants";
+import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
+import HappyCustomerRails, { HappyCustomerTile } from "./HappyCustomers";
 
 // Facebook no da estrellas, da recomendación. El pulgar arriba le da al badge el
 // mismo peso visual que las 5 estrellas de una card de Google al lado.
@@ -123,10 +125,56 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
   );
 }
 
+/**
+ * Las fotos de Happy Customers sólo se usan en esta página, así que se piden
+ * acá y no en la carga inicial de App.jsx — en las otras 3 rutas sería un
+ * request muerto. `happyItems` llega por props cuando el admin ya las cargó
+ * en memoria; si no, se buscan.
+ */
+function useHappyCustomers(happyItems) {
+  const [loaded, setLoaded] = useState([]);
+
+  useEffect(() => {
+    if (happyItems.length > 0) return;
+    let alive = true;
+    fetchHappyCustomers()
+      .then(data => { if (alive && data) setLoaded(data); })
+      .catch(err => console.warn("Happy customers load error:", err.message));
+    return () => { alive = false; };
+  }, [happyItems.length]);
+
+  return useMemo(
+    () => (happyItems.length > 0 ? happyItems : loaded).filter(it => it.src || it.thumb),
+    [happyItems, loaded],
+  );
+}
+
+/**
+ * Mobile: una foto cada 4 reviews, para que acompañen el scroll en vez de
+ * quedar todas amontonadas arriba. En desktop el CSS las oculta — ahí el
+ * contenido vive en los rieles de los márgenes.
+ */
+function interleaveHappy(reviews, photos) {
+  if (photos.length === 0) return reviews;
+  // El paso se calcula sobre el largo real de la lista. Con un paso fijo (una
+  // foto cada 4 reviews) las 12 se agotaban en el primer tercio de la página y
+  // los últimos 30.000px quedaban sin ninguna — el mismo defecto que esto vino
+  // a resolver. Repartidas así, la última cae cerca del final.
+  const step = Math.max(2, Math.floor(reviews.length / (photos.length + 1)));
+  const out = [];
+  let p = 0;
+  reviews.forEach((rev, i) => {
+    out.push(rev);
+    if ((i + 1) % step === 0 && p < photos.length) out.push({ __photo: photos[p++] });
+  });
+  return out;
+}
+
 // Full reviews page
-export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
+export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [], setLb }) {
   const { t, i18n } = useTranslation();
   const [direction, setDirection] = useState("desc");
+  const happy = useHappyCustomers(happyItems);
   const reviews = useAllReviews(googleReviews, fbReviews, i18n.language, direction);
   const allReviews = reviews;
   const googleOnly = reviews.filter(r => r.source === "google" && r.r);
@@ -134,6 +182,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
+      <HappyCustomerRails items={happy} setLb={setLb}/>
       <div style={{ textAlign: "center", padding: "24px 0 36px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
           <svg width="28" height="28" viewBox="0 0 24 24">
@@ -188,7 +237,9 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [] }) {
 
       {/* All reviews grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
-        {reviews.map((rev, i) => (
+        {interleaveHappy(reviews, happy).map((rev, i) => rev.__photo ? (
+          <HappyCustomerTile key={`hc${i}`} item={rev.__photo} setLb={setLb} context={happy}/>
+        ) : (
           <div key={i} style={{ padding: "20px", borderRadius: 12, border: "1px solid #eee", background: "#fff" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <div style={{ width: 40, height: 40, borderRadius: "50%", background: `hsl(${i * 47}, 45%, 65%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16, color: "#fff" }}>{rev.name[0]}</div>

@@ -142,6 +142,55 @@ test.describe('admin', () => {
   });
 });
 
+test.describe('happy customers', () => {
+  // El chequeo es el que motivó el diseño: las fotos tienen que acompañar TODO
+  // el scroll, no verse sólo arriba. En desktop ancho viven en los márgenes
+  // (fixed) y en mobile intercaladas entre las reviews, así que se verifica
+  // distinto según el viewport.
+  test('las fotos acompañan el scroll, no sólo el principio', async ({ page }, testInfo) => {
+    const desktop = testInfo.project.name === 'desktop';
+    // Desktop Chrome trae 1280px y los rieles necesitan 1300+: sin esto el test
+    // estaría midiendo el fallback de mobile creyendo que mide los rieles.
+    if (desktop) await page.setViewportSize({ width: 1512, height: 900 });
+
+    await visit(page, '/reviews');
+
+    const photos = desktop ? page.locator('.hc-edges img') : page.locator('.hc-inline-tile img');
+    const n = await photos.count();
+    // Sin fotos cargadas en la base no hay nada que mostrar, y eso es válido:
+    // la sección desaparece entera en vez de dejar un hueco.
+    if (n === 0) {
+      await expect(page.locator('.hc-edges')).toHaveCount(0);
+      return;
+    }
+
+    await expect(photos.first()).toHaveAttribute('alt', /.+/);
+
+    if (desktop) {
+      await page.evaluate(() => window.scrollTo(0, 2000));
+      // Son fixed: después de scrollear tiene que seguir habiendo fotos en
+      // pantalla. Se cuentan las visibles en vez de mirar una en particular —
+      // el track se desplaza, así que cuál está a la vista depende del momento
+      // del ciclo, y fijarse en la primera hacía el test flaky.
+      const visibles = await page.evaluate(() =>
+        [...document.querySelectorAll('.hc-edges img')].filter((img) => {
+          const b = img.getBoundingClientRect();
+          return b.width > 0 && b.bottom > 0 && b.top < window.innerHeight;
+        }).length);
+      expect(visibles).toBeGreaterThan(0);
+    } else {
+      // Intercaladas: tienen que repartirse por TODA la lista. Con un paso fijo
+      // las 12 se agotaban en el primer tercio y el resto de la página quedaba
+      // sin ninguna, así que lo que se mide es hasta dónde llega la última.
+      const { y, alto } = await photos.last().evaluate(el => ({
+        y: el.getBoundingClientRect().top + window.scrollY,
+        alto: document.body.scrollHeight,
+      }));
+      expect(y / alto).toBeGreaterThan(0.6);
+    }
+  });
+});
+
 test.describe('SEO / prerender', () => {
   for (const route of ROUTES) {
     test(`${route} tiene title y meta description`, async ({ page }) => {

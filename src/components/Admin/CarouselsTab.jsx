@@ -4,6 +4,7 @@ import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton } from "./adminUI";
 import { fetchCarouselItems, addCarouselItem, removeCarouselItem, updateCarouselOrder } from "../../lib/supabase";
 import DragList from "./DragList";
+import HappyCustomersPanel from "./HappyCustomersPanel";
 
 // "returning_customers" was retired from the site and is intentionally absent here.
 // "happy_customers" is curated in the admin but not rendered on the site yet.
@@ -11,10 +12,12 @@ const CAROUSEL_TYPES = [
   { key: "recent_works", label: "Recent Works", note: "Shown on the home page." },
   { key: "tailor_jobs", label: "Custom Projects", note: "Shown on the home page." },
   { key: "highlights", label: "Highlights", note: "Shown on the home page." },
-  { key: "happy_customers", label: "Happy Customers", note: "Not shown on the site yet — curate it here and we'll place it later." },
+  // Único que no se cura desde el portfolio: se suben fotos propias. Ver HappyCustomersPanel.
+  { key: "happy_customers", label: "Happy Customers", note: "Your own photos with customers — uploaded here, not picked from the Portfolio." },
 ];
 
 const PAGE_SIZE = 24;
+const HAPPY = "happy_customers";
 
 const normalizeItem = (ci) => ({
   carouselItemId: ci.id,
@@ -40,6 +43,7 @@ export default function CarouselsTab({ items, cats, carouselData, setCarouselDat
 
   // Load carousel items when sub-tab changes
   useEffect(() => {
+    if (subTab === HAPPY) return; // tiene tabla propia, la carga HappyCustomersPanel
     if (loadedRef.current[subTab]) return;
     loadedRef.current[subTab] = true;
     (async () => {
@@ -133,6 +137,18 @@ export default function CarouselsTab({ items, cats, carouselData, setCarouselDat
           {CAROUSEL_TYPES.find(c => c.key === subTab).note}
         </p>
       )}
+      {subTab === HAPPY ? (
+        <HappyCustomersPanel
+          photos={currentItems}
+          setPhotos={(updater) => setCarouselData(prev => ({
+            ...prev,
+            [HAPPY]: typeof updater === "function" ? updater(prev[HAPPY] || []) : updater,
+          }))}
+          flash={flash}
+          adminLoading={adminLoading}
+          setAdminLoading={setAdminLoading}
+        />
+      ) : (<>
       <p style={typography.label}>Current items ({currentItems.length})</p>
       {currentItems.length === 0 ? (
         <p style={{ ...A.emptyState, padding: `${spacing.lg}px 0` }}>No items in this carousel. Select from portfolio below.</p>
@@ -212,6 +228,7 @@ export default function CarouselsTab({ items, cats, carouselData, setCarouselDat
           </AdminButton>
         </div>
       )}
+      </>)}
     </div>
   );
 }

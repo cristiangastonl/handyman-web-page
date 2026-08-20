@@ -17,3 +17,6 @@ blob-report
 
 # contiene tokens de acceso — nunca commitear
 .claude/settings.local.json
+
+# fotos que trae el cliente para subir a Supabase — nunca al repo
+_incoming/
