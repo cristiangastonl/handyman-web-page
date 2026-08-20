@@ -4,8 +4,11 @@ import { R, REVIEWS, svgP, WA_LINK, ab, getStyleConfig, parseReviewDate, formatR
 import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
+// Facebook no da estrellas, da recomendación. El pulgar arriba le da al badge el
+// mismo peso visual que las 5 estrellas de una card de Google al lado.
 const FbBadge = () => (
   <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "#1877F2", fontWeight: 600 }}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d={svgP.thumbsUp}/></svg>
     Recommends
   </span>
 );

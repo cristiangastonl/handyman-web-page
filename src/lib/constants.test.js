@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP } from "./constants";
 
 describe("itemThumb", () => {
   // Regression: this is the bug that white-screened /portfolio in production.
@@ -81,5 +81,15 @@ describe("getWALink", () => {
 
   it("falls back to English for unknown language", () => {
     expect(getWALink("zz")).toContain("Hi%2C%20I%20need");
+  });
+});
+
+describe("svgP", () => {
+  // El badge "Recommends" de Facebook dibuja svgP.thumbsUp. Si el path desaparece,
+  // React renderiza <path d={undefined}> sin tirar error de consola: el icono se va
+  // en silencio y ni el E2E ni el build lo notan. Por eso se chequea acá.
+  it.each(["fb", "yt", "wa", "thumbsUp"])("%s es un path SVG usable", (key) => {
+    expect(svgP[key]).toBeTruthy();
+    expect(svgP[key]).toMatch(/^M/);
   });
 });
