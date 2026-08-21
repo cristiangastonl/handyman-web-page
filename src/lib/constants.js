@@ -338,6 +338,10 @@ export const css = `
   .hc-edges { display: none; }
   .hc-marquee-track { display: flex; flex-direction: column; gap: 10px; animation: hcUp 40s linear infinite; }
   .hc-marquee-track.down { animation-name: hcDown; }
+  /* La foto intercalada rompe el padding de 24px del contenedor y va de borde a
+     borde: así se lee como una banda que corta el ritmo de las reviews, en vez
+     de parecer una card más. */
+  .hc-inline-tile { grid-column: 1 / -1; margin-left: -24px; margin-right: -24px; }
   @keyframes hcUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
   @keyframes hcDown { 0% { transform: translateY(-50%); } 100% { transform: translateY(0); } }
   @media (min-width: 1300px) {
@@ -358,6 +362,7 @@ export const css = `
     /* En desktop las fotos viven en los márgenes: los tiles de la grilla sobran. */
     .hc-inline-tile { display: none; }
   }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
