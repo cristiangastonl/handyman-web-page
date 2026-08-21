@@ -5,6 +5,10 @@ import { FadeIn } from "./FadeIn";
 // Fallback skill tags for when no categories exist yet (fresh install / Supabase down).
 const FALLBACK_SKILLS = ["electricity", "plumbing", "assembly", "fixings", "gardening", "wallMounting"];
 
+// El naranja de marca oscurecido. El #D4781F puro no llega al contraste mínimo
+// de accesibilidad para texto chico; sobre este sí se lee bien el blanco.
+const NARANJA_OSCURO = "#B5641A";
+
 export default function About({ nav, navToCategory, cats = [], siteConfig = {} }) {
   const { t } = useTranslation();
   // Tags mirror the real Portfolio categories the client uploads, not a hardcoded list.
@@ -30,9 +34,13 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
             {tags.map(tag => (
               <button key={tag.key} className="skill-tag" onClick={() => navToCategory ? navToCategory(tag.target) : nav("portfolio")}
-                style={{ padding: "5px 12px", borderRadius: 16, border: "1px solid #ccc", fontSize: 12, color: "#666", fontWeight: 500, background: "none", cursor: "pointer", transition: "border-color .2s, color .2s" }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.style.color = "#666"; }}>
+                style={{
+                  padding: "5px 12px", borderRadius: 16, fontSize: 12, fontWeight: 500,
+                  cursor: "pointer", transition: "background .2s, border-color .2s",
+                  background: R, color: "#fff", border: `1px solid ${R}`,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = NARANJA_OSCURO; e.currentTarget.style.borderColor = NARANJA_OSCURO; }}
+                onMouseLeave={e => { e.currentTarget.style.background = R; e.currentTarget.style.borderColor = R; }}>
                 {tag.label}
               </button>
             ))}
