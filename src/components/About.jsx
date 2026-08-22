@@ -5,8 +5,16 @@ import { FadeIn } from "./FadeIn";
 // Fallback skill tags for when no categories exist yet (fresh install / Supabase down).
 const FALLBACK_SKILLS = ["electricity", "plumbing", "assembly", "fixings", "gardening", "wallMounting"];
 
-const TAG_BORDE = "#ccc";
-const TAG_TEXTO = "#666";
+// El gradiente del banner de Service Areas (CTA.jsx:51), acotado a su mitad naranja: ese
+// gradiente termina en gris, y en una pastilla de ~34px de alto el tramo gris la ensucia.
+const NARANJA_OSCURO = "#B5621A";
+const TAG_FONDO = `linear-gradient(180deg, ${R} 0%, ${NARANJA_OSCURO} 100%)`;
+
+// La forma sale de los chips de zonas de ese mismo banner —radius 8, padding 8x16, peso
+// 600—: el sitio no usa pastillas de radius 16 en ningún otro lado. Y el hover que sube y
+// tiñe la sombra de naranja es el de las tarjetas de categoría del Portfolio, que son este
+// mismo contenido en la otra página; así el tag se comporta como la tarjeta a la que lleva.
+const TAG_SOMBRA_HOVER = "0 8px 28px rgba(212,120,31,0.28)";
 
 export default function About({ nav, navToCategory, cats = [], siteConfig = {} }) {
   const { t } = useTranslation();
@@ -34,12 +42,15 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
             {tags.map(tag => (
               <button key={tag.key} className="skill-tag" onClick={() => navToCategory ? navToCategory(tag.target) : nav("portfolio")}
                 style={{
-                  padding: "5px 12px", borderRadius: 16, fontSize: 12, fontWeight: 500,
-                  cursor: "pointer", transition: "border-color .2s, color .2s",
-                  background: "none", color: TAG_TEXTO, border: `1px solid ${TAG_BORDE}`,
+                  padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                  cursor: "pointer", transition: "transform .2s, box-shadow .2s, filter .2s",
+                  background: TAG_FONDO, color: "#fff", border: "1px solid transparent",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = TAG_BORDE; e.currentTarget.style.color = TAG_TEXTO; }}>
+                // Se oscurece con filter y no cambiando el fondo: CSS no sabe interpolar de
+                // un gradiente a un color plano, así que al asignarlo se borraba el degradado
+                // y por un frame se veía el blanco de la página detrás.
+                onMouseEnter={e => { e.currentTarget.style.filter = "brightness(0.92)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = TAG_SOMBRA_HOVER; }}
+                onMouseLeave={e => { e.currentTarget.style.filter = "none"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
                 {tag.label}
               </button>
             ))}
