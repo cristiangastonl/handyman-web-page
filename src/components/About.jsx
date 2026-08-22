@@ -5,14 +5,8 @@ import { FadeIn } from "./FadeIn";
 // Fallback skill tags for when no categories exist yet (fresh install / Supabase down).
 const FALLBACK_SKILLS = ["electricity", "plumbing", "assembly", "fixings", "gardening", "wallMounting"];
 
-// El naranja oscuro que ya usa el gradiente del banner de Service Areas
-// (CTA.jsx:51). El #D4781F puro no llega al contraste mínimo para texto chico.
-const NARANJA_OSCURO = "#B5621A";
-const GRIS_MARCA = "#4A4A4A";
-
-// El gradiente del banner de Service Areas (CTA.jsx:51), acotado a su mitad
-// naranja: en una pill de 30px de alto, llegar hasta el gris la ensucia.
-const TAG_FONDO = `linear-gradient(180deg, ${R} 0%, ${NARANJA_OSCURO} 100%)`;
+const TAG_BORDE = "#ccc";
+const TAG_TEXTO = "#666";
 
 export default function About({ nav, navToCategory, cats = [], siteConfig = {} }) {
   const { t } = useTranslation();
@@ -36,20 +30,16 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           }}>
             {bio?.text || t("about.bio")}
           </p>); })()}
-          <div className="skill-tags" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+          <div className="skill-tags" style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginTop: 12 }}>
             {tags.map(tag => (
               <button key={tag.key} className="skill-tag" onClick={() => navToCategory ? navToCategory(tag.target) : nav("portfolio")}
                 style={{
                   padding: "5px 12px", borderRadius: 16, fontSize: 12, fontWeight: 500,
-                  cursor: "pointer", transition: "filter .2s",
-                  background: TAG_FONDO, color: "#fff", border: `1px solid ${R}`,
+                  cursor: "pointer", transition: "border-color .2s, color .2s",
+                  background: "none", color: TAG_TEXTO, border: `1px solid ${TAG_BORDE}`,
                 }}
-                // Se oscurece con filter y no cambiando el fondo: CSS no sabe
-                // interpolar de un gradiente a un color plano, así que al asignar
-                // el color se borraba el gradiente y por un frame se veía el
-                // blanco de la página detrás.
-                onMouseEnter={e => { e.currentTarget.style.filter = "brightness(0.9)"; }}
-                onMouseLeave={e => { e.currentTarget.style.filter = "none"; }}>
+                onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = TAG_BORDE; e.currentTarget.style.color = TAG_TEXTO; }}>
                 {tag.label}
               </button>
             ))}

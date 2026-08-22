@@ -307,9 +307,6 @@ export const css = `
     .hero-section .heroContent .hero-subtitle { font-size: 18px !important; }
     .mobile-menu-item { min-height: 44px !important; display: flex !important; align-items: center !important; }
     .skill-tag { padding: 8px 14px !important; font-size: 13px !important; min-height: 36px !important; }
-    /* Los tags son un flex aparte y no heredaban el centrado de .about-row: en
-       mobile envuelven a dos filas y quedaban pegados al borde izquierdo. */
-    .skill-tags { justify-content: center !important; }
     .admin-container { padding: 20px 16px !important; }
     .admin-container input, .admin-container textarea, .admin-container select { font-size: 16px !important; }
     .stats-section { padding: 10px 12px !important; }
