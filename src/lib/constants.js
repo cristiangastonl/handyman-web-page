@@ -305,6 +305,10 @@ export const css = `
     .hero-section .heroContent h1 { font-size: 31px !important; margin-bottom: 2px !important; }
     .hero-section .heroContent .hero-brand { font-size: 20px !important; }
     .hero-section .heroContent .hero-subtitle { font-size: 18px !important; }
+    /* El bloque de texto ocupa mucha más altura proporcional acá que en desktop, así que
+       trepa hasta donde el degradado de escritorio todavía está tenue y el título vuelve
+       a competir con las paredes claras. Misma curva, corrida hacia arriba. */
+    .hero-scrim { background: linear-gradient(to top, rgba(15,15,15,0.94) 0%, rgba(15,15,15,0.86) 45%, rgba(15,15,15,0.55) 70%, rgba(15,15,15,0.18) 88%, transparent 100%) !important; }
     .mobile-menu-item { min-height: 44px !important; display: flex !important; align-items: center !important; }
     .skill-tag { padding: 8px 14px !important; font-size: 13px !important; min-height: 36px !important; }
     .admin-container { padding: 20px 16px !important; }

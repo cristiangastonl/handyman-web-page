@@ -17,6 +17,17 @@ function BrandTitle({ text }) {
   );
 }
 
+// El collage tiene tramos claros (paredes y puertas blancas) donde el naranja se apaga y
+// "Handyman" termina leyéndose menos que el blanco que lo acompaña — al revés de lo que se
+// busca. Retocar el tono no alcanzaba: el problema es el fondo, no el color.
+//
+// La salida no es una caja detrás del texto —eso se lee como un parche pegado encima de la
+// foto— sino apoyar el degradado que ya existía. El anterior era lineal y llegaba a 0.72:
+// suficiente sobre una foto normal, corto sobre este collage. Este concentra la densidad en
+// el tercio inferior, donde va el texto, y se desvanece antes de llegar arriba para no
+// apagar las fotos, que son el argumento de venta.
+const SCRIM = "linear-gradient(to top, rgba(15,15,15,0.92) 0%, rgba(15,15,15,0.72) 28%, rgba(15,15,15,0.35) 55%, rgba(15,15,15,0.10) 80%, transparent 100%)";
+
 export default function Hero({ siteConfig = {}, isAdmin = false, onConfigUpdate }) {
   const scrollY = useScrollY();
   const { t } = useTranslation();
@@ -65,15 +76,21 @@ export default function Hero({ siteConfig = {}, isAdmin = false, onConfigUpdate 
     setEditing(false);
   };
 
+  // 45vh topado en 450px daba 4.24:1 en una pantalla de 1728px: más una franja que un hero,
+  // y con el collage cortado por la mitad justo donde las fotos son el argumento de venta.
+  // 55vh/600 lo deja en ~3.3:1: sigue holgado frente al original sin comerse media pantalla.
   return (
-    <section ref={containerRef} className="hero-section" style={{ position: "relative", height: "45vh", minHeight: 300, maxHeight: 450, overflow: "hidden", cursor: editing ? "crosshair" : undefined }}
+    <section ref={containerRef} className="hero-section" style={{ position: "relative", height: "55vh", minHeight: 300, maxHeight: 600, overflow: "hidden", cursor: editing ? "crosshair" : undefined }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}>
       <img className="hero-image" src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchpriority="high" width={1200} height={800} draggable={false}
         style={{ width: "100%", height: "120%", objectFit: "cover", objectPosition: `${posX}% ${posY}%`, transform: editing ? "none" : `translateY(${scrollY * -0.08}px)`, willChange: "transform", pointerEvents: "none" }}/>
-      <div style={{ position: "absolute", inset: 0, background: editing ? "rgba(0,0,0,0.3)" : "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.72) 100%)" }}/>
+      {/* Sin la clase mientras se edita: el refuerzo mobile lleva !important y taparía la
+          foto justo cuando hay que verla para reposicionarla. */}
+      <div className={editing ? undefined : "hero-scrim"}
+        style={{ position: "absolute", inset: 0, background: editing ? "rgba(0,0,0,0.3)" : SCRIM }}/>
 
       {/* Admin edit controls */}
       {isAdmin && !editing && (
