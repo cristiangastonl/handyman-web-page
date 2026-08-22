@@ -311,6 +311,10 @@ export const css = `
     .hero-scrim { background: linear-gradient(to top, rgba(15,15,15,0.94) 0%, rgba(15,15,15,0.86) 45%, rgba(15,15,15,0.55) 70%, rgba(15,15,15,0.18) 88%, transparent 100%) !important; }
     .mobile-menu-item { min-height: 44px !important; display: flex !important; align-items: center !important; }
     .skill-tag { padding: 8px 14px !important; font-size: 13px !important; min-height: 36px !important; }
+    /* Los tags son un flex aparte y no heredan el centrado de .about-row: acá el bloque
+       entero va centrado y ellos quedaban pegados al borde izquierdo. En desktop, en
+       cambio, van a la izquierda alineados con el párrafo del bio. */
+    .skill-tags { justify-content: center !important; }
     .admin-container { padding: 20px 16px !important; }
     .admin-container input, .admin-container textarea, .admin-container select { font-size: 16px !important; }
     .stats-section { padding: 10px 12px !important; }

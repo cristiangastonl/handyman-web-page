@@ -38,7 +38,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           }}>
             {bio?.text || t("about.bio")}
           </p>); })()}
-          <div className="skill-tags" style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginTop: 12 }}>
+          <div className="skill-tags" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
             {tags.map(tag => (
               <button key={tag.key} className="skill-tag" onClick={() => navToCategory ? navToCategory(tag.target) : nav("portfolio")}
                 style={{
