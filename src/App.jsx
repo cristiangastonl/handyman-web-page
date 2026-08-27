@@ -58,8 +58,8 @@ export default function App() {
     document.documentElement.lang = i18n.language === 'en' ? 'en-CH' : i18n.language;
   }, [i18n.language]);
 
-  // Panel de velocidad de carruseles: se prende con ?tune=1 y sigue prendido
-  // mientras dure la pestaña, así se puede navegar sin arrastrar el param.
+  // Panel de velocidad de carruseles: visible por defecto mientras la web no
+  // esté lanzada. ?tune=0 o la X lo apagan por el resto de la pestaña.
   const [tuner, setTuner] = useState(false);
   useEffect(() => {
     setTuner(isTunerEnabled(location.search));
@@ -265,8 +265,8 @@ export default function App() {
               a WhatsApp queda en el hero, en la StickyBar al scrollear y en el
               CTA de cierre. */}
           <Lightbox item={lb} items={lbItems} onClose={() => { setLb(null); setLbItems([]); }} onNavigate={setLb}/>
-          {/* Sólo con ?tune=1 — panel para que el cliente elija la velocidad
-              de los carruseles mirándolos. Se va cuando defina el número. */}
+          {/* Panel para que el cliente elija la velocidad de los carruseles
+              mirándolos. Se va del todo cuando defina el número. */}
           {tuner && <SpeedTuner/>}
         </>
       )}

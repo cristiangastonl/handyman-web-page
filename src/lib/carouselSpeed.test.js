@@ -97,32 +97,41 @@ describe("px por segundo", () => {
 });
 
 describe("activación del panel", () => {
-  it("está apagado sin query param", () => {
-    expect(isTunerEnabled("")).toBe(false);
-  });
-
-  it("se prende con ?tune=1", () => {
-    expect(isTunerEnabled("?tune=1")).toBe(true);
-  });
-
-  it("queda prendido al navegar sin el param", () => {
-    isTunerEnabled("?tune=1");
+  // Se muestra por defecto: la web no está lanzada y se trabaja sobre la URL
+  // normal. El query param sólo sirve para apagarlo.
+  it("está prendido sin query param", () => {
     expect(isTunerEnabled("")).toBe(true);
   });
 
+  it("sigue prendido con ?tune=1", () => {
+    expect(isTunerEnabled("?tune=1")).toBe(true);
+  });
+
   it("se apaga con ?tune=0", () => {
-    isTunerEnabled("?tune=1");
     expect(isTunerEnabled("?tune=0")).toBe(false);
+  });
+
+  it("queda apagado al navegar sin el param", () => {
+    isTunerEnabled("?tune=0");
     expect(isTunerEnabled("")).toBe(false);
   });
 
+  it("?tune=1 lo vuelve a prender después de apagarlo", () => {
+    isTunerEnabled("?tune=0");
+    expect(isTunerEnabled("?tune=1")).toBe(true);
+    expect(isTunerEnabled("")).toBe(true);
+  });
+
   it("disableTuner lo apaga para el resto de la sesión", () => {
-    isTunerEnabled("?tune=1");
     disableTuner();
     expect(isTunerEnabled("")).toBe(false);
   });
 
-  it("no se prende con otros query params", () => {
-    expect(isTunerEnabled("?lang=de&utm_source=wa")).toBe(false);
+  it("otros query params no lo apagan", () => {
+    expect(isTunerEnabled("?lang=de&utm_source=wa")).toBe(true);
+  });
+
+  it("?tune=off también apaga", () => {
+    expect(isTunerEnabled("?tune=off")).toBe(false);
   });
 });

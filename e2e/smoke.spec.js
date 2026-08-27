@@ -203,20 +203,20 @@ test.describe('SEO / prerender', () => {
 });
 
 test.describe('panel de velocidad de carruseles', () => {
-  // Herramienta interna: tiene que ser invisible para cualquier visitante y
-  // aparecer sólo cuando se entra a propósito con ?tune=1.
+  // Andamiaje mientras la web no está lanzada: se muestra en la URL normal,
+  // que es sobre la que se trabaja. ?tune=0 lo apaga.
   const panel = (page) => page.getByText('Velocidad carruseles');
 
-  test('no aparece en una visita normal', async ({ page }) => {
+  test('aparece en la URL normal, sin query param', async ({ page }) => {
     const console_ = watchConsole(page);
     await visit(page, '/');
-    await expect(panel(page)).toHaveCount(0);
+    await expect(panel(page)).toBeVisible();
     console_.assertClean();
   });
 
-  test('aparece con ?tune=1 y deja cambiar la velocidad', async ({ page }) => {
+  test('deja cambiar la velocidad', async ({ page }) => {
     const console_ = watchConsole(page);
-    await visit(page, '/?tune=1');
+    await visit(page, '/');
 
     await expect(panel(page)).toBeVisible();
 
@@ -231,8 +231,8 @@ test.describe('panel de velocidad de carruseles', () => {
     console_.assertClean();
   });
 
-  test('sigue prendido al navegar sin el query param', async ({ page, isMobile }) => {
-    await visit(page, '/?tune=1');
+  test('está en todas las páginas, no sólo en la home', async ({ page, isMobile }) => {
+    await visit(page, '/');
     await expect(panel(page)).toBeVisible();
 
     if (isMobile) await page.getByRole('button', { name: 'Toggle menu' }).click();
@@ -242,16 +242,37 @@ test.describe('panel de velocidad de carruseles', () => {
     await expect(panel(page)).toBeVisible();
   });
 
-  test('?tune=0 lo apaga', async ({ page }) => {
-    await visit(page, '/?tune=1');
-    await expect(panel(page)).toBeVisible();
+  // Estos dos eran un solo test con cuatro visit(): tardaba 16s aislado y era
+  // el primero en pasarse de los 30s bajo carga. Separados verifican lo mismo
+  // con la mitad de navegaciones cada uno. Que el panel se vea en '/' ya lo
+  // cubre el primer test del grupo, así que acá no hace falta repetirlo.
+  test('?tune=0 lo apaga, y el apagado dura toda la pestaña', async ({ page }) => {
     await visit(page, '/?tune=0');
     await expect(panel(page)).toHaveCount(0);
+
+    // No es sólo esa URL: al navegar sin el param sigue apagado.
+    await visit(page, '/reviews');
+    await expect(panel(page)).toHaveCount(0);
+  });
+
+  test('?tune=1 lo vuelve a prender después de apagarlo', async ({ page }) => {
+    await visit(page, '/?tune=0');
+    await expect(panel(page)).toHaveCount(0);
+
+    await visit(page, '/?tune=1');
+    await expect(panel(page)).toBeVisible();
+  });
+
+  test('no se cuela en el HTML pre-renderizado', async ({ page }) => {
+    // El prerender corre sin efectos, así que el panel no debe estar en el
+    // HTML servido — sólo después de hidratar.
+    const html = await (await page.request.get('/reviews')).text();
+    expect(html).not.toContain('Velocidad carruseles');
   });
 
   test('el multiplicador cambia el desplazamiento real del carrusel', async ({ page }) => {
     // El corazón del cambio: que mover el slider mueva de verdad los carruseles.
-    await visit(page, '/?tune=1');
+    await visit(page, '/');
     await page.mouse.move(0, 0);
 
     // Los carruseles con un solo item no auto-scrollean a propósito, así que se
@@ -299,7 +320,7 @@ test.describe('panel de velocidad de carruseles', () => {
   test('el multiplicador también acelera los rieles de /reviews', async ({ page }) => {
     // Anibal reflotó lo de la velocidad justo después de elogiar los carruseles
     // de reviews, así que el slider tiene que alcanzarlos a ellos también.
-    await visit(page, '/reviews?tune=1');
+    await visit(page, '/reviews');
 
     const rieles = page.locator('.hc-marquee-track');
     // Los rieles son la cara desktop (≥1300px); en mobile las fotos van

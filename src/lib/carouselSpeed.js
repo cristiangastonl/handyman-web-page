@@ -16,7 +16,8 @@ export const MAX_MULTIPLIER = 6;
 export const DEFAULT_MULTIPLIER = 1;
 
 const MULT_KEY = "carouselSpeedMultiplier";
-const TUNER_KEY = "carouselSpeedTuner";
+// Guarda el apagado, no el prendido: el panel viene visible por defecto.
+const TUNER_OFF_KEY = "carouselSpeedTunerOff";
 
 const listeners = new Set();
 const emit = () => listeners.forEach((l) => l());
@@ -89,9 +90,12 @@ export function useAnimationDuration(baseSeconds) {
 // px/s aproximados, que es como lo va a leer una persona.
 export const toPixelsPerSecond = (m) => Math.round(BASE_SPEED * m * 60);
 
-// El panel se abre con ?tune=1 y queda prendido mientras dure la pestaña,
-// así se puede navegar por el sitio sin arrastrar el query param.
-// ?tune=0 lo apaga.
+// El panel se muestra por defecto: la web todavía no está lanzada y trabajamos
+// siempre sobre la URL normal, así que pedir ?tune=1 era fricción al pedo.
+// ?tune=0 (o la X del panel) lo apaga por el resto de la pestaña, para cuando
+// haga falta ver el sitio limpio; ?tune=1 lo vuelve a prender.
+//
+// Al lanzar la web esto se invierte o se borra junto con el resto del andamiaje.
 export function isTunerEnabled(search = typeof window !== "undefined" ? window.location.search : "") {
   let param = null;
   try {
@@ -100,26 +104,28 @@ export function isTunerEnabled(search = typeof window !== "undefined" ? window.l
     param = null;
   }
 
+  const apagar = param === "0" || param === "off";
+
   try {
-    if (param === "0" || param === "off") {
-      sessionStorage.removeItem(TUNER_KEY);
+    if (apagar) {
+      sessionStorage.setItem(TUNER_OFF_KEY, "1");
       return false;
     }
     if (param !== null) {
-      sessionStorage.setItem(TUNER_KEY, "1");
+      sessionStorage.removeItem(TUNER_OFF_KEY);
       return true;
     }
-    return sessionStorage.getItem(TUNER_KEY) === "1";
+    return sessionStorage.getItem(TUNER_OFF_KEY) !== "1";
   } catch {
     // Sin sessionStorage sólo vale el query param de esta URL.
-    return param !== null && param !== "0" && param !== "off";
+    return !apagar;
   }
 }
 
 export function disableTuner() {
   try {
-    sessionStorage.removeItem(TUNER_KEY);
+    sessionStorage.setItem(TUNER_OFF_KEY, "1");
   } catch {
-    // nada que limpiar
+    // Sin persistencia el panel vuelve al recargar, que es aceptable.
   }
 }
