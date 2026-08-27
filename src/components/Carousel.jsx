@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { R, ab, itemThumb } from "../lib/constants";
+import { useCarouselSpeed } from "../lib/carouselSpeed";
 
 const CARD_WIDTH = 292; // minWidth + gap
-const SPEED = 0.5; // pixels per frame (~30px/sec)
 
 export default function Carousel({ items, onClickItem, autoPlay = true }) {
   const trackRef = useRef(null);
@@ -11,6 +11,11 @@ export default function Carousel({ items, onClickItem, autoPlay = true }) {
   const [paused, setPaused] = useState(false);
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, pos: 0 });
+
+  // px por frame — ajustable en vivo con ?tune=1 hasta que el cliente elija.
+  const speed = useCarouselSpeed();
+  const speedRef = useRef(speed);
+  speedRef.current = speed;
 
   // Duplicate items for seamless loop (need at least 2 sets)
   const loopItems = items.length > 0 ? [...items, ...items, ...items] : [];
@@ -21,7 +26,8 @@ export default function Carousel({ items, onClickItem, autoPlay = true }) {
       animRef.current = requestAnimationFrame(animate);
       return;
     }
-    posRef.current += SPEED;
+    // Se lee del ref para que mover el slider no corte la animación en curso.
+    posRef.current += speedRef.current;
     // Reset position seamlessly when we've scrolled one full set
     if (posRef.current >= singleSetWidth) {
       posRef.current -= singleSetWidth;

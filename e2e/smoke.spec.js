@@ -201,3 +201,123 @@ test.describe('SEO / prerender', () => {
     });
   }
 });
+
+test.describe('panel de velocidad de carruseles', () => {
+  // Herramienta interna: tiene que ser invisible para cualquier visitante y
+  // aparecer sólo cuando se entra a propósito con ?tune=1.
+  const panel = (page) => page.getByText('Velocidad carruseles');
+
+  test('no aparece en una visita normal', async ({ page }) => {
+    const console_ = watchConsole(page);
+    await visit(page, '/');
+    await expect(panel(page)).toHaveCount(0);
+    console_.assertClean();
+  });
+
+  test('aparece con ?tune=1 y deja cambiar la velocidad', async ({ page }) => {
+    const console_ = watchConsole(page);
+    await visit(page, '/?tune=1');
+
+    await expect(panel(page)).toBeVisible();
+
+    const slider = page.getByRole('slider', { name: 'Velocidad de los carruseles' });
+    await expect(slider).toHaveValue('1');
+
+    // El preset "Triple" es el número que pidió el cliente.
+    await page.getByRole('button', { name: 'Triple' }).click();
+    await expect(slider).toHaveValue('3');
+    await expect(page.getByText('90 px/s')).toBeVisible();
+
+    console_.assertClean();
+  });
+
+  test('sigue prendido al navegar sin el query param', async ({ page, isMobile }) => {
+    await visit(page, '/?tune=1');
+    await expect(panel(page)).toBeVisible();
+
+    if (isMobile) await page.getByRole('button', { name: 'Toggle menu' }).click();
+    await page.getByRole('button', { name: /^Reviews$/i }).first().click();
+    await expect(page).toHaveURL(/\/reviews$/);
+
+    await expect(panel(page)).toBeVisible();
+  });
+
+  test('?tune=0 lo apaga', async ({ page }) => {
+    await visit(page, '/?tune=1');
+    await expect(panel(page)).toBeVisible();
+    await visit(page, '/?tune=0');
+    await expect(panel(page)).toHaveCount(0);
+  });
+
+  test('el multiplicador cambia el desplazamiento real del carrusel', async ({ page }) => {
+    // El corazón del cambio: que mover el slider mueva de verdad los carruseles.
+    await visit(page, '/?tune=1');
+    await page.mouse.move(0, 0);
+
+    // Los carruseles con un solo item no auto-scrollean a propósito, así que se
+    // usa el que más contenido tiene. Hay que esperarlo: sale de Supabase y
+    // medir antes de que monte devolvía -1 de forma intermitente.
+    const hayTrack = () =>
+      page.waitForFunction(
+        () => [...document.querySelectorAll('div')].some(
+          (d) => d.style.willChange === 'transform' && d.children.length > 3),
+        null,
+        { timeout: 20_000 },
+      );
+    await hayTrack();
+
+    // Todo dentro del browser: ida y vuelta por CDP entre lectura y lectura
+    // agregaría ruido al intervalo medido.
+    const desplazamiento = () => page.evaluate(async () => {
+      const track = [...document.querySelectorAll('div')]
+        .filter((d) => d.style.willChange === 'transform')
+        .sort((a, b) => b.children.length - a.children.length)[0];
+      if (!track) return -1;
+      const leer = () => {
+        const m = /translateX\((-?[0-9.]+)px\)/.exec(track.style.transform);
+        return m ? parseFloat(m[1]) : 0;
+      };
+      const a = leer();
+      await new Promise((r) => setTimeout(r, 700));
+      return Math.abs(leer() - a);
+    });
+
+    await page.getByRole('button', { name: 'Original', exact: true }).click();
+    await page.mouse.move(0, 0); // el carrusel se pausa con el mouse encima
+    const lento = await desplazamiento();
+
+    await page.getByRole('button', { name: 'Triple' }).click();
+    await page.mouse.move(0, 0);
+    const rapido = await desplazamiento();
+
+    // Se compara la relación, no px absolutos: el frame rate del runner no es
+    // estable (en headless corrió al doble), y fijar valores lo haría flaky.
+    expect(lento, 'el carrusel no se movió con la velocidad original').toBeGreaterThan(0);
+    expect(rapido).toBeGreaterThan(lento * 2);
+  });
+
+  test('el multiplicador también acelera los rieles de /reviews', async ({ page }) => {
+    // Anibal reflotó lo de la velocidad justo después de elogiar los carruseles
+    // de reviews, así que el slider tiene que alcanzarlos a ellos también.
+    await visit(page, '/reviews?tune=1');
+
+    const rieles = page.locator('.hc-marquee-track');
+    // Los rieles son la cara desktop (≥1300px); en mobile las fotos van
+    // intercaladas y sin animación, así que no hay nada que medir.
+    if (await rieles.count() === 0) {
+      test.skip(true, 'los rieles verticales sólo existen en desktop');
+      return;
+    }
+
+    const duracion = () => rieles.first().evaluate(
+      (el) => parseFloat(getComputedStyle(el).animationDuration));
+
+    const original = await duracion();
+    expect(original).toBeGreaterThan(0);
+
+    await page.getByRole('button', { name: 'Triple' }).click();
+
+    // poll: el click vuelve antes de que React repinte el nuevo animationDuration.
+    await expect.poll(duracion, { timeout: 5_000 }).toBeCloseTo(original / 3, 1);
+  });
+});
