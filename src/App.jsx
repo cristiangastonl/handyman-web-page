@@ -28,6 +28,8 @@ import { FAQHome, FAQPage } from "./components/FAQ";
 import Footer from "./components/Footer";
 import Lightbox from "./components/Lightbox";
 import StickyBar from "./components/StickyBar";
+import SpeedTuner from "./components/SpeedTuner";
+import { isTunerEnabled } from "./lib/carouselSpeed";
 
 // Lazy-loaded routes (code-split — only downloaded when user navigates)
 const Portfolio = lazy(() => import("./components/Portfolio"));
@@ -55,6 +57,13 @@ export default function App() {
   useEffect(() => {
     document.documentElement.lang = i18n.language === 'en' ? 'en-CH' : i18n.language;
   }, [i18n.language]);
+
+  // Panel de velocidad de carruseles: se prende con ?tune=1 y sigue prendido
+  // mientras dure la pestaña, así se puede navegar sin arrastrar el param.
+  const [tuner, setTuner] = useState(false);
+  useEffect(() => {
+    setTuner(isTunerEnabled(location.search));
+  }, [location.search]);
 
   // ── Navigation ──
   // Derive page from current pathname for Nav highlighting
@@ -256,6 +265,9 @@ export default function App() {
               a WhatsApp queda en el hero, en la StickyBar al scrollear y en el
               CTA de cierre. */}
           <Lightbox item={lb} items={lbItems} onClose={() => { setLb(null); setLbItems([]); }} onNavigate={setLb}/>
+          {/* Sólo con ?tune=1 — panel para que el cliente elija la velocidad
+              de los carruseles mirándolos. Se va cuando defina el número. */}
+          {tuner && <SpeedTuner/>}
         </>
       )}
     </div>

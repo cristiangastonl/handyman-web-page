@@ -1,5 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { FadeIn } from "./FadeIn";
+import { useAnimationDuration } from "../lib/carouselSpeed";
+
+// Duración base del marquee, en segundos (la del CSS en constants.js).
+const STRIP_SECONDS = 25;
 
 const BRANDS = [
   { name: "Bosch Professional", file: "bosch.svg", h: 30 },
@@ -18,6 +22,7 @@ const ITEMS = [...BRANDS, ...BRANDS];
 
 export default function BrandStrip() {
   const { t } = useTranslation();
+  const animationDuration = useAnimationDuration(STRIP_SECONDS);
   return (
     <FadeIn>
       <section style={{ padding: "24px 0 20px", overflow: "hidden", background: "#fafafa", borderTop: "1px solid #f0f0f0", borderBottom: "1px solid #f0f0f0" }}>
@@ -28,7 +33,7 @@ export default function BrandStrip() {
           {/* Fade edges */}
           <div className="brand-fade-left" style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(to right, #fafafa, transparent)", zIndex: 1, pointerEvents: "none" }}/>
           <div className="brand-fade-right" style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(to left, #fafafa, transparent)", zIndex: 1, pointerEvents: "none" }}/>
-          <div className="brand-marquee">
+          <div className="brand-marquee" style={{ animationDuration }}>
             {ITEMS.map((b, i) => (
               <div key={i} style={{ width: 100, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <img

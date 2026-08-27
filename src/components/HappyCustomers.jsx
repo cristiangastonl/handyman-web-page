@@ -1,4 +1,8 @@
 import { itemThumb } from "../lib/constants";
+import { useAnimationDuration } from "../lib/carouselSpeed";
+
+// Duración base del riel, en segundos (la del CSS en constants.js).
+const RAIL_SECONDS = 40;
 
 /**
  * Happy Customers — fotos de Anibal con sus clientes, en /reviews.
@@ -47,17 +51,21 @@ const PhotoTile = ({ item, onClick }) => {
  * Riel pegado a un margen del viewport. El track se duplica y viaja -50%, así
  * el loop no muestra la costura al reiniciar.
  */
-const EdgeRail = ({ col, side, setLb }) => (
+const EdgeRail = ({ col, side, setLb }) => {
+  // 40s es la duración base del riel; el panel de ?tune=1 la acorta o alarga.
+  const animationDuration = useAnimationDuration(RAIL_SECONDS);
+  return (
   <div className={`hc-edges ${side}`}>
     <div className="hc-edge-scroll">
-      <div className={`hc-marquee-track${side === "right" ? " down" : ""}`}>
+      <div className={`hc-marquee-track${side === "right" ? " down" : ""}`} style={{ animationDuration }}>
         {[...col, ...col].map((it, i) => (
           <PhotoTile key={i} item={it} onClick={() => setLb?.(it, col)}/>
         ))}
       </div>
     </div>
   </div>
-);
+  );
+};
 
 /** Los dos rieles de desktop. En mobile el CSS los oculta enteros. */
 export default function HappyCustomerRails({ items = [], setLb }) {
