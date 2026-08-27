@@ -3,18 +3,30 @@ import { FadeIn } from "./FadeIn";
 import { useAnimationDuration } from "../lib/carouselSpeed";
 
 // Duración base del marquee, en segundos (la del CSS en constants.js).
-const STRIP_SECONDS = 25;
+// Subió de 25 a 50 al pasar a las piezas de Anibal: el riel mide casi el triple
+// de ancho que con los logos pelados, así que a 25s la velocidad lineal se
+// triplicaba. 50s deja los px/s apenas por encima de los originales. Igual el
+// panel de ?tune la ajusta en vivo.
+const STRIP_SECONDS = 50;
+
+// Las piezas las compone Anibal: el logo ya viene con su marco naranja quemado
+// en la imagen, igual que las de Happy Customers. Por eso no se les aplica
+// escala de grises — el marco es parte del diseño y en gris se apaga.
+// Están normalizadas a 128 px de alto (64 en pantalla, x2 para retina), así
+// todas pesan lo mismo en el riel; el ancho queda libre porque las formas van
+// de 1.5:1 a 3.6:1 y forzarlas a una caja común las deformaría.
+const BRAND_HEIGHT = 64;
 
 const BRANDS = [
-  { name: "Bosch Professional", file: "bosch.svg", h: 30 },
-  { name: "PB Swiss Tools", file: "pb-swiss-tools.png", h: 18 },
-  { name: "Stanley", file: "stanley.svg", h: 20 },
-  { name: "Fischer", file: "fischer.png", h: 22 },
-  { name: "Strauss", file: "strauss.png", h: 20 },
-  { name: "WAGO", file: "wago.svg", h: 18 },
-  { name: "Laserliner", file: "laserliner.png", h: 20 },
-  { name: "3M", file: "3m.svg", h: 16 },
-  { name: "Tesa", file: "tesa.svg", h: 18 },
+  { name: "Bosch Professional", file: "bosch.jpg" },
+  { name: "PB Swiss Tools", file: "pb-swiss-tools.jpg" },
+  { name: "Stanley", file: "stanley.jpg" },
+  { name: "Fischer", file: "fischer.jpg" },
+  { name: "Strauss", file: "strauss.jpg" },
+  { name: "WAGO", file: "wago.jpg" },
+  { name: "Laserliner", file: "laserliner.jpg" },
+  { name: "3M", file: "3m.jpg" },
+  { name: "Tesa", file: "tesa.jpg" },
 ];
 
 // Duplicate list for seamless infinite scroll
@@ -35,14 +47,14 @@ export default function BrandStrip() {
           <div className="brand-fade-right" style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(to left, #fafafa, transparent)", zIndex: 1, pointerEvents: "none" }}/>
           <div className="brand-marquee" style={{ animationDuration }}>
             {ITEMS.map((b, i) => (
-              <div key={i} style={{ width: 100, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div key={i} style={{ height: BRAND_HEIGHT, display: "flex", alignItems: "center", flexShrink: 0 }}>
                 <img
-                  src={`/brands/${b.file}`}
+                  src={`/brands/anibal/${b.file}`}
                   alt={b.name}
                   loading="lazy"
-                  style={{ maxHeight: b.h, maxWidth: 90, objectFit: "contain", filter: "grayscale(100%) opacity(0.55)", transition: "filter 0.3s" }}
-                  onMouseEnter={e => e.currentTarget.style.filter = "grayscale(0%) opacity(1)"}
-                  onMouseLeave={e => e.currentTarget.style.filter = "grayscale(100%) opacity(0.55)"}
+                  style={{ height: BRAND_HEIGHT, width: "auto", display: "block", borderRadius: 3, transition: "transform 0.3s" }}
+                  onMouseEnter={e => e.currentTarget.style.transform = "scale(1.06)"}
+                  onMouseLeave={e => e.currentTarget.style.transform = "none"}
                 />
               </div>
             ))}

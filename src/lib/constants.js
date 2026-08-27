@@ -326,7 +326,7 @@ export const css = `
     .social-card { padding: 8px 6px !important; gap: 4px !important; flex: 1 1 0 !important; min-width: 0 !important; }
     .social-card svg { width: 18px !important; height: 18px !important; }
     .social-card span { font-size: 9px !important; line-height: 1.3 !important; }
-    .brand-marquee { gap: 28px !important; }
+    .brand-marquee { gap: 20px !important; }
     .brand-fade-left, .brand-fade-right { width: 30px !important; }
     .review-card { min-width: 240px !important; }
   }
@@ -334,7 +334,7 @@ export const css = `
     .mobile-menu { display: none !important; }
   }
   button:focus-visible, a:focus-visible { outline: 2px solid #D4781F; outline-offset: 2px; }
-  .brand-marquee { display: flex; gap: 48px; align-items: center; width: max-content; animation: marquee 25s linear infinite; }
+  .brand-marquee { display: flex; gap: 32px; align-items: center; width: max-content; animation: marquee 25s linear infinite; }
   .brand-marquee:hover { animation-play-state: paused; }
   @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
