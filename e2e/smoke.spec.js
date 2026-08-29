@@ -367,53 +367,64 @@ test.describe('panel de velocidad de carruseles', () => {
   });
 });
 
-test.describe('variantes de la presentación en mobile', () => {
-  // Andamiaje para que el cliente compare en su celular: ?home=j pone la foto al costado
-  // dejando el hero como está, ?home=f hace lo mismo y además achica el hero. Lo que se
-  // fija acá es que la URL pelada no cambie y que desktop no se entere.
-  const foto = (page) => page.locator('.about-row img').first();
-  const meet = (page) => page.getByRole('heading', { name: /Meet your handyman/i });
-
-  test('sin parámetro la home queda como está', async ({ page, isMobile }) => {
-    test.skip(!isMobile, 'las variantes son sólo de mobile');
+test.describe('presentación en mobile', () => {
+  // Lo que pidió el cliente: en la primera pantalla, sin scrollear, además del hero se
+  // tiene que ver su foto y la bajada de "Meet your handyman". Antes no entraba.
+  test('la foto y la bajada entran en la primera pantalla', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'en desktop ya entraba de sobra; el ajuste es de mobile');
     await visit(page, '/');
-    // La foto grande y centrada es el layout actual; el título queda bajo el fold.
-    await expect(foto(page)).toHaveCSS('width', '150px');
-    const bajoElFold = await meet(page).evaluate((el) => el.getBoundingClientRect().bottom > innerHeight);
-    expect(bajoElFold, 'hoy la bajada no entra en la primera pantalla').toBe(true);
-  });
 
-  for (const [variante, heroEsperado] of [['j', 334], ['f', 262]]) {
-    test(`?home=${variante} sube la foto y la bajada a la primera pantalla`, async ({ page, isMobile }) => {
-      test.skip(!isMobile, 'las variantes son sólo de mobile');
-      await visit(page, `/?home=${variante}`);
-
-      await expect(foto(page)).toHaveCSS('width', '104px');
-      // Lo que pidió el cliente: la foto entera y el título visibles sin scrollear.
-      const m = await meet(page).evaluate((el) => {
-        const f = document.querySelector('.about-row img').getBoundingClientRect();
-        return { titulo: el.getBoundingClientRect().bottom <= innerHeight, fotoEntera: f.bottom <= innerHeight,
-                 hero: Math.round(document.querySelector('.hero-section').getBoundingClientRect().height) };
-      });
-      expect(m.titulo, 'la bajada tiene que entrar en la primera pantalla').toBe(true);
-      expect(m.fotoEntera, 'la foto tiene que entrar entera').toBe(true);
-      // j deja el hero como está; f lo achica.
-      expect(Math.abs(m.hero - heroEsperado)).toBeLessThan(12);
+    const m = await page.evaluate(() => {
+      const h2 = [...document.querySelectorAll('h2')].find(h => h.innerText.includes('Meet your handyman'));
+      const foto = document.querySelector('.about-row img').getBoundingClientRect();
+      const hb = h2.getBoundingClientRect();
+      return { fotoEntera: foto.bottom <= innerHeight, bajadaVisible: hb.bottom <= innerHeight };
     });
-  }
-
-  test('un valor inventado no rompe nada', async ({ page, isMobile }) => {
-    test.skip(!isMobile, 'las variantes son sólo de mobile');
-    await visit(page, '/?home=zzz');
-    await expect(foto(page)).toHaveCSS('width', '150px');
+    expect(m.fotoEntera, 'la foto tiene que entrar entera').toBe(true);
+    expect(m.bajadaVisible, 'la bajada tiene que entrar').toBe(true);
   });
 
-  test('en desktop las variantes no cambian nada', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'este mira el caso desktop');
+  test('la foto va centrada verticalmente contra el título', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'sólo mobile');
     await visit(page, '/');
-    const base = await page.locator('.about-row img').first().evaluate((el) => el.getBoundingClientRect().width);
-    await visit(page, '/?home=j');
-    const conVariante = await page.locator('.about-row img').first().evaluate((el) => el.getBoundingClientRect().width);
-    expect(conVariante).toBe(base);
+    // Contra el título y no contra título+bio: con un bloque tan alto la foto termina
+    // arrastrada al final y se ve descolgada.
+    const m = await page.evaluate(() => {
+      const foto = document.querySelector('.about-row img').getBoundingClientRect();
+      const h2 = [...document.querySelectorAll('h2')].find(h => h.innerText.includes('Meet your handyman')).getBoundingClientRect();
+      const bio = document.querySelector('.about-row > div > p').getBoundingClientRect();
+      return {
+        desvio: Math.abs((foto.top + foto.bottom) / 2 - (h2.top + h2.bottom) / 2),
+        mismaFila: h2.left > foto.right,          // el título va al lado, no debajo
+        bioAnchoCompleto: bio.left < foto.right,   // la bio cruza la columna de la foto
+      };
+    });
+    expect(m.desvio, 'la foto debería estar centrada contra el título').toBeLessThan(12);
+    expect(m.mismaFila, 'el título va al lado de la foto').toBe(true);
+    expect(m.bioAnchoCompleto, 'la bio va de borde a borde, no en la columna del texto').toBe(true);
+  });
+
+  test('los tags de categoría van a ancho completo y centrados', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'sólo mobile');
+    await visit(page, '/');
+
+    const m = await page.evaluate(() => {
+      const cont = document.querySelector('.skill-tags').getBoundingClientRect();
+      const foto = document.querySelector('.about-row img').getBoundingClientRect();
+      const tags = [...document.querySelectorAll('.skill-tag')];
+      const filas = new Set(tags.map(t => Math.round(t.getBoundingClientRect().top))).size;
+      return {
+        empiezaAntesQueLaFoto: cont.left <= foto.left + 1,  // usa las dos columnas
+        filas, cantidad: tags.length,
+        // centrados: el margen sobrante a cada lado del bloque de tags es parejo
+        izq: Math.round(Math.min(...tags.map(t => t.getBoundingClientRect().left)) - cont.left),
+        der: Math.round(cont.right - Math.max(...tags.map(t => t.getBoundingClientRect().right))),
+      };
+    });
+    expect(m.cantidad).toBeGreaterThan(3);
+    expect(m.empiezaAntesQueLaFoto, 'los tags tienen que usar todo el ancho, no la columna del texto').toBe(true);
+    expect(Math.abs(m.izq - m.der), 'los tags tienen que quedar centrados').toBeLessThan(14);
+    // Con los seis tags achicados no deberían desparramarse en más de cuatro líneas.
+    expect(m.filas).toBeLessThanOrEqual(4);
   });
 });

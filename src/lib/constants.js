@@ -310,36 +310,49 @@ export const css = `
     /* Keep the full horizontal wordmark on mobile — the circular icon alone
        dropped the "Handyman Services in Zurich" name from small screens. */
     .logo-desktop { height: 26px !important; max-width: 60vw !important; }
-    .about-row { justify-content: center !important; text-align: center; }
-    .about-row img { margin: 0 auto; }
 
-    /* ── Variantes de la presentación en mobile (?home=j / ?home=f) ──
-       Anibal quiere que en la primera pantalla, sin scrollear, se vea el hero Y su foto
-       con la bajada de "Meet your handyman". Hoy no entra: la foto y el texto se apilan
-       y eso solo se come 218 px. Las dos variantes los ponen lado a lado; la diferencia
-       es si además se achica el hero. Andamiaje para comparar: cuando elija una, esto se
-       reemplaza por la regla definitiva y las clases se van. */
-    .home-j .about-row,
-    .home-f .about-row {
-      flex-wrap: nowrap !important;
-      /* flex-start y no center: centrado, la foto queda alineada contra el final de una
-         bio larga y se ve perdida abajo a la izquierda. Va arriba, junto al título. */
-      align-items: flex-start !important;
-      justify-content: flex-start !important;
+    /* ── Presentación en mobile ──
+       El cliente quiere que en la primera pantalla, sin scrollear, se vea el hero Y su
+       foto con la bajada de "Meet your handyman". Apilados (foto centrada arriba, texto
+       debajo) no entraba: se comía 218 px de más.
+
+       Grilla de dos columnas y tres filas:
+         fila 1  foto | título      — la foto centrada verticalmente contra el título
+         fila 2  bio, de borde a borde
+         fila 3  tags, de borde a borde y centrados
+
+       La bio va a ancho completo y no en la columna del texto: en 227 px se estiraba a
+       nueve líneas. La foto se centra contra el título y no contra título+bio, porque
+       contra un bloque tan alto termina arrastrada al final y se ve descolgada.
+
+       El div que envuelve título/bio/tags va con display:contents para que sus hijos
+       entren en la grilla del padre sin tocar el JSX. */
+    .about-row {
+      display: grid !important;
+      grid-template-columns: 104px 1fr;
+      column-gap: 14px;
+      row-gap: 10px;
+      justify-content: start !important;
       text-align: left !important;
-      gap: 14px !important;
     }
-    .home-j .about-row img,
-    .home-f .about-row img { width: 104px !important; height: 104px !important; margin: 0 !important; flex-shrink: 0; }
-    .home-j .skill-tags,
-    .home-f .skill-tags { justify-content: flex-start !important; }
-    /* F sacrifica hero para dar aire; J lo deja intacto. */
-    .home-f .hero-section { height: 36vh !important; min-height: 0 !important; }
-    /* Mobile queda como estaba para poder comparar contra la versión a pantalla completa:
-       46vh topado en 420. El aspect-ratio se apaga acá — la proporción de una fila es cosa
-       de desktop; en vertical se ven las tres, que llenan bien sin ampliar la imagen.
-       La versión a pantalla completa era: height: calc(100dvh - 52px), min-height 420, sin tope. */
-    .hero-section { aspect-ratio: auto !important; height: 46vh !important; min-height: 300px !important; max-height: 420px !important; }
+    .about-row > div { display: contents; }
+    .about-row img {
+      grid-column: 1; grid-row: 1;
+      align-self: center;
+      width: 104px !important; height: 104px !important; margin: 0 !important;
+    }
+    .about-row h2 { grid-column: 2; grid-row: 1; align-self: center; }
+    .about-row > div > p { grid-column: 1 / -1; grid-row: 2; }
+    .skill-tags {
+      grid-column: 1 / -1; grid-row: 3;
+      justify-content: center !important;
+      margin-top: 0 !important;
+    }
+    /* 36vh: el hero cede algo de alto para que la foto y la bajada entren en la primera
+       pantalla junto con él, que es lo que pidió el cliente. El aspect-ratio se apaga acá
+       — la proporción de una fila es cosa de desktop; en vertical se ven las tres, que
+       llenan bien sin ampliar la imagen. */
+    .hero-section { aspect-ratio: auto !important; height: 36vh !important; min-height: 240px !important; max-height: 420px !important; }
     .hero-section .heroContent { padding-bottom: 0; }
     .hero-section .heroContent h1 { font-size: 31px !important; margin-bottom: 2px !important; }
     .hero-section .heroContent .hero-brand { font-size: 20px !important; }
@@ -349,7 +362,9 @@ export const css = `
        a competir con las paredes claras. Misma curva, corrida hacia arriba. */
     .hero-scrim { background: linear-gradient(to top, rgba(15,15,15,0.94) 0%, rgba(15,15,15,0.86) 45%, rgba(15,15,15,0.55) 70%, rgba(15,15,15,0.18) 88%, transparent 100%) !important; }
     .mobile-menu-item { min-height: 44px !important; display: flex !important; align-items: center !important; }
-    .skill-tag { padding: 8px 14px !important; font-size: 13px !important; min-height: 36px !important; }
+    /* Achicados para que los seis entren en pocas líneas: a 13px/14px de padding
+       ocupaban una línea cada uno. Se mantiene el mínimo táctil de 32 px. */
+    .skill-tag { padding: 6px 11px !important; font-size: 11.5px !important; min-height: 32px !important; }
     /* Los tags son un flex aparte y no heredan el centrado de .about-row: acá el bloque
        entero va centrado y ellos quedaban pegados al borde izquierdo. En desktop, en
        cambio, van a la izquierda alineados con el párrafo del bio. */

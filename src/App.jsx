@@ -58,16 +58,6 @@ export default function App() {
     document.documentElement.lang = i18n.language === 'en' ? 'en-CH' : i18n.language;
   }, [i18n.language]);
 
-  // Variantes del bloque de presentación en mobile, para comparar en el celular:
-  // ?home=j pone la foto al costado del texto dejando el hero como está, y ?home=f
-  // hace lo mismo pero achica el hero para dar más aire. Sin el parámetro no cambia
-  // nada. A propósito NO persiste como el panel de velocidad: acá lo que se quiere es
-  // saltar de una a otra cambiando la URL, y que la URL pelada sea siempre la actual.
-  // Las reglas viven en constants.js (.home-j / .home-f). Se borra al elegir una.
-  const homeVariant = ["j", "f"].includes(
-    (new URLSearchParams(location.search).get("home") || "").toLowerCase()
-  ) ? new URLSearchParams(location.search).get("home").toLowerCase() : null;
-
   // Panel de velocidad de carruseles: visible por defecto mientras la web no
   // esté lanzada. ?tune=0 o la X lo apagan por el resto de la pestaña.
   const [tuner, setTuner] = useState(false);
@@ -248,7 +238,7 @@ export default function App() {
 
   // ── Main site ──
   return (
-    <div style={S.root} className={homeVariant ? `home-${homeVariant}` : undefined}><style>{css}</style>
+    <div style={S.root}><style>{css}</style>
       <img src="/anibal/watermark.png" alt="" aria-hidden="true"
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 940, width: "90%", opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 9999 }}/>
       <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
