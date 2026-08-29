@@ -357,9 +357,22 @@ export const css = `
        hero le quedan unos 155: de ahí el 21vh. Con hero-mobile.jpeg —dos filas del collage
        en vez de tres— a esa altura se ven las dos completas y sólo se recorta a los
        costados. El aspect-ratio de desktop (una fila) se apaga acá.
+
+       El alto sale de restar lo que ocupa el resto (568 px: nav, números, redes y el
+       bloque de Anibal hasta los tags) en vez de un vh fijo. Con 21vh el hero crecía mucho
+       más despacio que la pantalla y en celulares altos sobraban hasta 187 px, por los que
+       asomaban las tarjetas de "What to expect" — que van en el scroll siguiente. Restando,
+       el hero se queda con todo el sobrante y de paso se ve más collage cuanto más alta es
+       la pantalla. dvh y no vh porque en mobile vh cuenta la barra del browser.
+
        El min-height no es cosmético: por debajo, en pantallas angostas el título se va a
        dos líneas y el bloque de texto se desborda del hero. */
-    .hero-section { aspect-ratio: auto !important; height: 21vh !important; min-height: 158px !important; max-height: 210px !important; }
+    .hero-section {
+      aspect-ratio: auto !important;
+      height: calc(100vh - 568px) !important;
+      height: calc(100dvh - 568px) !important;
+      min-height: 158px !important; max-height: 460px !important;
+    }
     /* El texto pesa mucho sobre un hero bajo: se achica para dejar ver el collage. */
     .hero-section .heroContent h1 { font-size: 26px !important; }
     .hero-section .heroContent .hero-brand { font-size: 16px !important; }

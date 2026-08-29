@@ -431,4 +431,27 @@ test.describe('presentación en mobile', () => {
     // Con los seis tags achicados no deberían desparramarse en más de cuatro líneas.
     expect(m.filas).toBeLessThanOrEqual(4);
   });
+
+  test('las tarjetas de "What to expect" quedan para el scroll siguiente', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'sólo mobile');
+    // El hero absorbe el sobrante de la pantalla. Con una altura fija en vh crecía más
+    // despacio que el viewport: en celulares altos sobraban hasta 187 px y por ahí asomaban
+    // las tarjetas, que van en el scroll siguiente. Se prueba en tres alturas reales.
+    for (const height of [727, 852, 956]) {
+      await page.setViewportSize({ width: 393, height });
+      await visit(page, '/');
+      await page.waitForSelector('.skill-tags .skill-tag', { state: 'attached' });
+
+      const m = await page.evaluate(() => {
+        const tags = [...document.querySelectorAll('.skill-tag')];
+        const card = [...document.querySelectorAll('div')].find(d => d.innerText?.startsWith('What to expect'));
+        return {
+          tagsEntran: tags[tags.length - 1].getBoundingClientRect().bottom <= innerHeight,
+          cardAsoma: card ? card.getBoundingClientRect().top < innerHeight : false,
+        };
+      });
+      expect(m.tagsEntran, `los tags tienen que entrar con viewport de ${height}`).toBe(true);
+      expect(m.cardAsoma, `las tarjetas no deberían asomar con viewport de ${height}`).toBe(false);
+    }
+  });
 });
