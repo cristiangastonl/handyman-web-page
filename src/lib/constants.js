@@ -312,6 +312,29 @@ export const css = `
     .logo-desktop { height: 26px !important; max-width: 60vw !important; }
     .about-row { justify-content: center !important; text-align: center; }
     .about-row img { margin: 0 auto; }
+
+    /* ── Variantes de la presentación en mobile (?home=j / ?home=f) ──
+       Anibal quiere que en la primera pantalla, sin scrollear, se vea el hero Y su foto
+       con la bajada de "Meet your handyman". Hoy no entra: la foto y el texto se apilan
+       y eso solo se come 218 px. Las dos variantes los ponen lado a lado; la diferencia
+       es si además se achica el hero. Andamiaje para comparar: cuando elija una, esto se
+       reemplaza por la regla definitiva y las clases se van. */
+    .home-j .about-row,
+    .home-f .about-row {
+      flex-wrap: nowrap !important;
+      /* flex-start y no center: centrado, la foto queda alineada contra el final de una
+         bio larga y se ve perdida abajo a la izquierda. Va arriba, junto al título. */
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
+      text-align: left !important;
+      gap: 14px !important;
+    }
+    .home-j .about-row img,
+    .home-f .about-row img { width: 104px !important; height: 104px !important; margin: 0 !important; flex-shrink: 0; }
+    .home-j .skill-tags,
+    .home-f .skill-tags { justify-content: flex-start !important; }
+    /* F sacrifica hero para dar aire; J lo deja intacto. */
+    .home-f .hero-section { height: 36vh !important; min-height: 0 !important; }
     /* Mobile queda como estaba para poder comparar contra la versión a pantalla completa:
        46vh topado en 420. El aspect-ratio se apaga acá — la proporción de una fila es cosa
        de desktop; en vertical se ven las tres, que llenan bien sin ampliar la imagen.

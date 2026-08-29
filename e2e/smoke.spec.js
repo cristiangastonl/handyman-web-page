@@ -366,3 +366,54 @@ test.describe('panel de velocidad de carruseles', () => {
     await expect.poll(duracion, { timeout: 5_000 }).toBeCloseTo(original / 3, 1);
   });
 });
+
+test.describe('variantes de la presentación en mobile', () => {
+  // Andamiaje para que el cliente compare en su celular: ?home=j pone la foto al costado
+  // dejando el hero como está, ?home=f hace lo mismo y además achica el hero. Lo que se
+  // fija acá es que la URL pelada no cambie y que desktop no se entere.
+  const foto = (page) => page.locator('.about-row img').first();
+  const meet = (page) => page.getByRole('heading', { name: /Meet your handyman/i });
+
+  test('sin parámetro la home queda como está', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'las variantes son sólo de mobile');
+    await visit(page, '/');
+    // La foto grande y centrada es el layout actual; el título queda bajo el fold.
+    await expect(foto(page)).toHaveCSS('width', '150px');
+    const bajoElFold = await meet(page).evaluate((el) => el.getBoundingClientRect().bottom > innerHeight);
+    expect(bajoElFold, 'hoy la bajada no entra en la primera pantalla').toBe(true);
+  });
+
+  for (const [variante, heroEsperado] of [['j', 334], ['f', 262]]) {
+    test(`?home=${variante} sube la foto y la bajada a la primera pantalla`, async ({ page, isMobile }) => {
+      test.skip(!isMobile, 'las variantes son sólo de mobile');
+      await visit(page, `/?home=${variante}`);
+
+      await expect(foto(page)).toHaveCSS('width', '104px');
+      // Lo que pidió el cliente: la foto entera y el título visibles sin scrollear.
+      const m = await meet(page).evaluate((el) => {
+        const f = document.querySelector('.about-row img').getBoundingClientRect();
+        return { titulo: el.getBoundingClientRect().bottom <= innerHeight, fotoEntera: f.bottom <= innerHeight,
+                 hero: Math.round(document.querySelector('.hero-section').getBoundingClientRect().height) };
+      });
+      expect(m.titulo, 'la bajada tiene que entrar en la primera pantalla').toBe(true);
+      expect(m.fotoEntera, 'la foto tiene que entrar entera').toBe(true);
+      // j deja el hero como está; f lo achica.
+      expect(Math.abs(m.hero - heroEsperado)).toBeLessThan(12);
+    });
+  }
+
+  test('un valor inventado no rompe nada', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'las variantes son sólo de mobile');
+    await visit(page, '/?home=zzz');
+    await expect(foto(page)).toHaveCSS('width', '150px');
+  });
+
+  test('en desktop las variantes no cambian nada', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'este mira el caso desktop');
+    await visit(page, '/');
+    const base = await page.locator('.about-row img').first().evaluate((el) => el.getBoundingClientRect().width);
+    await visit(page, '/?home=j');
+    const conVariante = await page.locator('.about-row img').first().evaluate((el) => el.getBoundingClientRect().width);
+    expect(conVariante).toBe(base);
+  });
+});
