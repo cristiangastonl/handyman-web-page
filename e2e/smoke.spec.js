@@ -373,6 +373,8 @@ test.describe('presentación en mobile', () => {
   test('la foto y la bajada entran en la primera pantalla', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'en desktop ya entraba de sobra; el ajuste es de mobile');
     await visit(page, '/');
+    // El About sale de Supabase: sin esperarlo se mide antes de que monte.
+    await page.waitForSelector('.about-row img', { state: 'attached' });
 
     const m = await page.evaluate(() => {
       const h2 = [...document.querySelectorAll('h2')].find(h => h.innerText.includes('Meet your handyman'));
@@ -387,6 +389,7 @@ test.describe('presentación en mobile', () => {
   test('la foto va centrada verticalmente contra el título', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'sólo mobile');
     await visit(page, '/');
+    await page.waitForSelector('.about-row img', { state: 'attached' });
     // Contra el título y no contra título+bio: con un bloque tan alto la foto termina
     // arrastrada al final y se ve descolgada.
     const m = await page.evaluate(() => {
@@ -407,6 +410,7 @@ test.describe('presentación en mobile', () => {
   test('los tags de categoría van a ancho completo y centrados', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'sólo mobile');
     await visit(page, '/');
+    await page.waitForSelector('.skill-tags .skill-tag', { state: 'attached' });
 
     const m = await page.evaluate(() => {
       const cont = document.querySelector('.skill-tags').getBoundingClientRect();

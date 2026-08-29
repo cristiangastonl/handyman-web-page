@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { R, HERO_IMG, parseSiteText } from "../lib/constants";
+import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText } from "../lib/constants";
 import { upsertSiteConfig } from "../lib/supabase";
 
 // El título va entero en el naranja de la marca. Antes era a dos tonos —"Handyman"
@@ -82,8 +82,15 @@ export default function Hero({ siteConfig = {}, isAdmin = false, onConfigUpdate 
           notaba, así que se cambió el efecto por un encuadre exacto.
           La Y va por custom property para que el CSS pueda fijarla al 50% en desktop —
           centro de la fila del medio— sin pisar el reposicionado del admin en mobile. */}
-      <img className="hero-image" src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchpriority="high" width={1200} height={800} draggable={false}
-        style={{ width: "100%", height: "100%", objectFit: "cover", "--hero-x": `${posX}%`, "--hero-y": `${posY}%`, objectPosition: editing ? `${posX}% ${posY}%` : "var(--hero-x) var(--hero-y)", pointerEvents: "none" }}/>
+      {/* En mobile va un recorte de dos filas del collage (hero-mobile.jpeg). Con la imagen
+          entera, para que entraran dos filas el hero tenía que medir 139 px y el texto no
+          dejaba ver nada de foto. Recortada, cualquier altura muestra las dos filas completas
+          y sólo se recorta a los costados. Pesa 94 KB contra los 381 del original. */}
+      <picture style={{ display: "contents" }}>
+        <source media="(max-width: 640px)" srcSet={HERO_IMG_MOBILE}/>
+        <img className="hero-image" src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchpriority="high" width={1200} height={800} draggable={false}
+          style={{ width: "100%", height: "100%", objectFit: "cover", "--hero-x": `${posX}%`, "--hero-y": `${posY}%`, objectPosition: editing ? `${posX}% ${posY}%` : "var(--hero-x) var(--hero-y)", pointerEvents: "none" }}/>
+      </picture>
       {/* Sin la clase mientras se edita: el refuerzo mobile lleva !important y taparía la
           foto justo cuando hay que verla para reposicionarla. */}
       <div className={editing ? undefined : "hero-scrim"}

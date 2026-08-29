@@ -19,6 +19,8 @@ const WA_MSGS = {
 };
 export const getWALink = (lang = "en") => `https://wa.me/41765949581?text=${encodeURIComponent(WA_MSGS[lang] || WA_MSGS.en)}`;
 export const HERO_IMG = "/anibal/hero.jpeg";
+// Recorte de las dos primeras filas del collage, para mobile. Ver Hero.jsx.
+export const HERO_IMG_MOBILE = "/anibal/hero-mobile.jpeg";
 export const PROFILE_IMG = "/anibal/foto_perfil_colores.jpeg";
 
 export const DEFAULT_CATS = [
@@ -327,11 +329,13 @@ export const css = `
 
        El div que envuelve título/bio/tags va con display:contents para que sus hijos
        entren en la grilla del padre sin tocar el JSX. */
+    /* La sección respira menos que en desktop: cada píxel acá se lo lleva el hero. */
+    section:has(> .about-row) { padding: 14px 24px 16px !important; }
     .about-row {
       display: grid !important;
-      grid-template-columns: 104px 1fr;
-      column-gap: 14px;
-      row-gap: 10px;
+      grid-template-columns: 88px 1fr;
+      column-gap: 12px;
+      row-gap: 8px;
       justify-content: start !important;
       text-align: left !important;
     }
@@ -339,20 +343,27 @@ export const css = `
     .about-row img {
       grid-column: 1; grid-row: 1;
       align-self: center;
-      width: 104px !important; height: 104px !important; margin: 0 !important;
+      width: 88px !important; height: 88px !important; margin: 0 !important;
     }
     .about-row h2 { grid-column: 2; grid-row: 1; align-self: center; }
-    .about-row > div > p { grid-column: 1 / -1; grid-row: 2; }
+    .about-row > div > p { grid-column: 1 / -1; grid-row: 2; font-size: 13px !important; line-height: 1.5 !important; }
     .skill-tags {
       grid-column: 1 / -1; grid-row: 3;
       justify-content: center !important;
       margin-top: 0 !important;
     }
-    /* 36vh: el hero cede algo de alto para que la foto y la bajada entren en la primera
-       pantalla junto con él, que es lo que pidió el cliente. El aspect-ratio se apaga acá
-       — la proporción de una fila es cosa de desktop; en vertical se ven las tres, que
-       llenan bien sin ampliar la imagen. */
-    .hero-section { aspect-ratio: auto !important; height: 36vh !important; min-height: 240px !important; max-height: 420px !important; }
+    /* En la primera pantalla tienen que entrar hero, stats, redes, la foto de Anibal, la
+       presentación y los tags. En un celular de 727 px el resto se lleva 531, así que al
+       hero le quedan unos 155: de ahí el 21vh. Con hero-mobile.jpeg —dos filas del collage
+       en vez de tres— a esa altura se ven las dos completas y sólo se recorta a los
+       costados. El aspect-ratio de desktop (una fila) se apaga acá.
+       El min-height no es cosmético: por debajo, en pantallas angostas el título se va a
+       dos líneas y el bloque de texto se desborda del hero. */
+    .hero-section { aspect-ratio: auto !important; height: 21vh !important; min-height: 158px !important; max-height: 210px !important; }
+    /* El texto pesa mucho sobre un hero bajo: se achica para dejar ver el collage. */
+    .hero-section .heroContent h1 { font-size: 26px !important; }
+    .hero-section .heroContent .hero-brand { font-size: 16px !important; }
+    .hero-section .heroContent .hero-subtitle { font-size: 14px !important; }
     .hero-section .heroContent { padding-bottom: 0; }
     .hero-section .heroContent h1 { font-size: 31px !important; margin-bottom: 2px !important; }
     .hero-section .heroContent .hero-brand { font-size: 20px !important; }
@@ -371,12 +382,12 @@ export const css = `
     .skill-tags { justify-content: center !important; }
     .admin-container { padding: 20px 16px !important; }
     .admin-container input, .admin-container textarea, .admin-container select { font-size: 16px !important; }
-    .stats-section { padding: 10px 12px !important; }
+    .stats-section { padding: 7px 12px !important; }
     .stats-grid { display: flex !important; flex-wrap: nowrap !important; justify-content: space-evenly !important; gap: 0 !important; }
     .stats-grid > div { min-width: unset !important; text-align: center !important; flex: 1 !important; }
     .stats-grid > div > div:first-child { font-size: 14px !important; font-weight: 800 !important; }
     .stats-grid > div > div:last-child { font-size: 8px !important; margin-top: 1px !important; letter-spacing: 0 !important; }
-    .social-cards { padding: 10px 16px 14px !important; }
+    .social-cards { padding: 8px 16px 10px !important; }
     .social-card { padding: 8px 6px !important; gap: 4px !important; flex: 1 1 0 !important; min-width: 0 !important; }
     .social-card svg { width: 18px !important; height: 18px !important; }
     .social-card span { font-size: 9px !important; line-height: 1.3 !important; }
@@ -423,6 +434,14 @@ export const css = `
     .hc-edge-scroll:hover .hc-marquee-track { animation-play-state: paused; }
     /* En desktop las fotos viven en los márgenes: los tiles de la grilla sobran. */
     .hc-inline-tile { display: none; }
+  }
+
+  /* Por debajo de 360 px el título entra en dos líneas y el bloque de texto se sale del
+     hero. Se achica sólo acá para que siga cerrando. */
+  @media (max-width: 359px) {
+    .hero-section .heroContent h1 { font-size: 21px !important; }
+    .hero-section .heroContent .hero-brand { font-size: 14px !important; }
+    .hero-section .heroContent .hero-subtitle { font-size: 12.5px !important; }
   }
 
   @media (prefers-reduced-motion: reduce) {
