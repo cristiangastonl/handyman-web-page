@@ -207,6 +207,14 @@ test.describe('panel de velocidad de carruseles', () => {
   // que es sobre la que se trabaja. ?tune=0 lo apaga.
   const panel = (page) => page.getByText('Velocidad carruseles');
 
+  // En mobile el panel arranca colapsado: abierto tapa el hero y la presentación, que es
+  // justo lo que hay que mirar mientras se prueba la velocidad. Los tests que tocan los
+  // controles lo abren primero, igual que haría una persona.
+  const abrirPanel = async (page) => {
+    const abrir = page.getByRole('button', { name: 'Abrir' });
+    if (await abrir.count()) await abrir.click();
+  };
+
   test('aparece en la URL normal, sin query param', async ({ page }) => {
     const console_ = watchConsole(page);
     await visit(page, '/');
@@ -217,6 +225,7 @@ test.describe('panel de velocidad de carruseles', () => {
   test('deja cambiar la velocidad', async ({ page }) => {
     const console_ = watchConsole(page);
     await visit(page, '/');
+    await abrirPanel(page);
 
     await expect(panel(page)).toBeVisible();
 
@@ -263,6 +272,19 @@ test.describe('panel de velocidad de carruseles', () => {
     await expect(panel(page)).toBeVisible();
   });
 
+  test('en mobile arranca colapsado para no tapar el hero', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'en desktop arranca abierto: hay lugar de sobra');
+    await visit(page, '/');
+
+    // Se ve la barra de título, pero los controles no: si no, tapa media pantalla.
+    await expect(panel(page)).toBeVisible();
+    const slider = page.getByRole('slider', { name: 'Velocidad de los carruseles' });
+    await expect(slider).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Abrir' }).click();
+    await expect(slider).toBeVisible();
+  });
+
   test('no se cuela en el HTML pre-renderizado', async ({ page }) => {
     // El prerender corre sin efectos, así que el panel no debe estar en el
     // HTML servido — sólo después de hidratar.
@@ -273,6 +295,7 @@ test.describe('panel de velocidad de carruseles', () => {
   test('el multiplicador cambia el desplazamiento real del carrusel', async ({ page }) => {
     // El corazón del cambio: que mover el slider mueva de verdad los carruseles.
     await visit(page, '/');
+    await abrirPanel(page);
     await page.mouse.move(0, 0);
 
     // Los carruseles con un solo item no auto-scrollean a propósito, así que se
@@ -321,6 +344,7 @@ test.describe('panel de velocidad de carruseles', () => {
     // Anibal reflotó lo de la velocidad justo después de elogiar los carruseles
     // de reviews, así que el slider tiene que alcanzarlos a ellos también.
     await visit(page, '/reviews');
+    await abrirPanel(page);
 
     const rieles = page.locator('.hc-marquee-track');
     // Los rieles son la cara desktop (≥1300px); en mobile las fotos van

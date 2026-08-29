@@ -2,20 +2,10 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { R, HERO_IMG, parseSiteText } from "../lib/constants";
 import { upsertSiteConfig } from "../lib/supabase";
-import useScrollY from "../hooks/useScrollY";
 
-// "Handyman" picks up the logo's orange; the rest of the title stays light, giving the
-// two-tone the client asked for. Grey/black would be unreadable over the dark hero photo.
-const BRAND_PHRASE = /(Handyman)/i;
-
-function BrandTitle({ text }) {
-  const parts = String(text).split(BRAND_PHRASE);
-  return parts.map((part, i) =>
-    BRAND_PHRASE.test(part) && i % 2 === 1
-      ? <span key={i} style={{ color: R }}>{part}</span>
-      : <span key={i}>{part}</span>
-  );
-}
+// El título va entero en el naranja de la marca. Antes era a dos tonos —"Handyman"
+// naranja, el resto blanco— pero el cliente lo quiso todo del mismo color, así que
+// el h1 lleva el color y no hace falta partir el texto.
 
 // El collage tiene tramos claros (paredes y puertas blancas) donde el naranja se apaga y
 // "Handyman" termina leyéndose menos que el blanco que lo acompaña — al revés de lo que se
@@ -29,7 +19,6 @@ function BrandTitle({ text }) {
 const SCRIM = "linear-gradient(to top, rgba(15,15,15,0.92) 0%, rgba(15,15,15,0.72) 28%, rgba(15,15,15,0.35) 55%, rgba(15,15,15,0.10) 80%, transparent 100%)";
 
 export default function Hero({ siteConfig = {}, isAdmin = false, onConfigUpdate }) {
-  const scrollY = useScrollY();
   const { t } = useTranslation();
   const title = parseSiteText(siteConfig.hero_title);
   const brandSubtitle = parseSiteText(siteConfig.hero_brand_subtitle);
@@ -76,17 +65,25 @@ export default function Hero({ siteConfig = {}, isAdmin = false, onConfigUpdate 
     setEditing(false);
   };
 
-  // 45vh topado en 450px daba 4.24:1 en una pantalla de 1728px: más una franja que un hero,
-  // y con el collage cortado por la mitad justo donde las fotos son el argumento de venta.
-  // 55vh/600 lo deja en ~3.3:1: sigue holgado frente al original sin comerse media pantalla.
+  // El collage son tres filas idénticas de 370 px sobre una imagen de 2095x1110. Con una
+  // altura suelta el recorte caía en cualquier lado y se veía una fila entera más la mitad
+  // de las vecinas. Fijando la proporción a 2095/370 el alto visible equivale siempre a
+  // exactamente una fila, en cualquier ancho de pantalla. En mobile manda el CSS, que lo
+  // pasa a pantalla completa. Los números viven en constants.js (HERO_RATIO).
   return (
-    <section ref={containerRef} className="hero-section" style={{ position: "relative", height: "55vh", minHeight: 300, maxHeight: 600, overflow: "hidden", cursor: editing ? "crosshair" : undefined }}
+    <section ref={containerRef} className="hero-section" style={{ position: "relative", overflow: "hidden", cursor: editing ? "crosshair" : undefined }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}>
+      {/* height 100% y sin parallax: el translateY pedía que la imagen sobresaliera del
+          contenedor (antes 120%), y ese excedente corría el recorte lo justo para que la
+          fila dejara de calzar. Con el hero convertido en una tira el desplazamiento no se
+          notaba, así que se cambió el efecto por un encuadre exacto.
+          La Y va por custom property para que el CSS pueda fijarla al 50% en desktop —
+          centro de la fila del medio— sin pisar el reposicionado del admin en mobile. */}
       <img className="hero-image" src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchpriority="high" width={1200} height={800} draggable={false}
-        style={{ width: "100%", height: "120%", objectFit: "cover", objectPosition: `${posX}% ${posY}%`, transform: editing ? "none" : `translateY(${scrollY * -0.08}px)`, willChange: "transform", pointerEvents: "none" }}/>
+        style={{ width: "100%", height: "100%", objectFit: "cover", "--hero-x": `${posX}%`, "--hero-y": `${posY}%`, objectPosition: editing ? `${posX}% ${posY}%` : "var(--hero-x) var(--hero-y)", pointerEvents: "none" }}/>
       {/* Sin la clase mientras se edita: el refuerzo mobile lleva !important y taparía la
           foto justo cuando hay que verla para reposicionarla. */}
       <div className={editing ? undefined : "hero-scrim"}
@@ -122,9 +119,9 @@ export default function Hero({ siteConfig = {}, isAdmin = false, onConfigUpdate 
             <h1 style={{
               fontSize: title?.fontSize ? `${title.fontSize}px` : "clamp(24px, 4vw, 36px)",
               fontFamily: title?.fontFamily ? `'${title.fontFamily}', sans-serif` : undefined,
-              fontWeight: 800, color: "#fff", lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line"
+              fontWeight: 800, color: R, lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line"
             }}>
-              <BrandTitle text={title?.text || t("hero.title")}/>
+              {title?.text || t("hero.title")}
             </h1>
             <p className="hero-brand" style={{
               fontSize: brandSubtitle?.fontSize ? `${brandSubtitle.fontSize}px` : 15,

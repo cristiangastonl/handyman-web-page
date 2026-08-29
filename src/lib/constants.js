@@ -282,6 +282,21 @@ export const css = `
   @keyframes heroImageIn { from { opacity: 0; } to { opacity: 1; } }
   /* The photo lands first on its own, then the text block writes itself in on top. */
   .hero-image { animation: heroImageIn 0.9s ease both; }
+  /* El collage son 3 filas iguales de 370 px dentro de una imagen de 2095x1110. Atando la
+     proporción del hero a 2095/370, el alto visible equivale a exactamente una fila sea cual
+     sea el ancho de pantalla: se ve una tira limpia y no una fila más la mitad de las otras
+     dos. El min-height es el piso para que el texto siga entrando: manda de 1300px para
+     abajo, y ahí la tira crece un poco y asoma algo de la fila vecina — el rango de un
+     desktop real (1400+) queda con la fila exacta. */
+  /* width:100% es obligatorio: con aspect-ratio y min-height juntos, el navegador ensancha
+     el elemento para respetar la proporción y aparecía scroll horizontal. */
+  .hero-section { aspect-ratio: 2095 / 370; width: 100%; min-height: 230px; }
+  /* La fila del medio arranca justo en la mitad vertical de la imagen. Va sólo en desktop:
+     en mobile se ven las tres filas y ahí el reposicionado del admin sí tiene sentido, así
+     que la Y la sigue mandando el inline. */
+  @media (min-width: 641px) {
+    .hero-image { --hero-y: 50% !important; }
+  }
   .heroContent { animation: heroFadeUp 0.7s ease 0.9s both; }
   .heroContent h1 { animation: heroFadeUp 0.7s ease 1.05s both; }
   .heroContent p { animation: heroFadeUp 0.7s ease 1.25s both; }
@@ -297,10 +312,11 @@ export const css = `
     .logo-desktop { height: 26px !important; max-width: 60vw !important; }
     .about-row { justify-content: center !important; text-align: center; }
     .about-row img { margin: 0 auto; }
-    /* A definite height is what keeps the photo covering the whole hero. With
-       height:auto the image fell back to its intrinsic height while the section
-       stretched to min-height, leaving a grey gradient band under the photo. */
-    .hero-section { height: 46vh !important; min-height: 300px !important; max-height: 420px !important; }
+    /* Mobile queda como estaba para poder comparar contra la versión a pantalla completa:
+       46vh topado en 420. El aspect-ratio se apaga acá — la proporción de una fila es cosa
+       de desktop; en vertical se ven las tres, que llenan bien sin ampliar la imagen.
+       La versión a pantalla completa era: height: calc(100dvh - 52px), min-height 420, sin tope. */
+    .hero-section { aspect-ratio: auto !important; height: 46vh !important; min-height: 300px !important; max-height: 420px !important; }
     .hero-section .heroContent { padding-bottom: 0; }
     .hero-section .heroContent h1 { font-size: 31px !important; margin-bottom: 2px !important; }
     .hero-section .heroContent .hero-brand { font-size: 20px !important; }

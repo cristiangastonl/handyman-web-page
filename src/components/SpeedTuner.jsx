@@ -21,7 +21,10 @@ const PRESETS = [
 
 export default function SpeedTuner() {
   const multiplier = useMultiplier();
-  const [open, setOpen] = useState(true);
+  // En mobile arranca colapsado: abierto ocupa casi dos tercios de la pantalla y tapa
+  // el hero y la presentación, que es justo lo que hay que poder mirar mientras se prueba
+  // la velocidad. Se abre con el +.
+  const [open, setOpen] = useState(() => (typeof window === "undefined" ? true : window.innerWidth > 640));
   const [hidden, setHidden] = useState(false);
 
   if (hidden) return null;
