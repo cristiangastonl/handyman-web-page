@@ -71,10 +71,7 @@ async function prerender() {
       console.log(`  Pre-rendering ${route}...`);
       const page = await browser.newPage();
       const inflight = trackDataRequests(page);
-      // ?tune=0 apaga el panel de velocidad: es andamiaje interno y no tiene
-      // que quedar horneado en el HTML que ven los buscadores. En el browser
-      // del visitante el panel igual aparece al hidratar.
-      await page.goto(`http://localhost:${PORT}${route}?tune=0`, {
+      await page.goto(`http://localhost:${PORT}${route}`, {
         waitUntil: 'domcontentloaded',
         timeout: 15000,
       });

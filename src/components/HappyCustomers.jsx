@@ -52,7 +52,8 @@ const PhotoTile = ({ item, onClick }) => {
  * el loop no muestra la costura al reiniciar.
  */
 const EdgeRail = ({ col, side, setLb }) => {
-  // 40s es la duración base del riel; el panel de ?tune=1 la acorta o alarga.
+  // 40s es la duración base del riel; useAnimationDuration la acorta con la
+// velocidad global que eligió el cliente (carouselSpeed.js).
   const animationDuration = useAnimationDuration(RAIL_SECONDS);
   return (
   <div className={`hc-edges ${side}`}>

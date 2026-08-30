@@ -149,23 +149,31 @@ function useHappyCustomers(happyItems) {
   );
 }
 
+// Una selfie cada tres reviews. Decisión de Anibal, 29/08/2026:
+//
+//   "Cada diez es bocha. Hay 13 y nadie scrolea 130 reviews. Las imágenes
+//    garpan 100 veces más q la review escrita, son fotos reales, en casas
+//    reales, cero AI."
+//
+// Antes el paso se calculaba sobre el largo de la lista para que la última
+// foto cayera cerca del final. Con ~160 reviews eso daba una cada diez, y las
+// 13 fotos quedaban repartidas por un scroll que nadie hace hasta el fondo.
+// El paso fijo las concentra adelante: se agotan alrededor de la review 40 y
+// de ahí en adelante quedan sólo reviews escritas. Es el intercambio elegido
+// a propósito — que se vean todas vale más que cubrir un final que no se lee.
+const REVIEWS_POR_FOTO = 3;
+
 /**
- * Mobile: una foto cada 4 reviews, para que acompañen el scroll en vez de
- * quedar todas amontonadas arriba. En desktop el CSS las oculta — ahí el
- * contenido vive en los rieles de los márgenes.
+ * Mobile: las fotos se intercalan entre las reviews. En desktop el CSS las
+ * oculta — ahí el contenido vive en los rieles de los márgenes.
  */
 function interleaveHappy(reviews, photos) {
   if (photos.length === 0) return reviews;
-  // El paso se calcula sobre el largo real de la lista. Con un paso fijo (una
-  // foto cada 4 reviews) las 12 se agotaban en el primer tercio de la página y
-  // los últimos 30.000px quedaban sin ninguna — el mismo defecto que esto vino
-  // a resolver. Repartidas así, la última cae cerca del final.
-  const step = Math.max(2, Math.floor(reviews.length / (photos.length + 1)));
   const out = [];
   let p = 0;
   reviews.forEach((rev, i) => {
     out.push(rev);
-    if ((i + 1) % step === 0 && p < photos.length) out.push({ __photo: photos[p++] });
+    if ((i + 1) % REVIEWS_POR_FOTO === 0 && p < photos.length) out.push({ __photo: photos[p++] });
   });
   return out;
 }

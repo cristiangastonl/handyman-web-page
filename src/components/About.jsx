@@ -26,8 +26,12 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
   return (
     <FadeIn>
     <section style={{ padding: "40px 24px", maxWidth: 940, margin: "0 auto" }}>
+      {/* La foto va después del texto, a la derecha. Pedido de Anibal: "primero
+          lees 'meet your handyman', y tu cerebro está listo para que cuando
+          abren la puerta, pum, este es el gato". El título planta el contexto y
+          recién ahí aparece la cara. En mobile el grid de constants.js hace lo
+          mismo con las columnas. */}
       <div className="about-row" style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
-        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
         <div style={{ flex: 1, minWidth: 240 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{t("about.title")}</h2>
           {(() => { const bio = parseSiteText(siteConfig.bio_text); return (
@@ -56,6 +60,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
             ))}
           </div>
         </div>
+        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
       </div>
       {/* Highlight cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginTop: 28 }}>

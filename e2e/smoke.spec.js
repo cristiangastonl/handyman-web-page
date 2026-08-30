@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { watchConsole, visit, ROUTES, LANGS } from './helpers.js';
+import { watchConsole, visit, ROUTES, LANGS, esperarPresentacionAsentada } from './helpers.js';
 
 test.describe('rutas públicas', () => {
   for (const route of ROUTES) {
@@ -179,14 +179,30 @@ test.describe('happy customers', () => {
         }).length);
       expect(visibles).toBeGreaterThan(0);
     } else {
-      // Intercaladas: tienen que repartirse por TODA la lista. Con un paso fijo
-      // las 12 se agotaban en el primer tercio y el resto de la página quedaba
-      // sin ninguna, así que lo que se mide es hasta dónde llega la última.
-      const { y, alto } = await photos.last().evaluate(el => ({
-        y: el.getBoundingClientRect().top + window.scrollY,
-        alto: document.body.scrollHeight,
-      }));
-      expect(y / alto).toBeGreaterThan(0.6);
+      // Intercaladas, una cada tres reviews.
+      //
+      // Este check cambió a propósito el 29/08/2026. Antes exigía que la última
+      // foto cayera pasado el 60% de la página: el reparto se calculaba sobre el
+      // largo de la lista para cubrir todo el scroll. Anibal decidió lo
+      // contrario —"cada diez es bocha, nadie scrolea 130 reviews"— así que
+      // ahora van adelante, con paso fijo, y se agotan cerca de la review 40.
+      // Medir la posición de la última ya no dice nada; lo que importa es el paso.
+      const pasos = await page.evaluate(() => {
+        const tile = document.querySelector('.hc-inline-tile');
+        const hijos = [...tile.parentElement.children];
+        const idx = hijos.flatMap((el, i) => el.classList.contains('hc-inline-tile') ? [i] : []);
+        return {
+          primera: idx[0],
+          // Con una foto cada 3 reviews, entre foto y foto hay 4 posiciones.
+          saltos: idx.slice(1).map((v, i) => v - idx[i]),
+          cuantas: idx.length,
+        };
+      });
+      expect(pasos.primera, 'la primera foto va después de 3 reviews').toBe(3);
+      if (pasos.cuantas > 1) {
+        expect([...new Set(pasos.saltos)], 'el paso tiene que ser parejo: 3 reviews y una foto')
+          .toEqual([4]);
+      }
     }
   });
 });
@@ -202,117 +218,42 @@ test.describe('SEO / prerender', () => {
   }
 });
 
-test.describe('panel de velocidad de carruseles', () => {
-  // Andamiaje mientras la web no está lanzada: se muestra en la URL normal,
-  // que es sobre la que se trabaja. ?tune=0 lo apaga.
-  const panel = (page) => page.getByText('Velocidad carruseles');
+test.describe('velocidad de los carruseles', () => {
+  // El panel para elegir la velocidad se borró: Anibal eligió "Triple" (90 px/s)
+  // el 29/08/2026. Lo que se verifica ahora es que ese número sea el que corre
+  // en el sitio y que el andamiaje no haya quedado colgado en ningún lado.
 
-  // En mobile el panel arranca colapsado: abierto tapa el hero y la presentación, que es
-  // justo lo que hay que mirar mientras se prueba la velocidad. Los tests que tocan los
-  // controles lo abren primero, igual que haría una persona.
-  const abrirPanel = async (page) => {
-    const abrir = page.getByRole('button', { name: 'Abrir' });
-    if (await abrir.count()) await abrir.click();
-  };
-
-  test('aparece en la URL normal, sin query param', async ({ page }) => {
+  test('el panel de ajuste ya no existe, ni con ?tune=1', async ({ page }) => {
     const console_ = watchConsole(page);
     await visit(page, '/');
-    await expect(panel(page)).toBeVisible();
-    console_.assertClean();
-  });
-
-  test('deja cambiar la velocidad', async ({ page }) => {
-    const console_ = watchConsole(page);
-    await visit(page, '/');
-    await abrirPanel(page);
-
-    await expect(panel(page)).toBeVisible();
-
-    const slider = page.getByRole('slider', { name: 'Velocidad de los carruseles' });
-    await expect(slider).toHaveValue('1');
-
-    // El preset "Triple" es el número que pidió el cliente.
-    await page.getByRole('button', { name: 'Triple' }).click();
-    await expect(slider).toHaveValue('3');
-    await expect(page.getByText('90 px/s')).toBeVisible();
-
-    console_.assertClean();
-  });
-
-  test('está en todas las páginas, no sólo en la home', async ({ page, isMobile }) => {
-    await visit(page, '/');
-    await expect(panel(page)).toBeVisible();
-
-    if (isMobile) await page.getByRole('button', { name: 'Toggle menu' }).click();
-    await page.getByRole('button', { name: /^Reviews$/i }).first().click();
-    await expect(page).toHaveURL(/\/reviews$/);
-
-    await expect(panel(page)).toBeVisible();
-  });
-
-  // Estos dos eran un solo test con cuatro visit(): tardaba 16s aislado y era
-  // el primero en pasarse de los 30s bajo carga. Separados verifican lo mismo
-  // con la mitad de navegaciones cada uno. Que el panel se vea en '/' ya lo
-  // cubre el primer test del grupo, así que acá no hace falta repetirlo.
-  test('?tune=0 lo apaga, y el apagado dura toda la pestaña', async ({ page }) => {
-    await visit(page, '/?tune=0');
-    await expect(panel(page)).toHaveCount(0);
-
-    // No es sólo esa URL: al navegar sin el param sigue apagado.
-    await visit(page, '/reviews');
-    await expect(panel(page)).toHaveCount(0);
-  });
-
-  test('?tune=1 lo vuelve a prender después de apagarlo', async ({ page }) => {
-    await visit(page, '/?tune=0');
-    await expect(panel(page)).toHaveCount(0);
+    await expect(page.getByText('Velocidad carruseles')).toHaveCount(0);
 
     await visit(page, '/?tune=1');
-    await expect(panel(page)).toBeVisible();
+    await expect(page.getByText('Velocidad carruseles')).toHaveCount(0);
+    console_.assertClean();
   });
 
-  test('en mobile arranca colapsado para no tapar el hero', async ({ page, isMobile }) => {
-    test.skip(!isMobile, 'en desktop arranca abierto: hay lugar de sobra');
+  test('los carruseles corren a la velocidad elegida', async ({ page }) => {
     await visit(page, '/');
-
-    // Se ve la barra de título, pero los controles no: si no, tapa media pantalla.
-    await expect(panel(page)).toBeVisible();
-    const slider = page.getByRole('slider', { name: 'Velocidad de los carruseles' });
-    await expect(slider).toHaveCount(0);
-
-    await page.getByRole('button', { name: 'Abrir' }).click();
-    await expect(slider).toBeVisible();
-  });
-
-  test('no se cuela en el HTML pre-renderizado', async ({ page }) => {
-    // El prerender corre sin efectos, así que el panel no debe estar en el
-    // HTML servido — sólo después de hidratar.
-    const html = await (await page.request.get('/reviews')).text();
-    expect(html).not.toContain('Velocidad carruseles');
-  });
-
-  test('el multiplicador cambia el desplazamiento real del carrusel', async ({ page }) => {
-    // El corazón del cambio: que mover el slider mueva de verdad los carruseles.
-    await visit(page, '/');
-    await abrirPanel(page);
-    await page.mouse.move(0, 0);
+    await page.mouse.move(0, 0); // el carrusel se pausa con el mouse encima
 
     // Los carruseles con un solo item no auto-scrollean a propósito, así que se
     // usa el que más contenido tiene. Hay que esperarlo: sale de Supabase y
     // medir antes de que monte devolvía -1 de forma intermitente.
-    const hayTrack = () =>
-      page.waitForFunction(
-        () => [...document.querySelectorAll('div')].some(
-          (d) => d.style.willChange === 'transform' && d.children.length > 3),
-        null,
-        { timeout: 20_000 },
-      );
-    await hayTrack();
+    await page.waitForFunction(
+      () => [...document.querySelectorAll('div')].some(
+        (d) => d.style.willChange === 'transform' && d.children.length > 3),
+      null,
+      { timeout: 20_000 },
+    );
 
+    // Se mide px por FRAME, no por segundo. El carrusel avanza sumando la
+    // velocidad en cada requestAnimationFrame (Carousel.jsx), así que px/frame
+    // es el número exacto que configuramos — y no depende del frame rate del
+    // runner, que bajo carga se desploma y hacía flaky a la versión anterior.
     // Todo dentro del browser: ida y vuelta por CDP entre lectura y lectura
-    // agregaría ruido al intervalo medido.
-    const desplazamiento = () => page.evaluate(async () => {
+    // agregaría ruido.
+    const pxPorFrame = await page.evaluate(async () => {
       const track = [...document.querySelectorAll('div')]
         .filter((d) => d.style.willChange === 'transform')
         .sort((a, b) => b.children.length - a.children.length)[0];
@@ -321,30 +262,36 @@ test.describe('panel de velocidad de carruseles', () => {
         const m = /translateX\((-?[0-9.]+)px\)/.exec(track.style.transform);
         return m ? parseFloat(m[1]) : 0;
       };
-      const a = leer();
-      await new Promise((r) => setTimeout(r, 700));
-      return Math.abs(leer() - a);
+      const frame = () => new Promise(requestAnimationFrame);
+
+      const deltas = [];
+      let anterior = leer();
+      for (let i = 0; i < 60; i++) {
+        await frame();
+        const actual = leer();
+        deltas.push(Math.abs(actual - anterior));
+        anterior = actual;
+      }
+      // El riel vuelve al principio al dar la vuelta: ese frame mide el ancho
+      // entero del track y hay que descartarlo. Igual que los frames en los que
+      // el rAF corrió sin que React hubiera pintado todavía (delta 0).
+      const limpios = deltas.filter((d) => d > 0 && d < 10);
+      if (limpios.length < 20) return -1;
+      return limpios.reduce((a, b) => a + b, 0) / limpios.length;
     });
 
-    await page.getByRole('button', { name: 'Original', exact: true }).click();
-    await page.mouse.move(0, 0); // el carrusel se pausa con el mouse encima
-    const lento = await desplazamiento();
-
-    await page.getByRole('button', { name: 'Triple' }).click();
-    await page.mouse.move(0, 0);
-    const rapido = await desplazamiento();
-
-    // Se compara la relación, no px absolutos: el frame rate del runner no es
-    // estable (en headless corrió al doble), y fijar valores lo haría flaky.
-    expect(lento, 'el carrusel no se movió con la velocidad original').toBeGreaterThan(0);
-    expect(rapido).toBeGreaterThan(lento * 2);
+    // 1.5 px/frame = el triple de los 0.5 originales = los ~90 px/s a 60fps que
+    // eligió Anibal. La banda cubre el redondeo del transform, no un rango de
+    // velocidades: 1.0 sería el doble y 2.0 el cuádruple.
+    expect(pxPorFrame, 'no se pudo medir el desplazamiento del carrusel').toBeGreaterThan(0);
+    expect(pxPorFrame).toBeGreaterThan(1.2);
+    expect(pxPorFrame).toBeLessThan(1.8);
   });
 
-  test('el multiplicador también acelera los rieles de /reviews', async ({ page }) => {
+  test('los rieles de /reviews corren a un tercio de la duración base', async ({ page }) => {
     // Anibal reflotó lo de la velocidad justo después de elogiar los carruseles
-    // de reviews, así que el slider tiene que alcanzarlos a ellos también.
+    // de reviews, así que el número elegido tiene que alcanzarlos a ellos también.
     await visit(page, '/reviews');
-    await abrirPanel(page);
 
     const rieles = page.locator('.hc-marquee-track');
     // Los rieles son la cara desktop (≥1300px); en mobile las fotos van
@@ -354,16 +301,48 @@ test.describe('panel de velocidad de carruseles', () => {
       return;
     }
 
-    const duracion = () => rieles.first().evaluate(
+    // 40s es la duración base del riel (RAIL_SECONDS en HappyCustomers.jsx).
+    const duracion = await rieles.first().evaluate(
       (el) => parseFloat(getComputedStyle(el).animationDuration));
+    expect(duracion).toBeCloseTo(40 / 3, 1);
+  });
+});
 
-    const original = await duracion();
-    expect(original).toBeGreaterThan(0);
+test.describe('orden de la home', () => {
+  test('las marcas cierran la página: después del CTA y antes del footer', async ({ page }) => {
+    // Pedido de Anibal: "lo de trusted brands tiene q ir al cierre, entre
+    // 'ready to get…' y el pie de página". Antes partía al medio el bloque de
+    // trabajos.
+    await visit(page, '/');
+    const marcas = page.getByText('Trusted Brands We Work With');
+    await expect(marcas).toBeVisible();
 
-    await page.getByRole('button', { name: 'Triple' }).click();
+    const orden = await page.evaluate(() => {
+      const y = (el) => el.getBoundingClientRect().top + scrollY;
+      const marcas = [...document.querySelectorAll('p')]
+        .find((p) => /trusted brands/i.test(p.innerText));
+      const cta = [...document.querySelectorAll('div')]
+        .find((d) => d.innerText?.trim().startsWith('Ready to get started?'));
+      const footer = document.querySelector('footer');
+      return { marcas: y(marcas), cta: y(cta), footer: y(footer) };
+    });
+    expect(orden.cta, 'las marcas van después del CTA de cierre').toBeLessThan(orden.marcas);
+    expect(orden.marcas, 'las marcas van antes del footer').toBeLessThan(orden.footer);
+  });
 
-    // poll: el click vuelve antes de que React repinte el nuevo animationDuration.
-    await expect.poll(duracion, { timeout: 5_000 }).toBeCloseTo(original / 3, 1);
+  test('en la presentación el título se lee antes que la foto', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'en mobile lo cubre el grupo de presentación en mobile');
+    await visit(page, '/');
+    await esperarPresentacionAsentada(page);
+
+    const m = await page.evaluate(() => {
+      const foto = document.querySelector('.about-row img').getBoundingClientRect();
+      const h2 = [...document.querySelectorAll('h2')]
+        .find((h) => h.innerText.includes('Meet your handyman')).getBoundingClientRect();
+      return { tituloIzquierda: h2.right <= foto.left, mismaFila: Math.abs(h2.top - foto.top) < foto.height };
+    });
+    expect(m.mismaFila, 'título y foto van en la misma fila').toBe(true);
+    expect(m.tituloIzquierda, 'la foto va a la derecha del texto').toBe(true);
   });
 });
 
@@ -373,8 +352,7 @@ test.describe('presentación en mobile', () => {
   test('la foto y la bajada entran en la primera pantalla', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'en desktop ya entraba de sobra; el ajuste es de mobile');
     await visit(page, '/');
-    // El About sale de Supabase: sin esperarlo se mide antes de que monte.
-    await page.waitForSelector('.about-row img', { state: 'attached' });
+    await esperarPresentacionAsentada(page);
 
     const m = await page.evaluate(() => {
       const h2 = [...document.querySelectorAll('h2')].find(h => h.innerText.includes('Meet your handyman'));
@@ -389,7 +367,7 @@ test.describe('presentación en mobile', () => {
   test('la foto va centrada verticalmente contra el título', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'sólo mobile');
     await visit(page, '/');
-    await page.waitForSelector('.about-row img', { state: 'attached' });
+    await esperarPresentacionAsentada(page);
     // Contra el título y no contra título+bio: con un bloque tan alto la foto termina
     // arrastrada al final y se ve descolgada.
     const m = await page.evaluate(() => {
@@ -398,19 +376,20 @@ test.describe('presentación en mobile', () => {
       const bio = document.querySelector('.about-row > div > p').getBoundingClientRect();
       return {
         desvio: Math.abs((foto.top + foto.bottom) / 2 - (h2.top + h2.bottom) / 2),
-        mismaFila: h2.left > foto.right,          // el título va al lado, no debajo
-        bioAnchoCompleto: bio.left < foto.right,   // la bio cruza la columna de la foto
+        // El título va al lado y a la izquierda: se lee antes que la foto.
+        tituloAntesQueLaFoto: h2.right <= foto.left,
+        bioAnchoCompleto: bio.right > foto.left,   // la bio cruza la columna de la foto
       };
     });
     expect(m.desvio, 'la foto debería estar centrada contra el título').toBeLessThan(12);
-    expect(m.mismaFila, 'el título va al lado de la foto').toBe(true);
+    expect(m.tituloAntesQueLaFoto, 'el título va a la izquierda y la foto a la derecha').toBe(true);
     expect(m.bioAnchoCompleto, 'la bio va de borde a borde, no en la columna del texto').toBe(true);
   });
 
   test('los tags de categoría van a ancho completo y centrados', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'sólo mobile');
     await visit(page, '/');
-    await page.waitForSelector('.skill-tags .skill-tag', { state: 'attached' });
+    await esperarPresentacionAsentada(page);
 
     const m = await page.evaluate(() => {
       const cont = document.querySelector('.skill-tags').getBoundingClientRect();
@@ -418,7 +397,7 @@ test.describe('presentación en mobile', () => {
       const tags = [...document.querySelectorAll('.skill-tag')];
       const filas = new Set(tags.map(t => Math.round(t.getBoundingClientRect().top))).size;
       return {
-        empiezaAntesQueLaFoto: cont.left <= foto.left + 1,  // usa las dos columnas
+        cruzaLaColumnaDeLaFoto: cont.right >= foto.right - 1,  // usa las dos columnas
         filas, cantidad: tags.length,
         // centrados: el margen sobrante a cada lado del bloque de tags es parejo
         izq: Math.round(Math.min(...tags.map(t => t.getBoundingClientRect().left)) - cont.left),
@@ -426,7 +405,7 @@ test.describe('presentación en mobile', () => {
       };
     });
     expect(m.cantidad).toBeGreaterThan(3);
-    expect(m.empiezaAntesQueLaFoto, 'los tags tienen que usar todo el ancho, no la columna del texto').toBe(true);
+    expect(m.cruzaLaColumnaDeLaFoto, 'los tags tienen que usar todo el ancho, no la columna del texto').toBe(true);
     expect(Math.abs(m.izq - m.der), 'los tags tienen que quedar centrados').toBeLessThan(14);
     // Con los seis tags achicados no deberían desparramarse en más de cuatro líneas.
     expect(m.filas).toBeLessThanOrEqual(4);
@@ -437,21 +416,29 @@ test.describe('presentación en mobile', () => {
     // El hero absorbe el sobrante de la pantalla. Con una altura fija en vh crecía más
     // despacio que el viewport: en celulares altos sobraban hasta 187 px y por ahí asomaban
     // las tarjetas, que van en el scroll siguiente. Se prueba en tres alturas reales.
+    //
+    // No alcanza con que entren: se mide cuánto margen tienen. El cálculo del hero estuvo
+    // clavado en el borde exacto (0.1 px de holgura) y el test pasaba o fallaba según el
+    // redondeo sub-pixel del run. Pidiendo holgura mínima, un cambio que vuelva a dejarlo
+    // al filo falla siempre en vez de fallar a veces.
     for (const height of [727, 852, 956]) {
       await page.setViewportSize({ width: 393, height });
       await visit(page, '/');
-      await page.waitForSelector('.skill-tags .skill-tag', { state: 'attached' });
+      await esperarPresentacionAsentada(page);
 
       const m = await page.evaluate(() => {
         const tags = [...document.querySelectorAll('.skill-tag')];
         const card = [...document.querySelectorAll('div')].find(d => d.innerText?.startsWith('What to expect'));
         return {
-          tagsEntran: tags[tags.length - 1].getBoundingClientRect().bottom <= innerHeight,
-          cardAsoma: card ? card.getBoundingClientRect().top < innerHeight : false,
+          // Positivo = cuánto le sobra al último tag antes del borde de la pantalla.
+          holguraTags: innerHeight - tags[tags.length - 1].getBoundingClientRect().bottom,
+          // Positivo = cuánto falta para que la tarjeta asome. Negativo = ya asomó.
+          margenCard: card ? card.getBoundingClientRect().top - innerHeight : Infinity,
         };
       });
-      expect(m.tagsEntran, `los tags tienen que entrar con viewport de ${height}`).toBe(true);
-      expect(m.cardAsoma, `las tarjetas no deberían asomar con viewport de ${height}`).toBe(false);
+      expect(m.holguraTags, `los tags tienen que entrar con viewport de ${height}`).toBeGreaterThan(0);
+      expect(m.holguraTags, `los tags entran raspando con viewport de ${height}: el layout quedó al filo del fold`).toBeGreaterThan(2);
+      expect(m.margenCard, `las tarjetas no deberían asomar con viewport de ${height}`).toBeGreaterThan(8);
     }
   });
 });

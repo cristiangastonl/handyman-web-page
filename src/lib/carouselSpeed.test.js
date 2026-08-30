@@ -1,137 +1,39 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
-  BASE_SPEED, MIN_MULTIPLIER, MAX_MULTIPLIER, DEFAULT_MULTIPLIER,
-  getMultiplier, setMultiplier, resetMultiplier, subscribe,
-  toPixelsPerSecond, isTunerEnabled, disableTuner,
+  BASE_SPEED, SPEED_MULTIPLIER, CAROUSEL_SPEED,
+  useCarouselSpeed, useAnimationDuration, toPixelsPerSecond,
 } from "./carouselSpeed";
 
-// Los tests corren en Node (no hay jsdom en el proyecto), así que el Storage
-// del browser se emula acá. Es un mapa, que es todo lo que el módulo usa.
-function fakeStorage() {
-  const data = new Map();
-  return {
-    getItem: (k) => (data.has(k) ? data.get(k) : null),
-    setItem: (k, v) => data.set(k, String(v)),
-    removeItem: (k) => data.delete(k),
-    clear: () => data.clear(),
-  };
-}
+// El slider en vivo se borró: Anibal eligió "Triple" el 29/08/2026. Lo que
+// queda por verificar ya no es el rango de un control, sino que el número que
+// eligió sea el que efectivamente llega a los carruseles.
 
-beforeEach(() => {
-  vi.stubGlobal("localStorage", fakeStorage());
-  vi.stubGlobal("sessionStorage", fakeStorage());
-  resetMultiplier();
-});
-
-describe("multiplicador de velocidad", () => {
-  it("arranca en el valor original", () => {
-    expect(getMultiplier()).toBe(DEFAULT_MULTIPLIER);
+describe("velocidad elegida por el cliente", () => {
+  it("es el triple de la original", () => {
+    expect(SPEED_MULTIPLIER).toBe(3);
   });
 
-  it("acepta un valor dentro del rango", () => {
-    setMultiplier(3);
-    expect(getMultiplier()).toBe(3);
+  it("son ~90 px/s", () => {
+    expect(toPixelsPerSecond()).toBe(90);
+    expect(CAROUSEL_SPEED).toBe(BASE_SPEED * 3);
   });
 
-  it("recorta por debajo del mínimo", () => {
-    setMultiplier(0.01);
-    expect(getMultiplier()).toBe(MIN_MULTIPLIER);
-  });
-
-  it("recorta por encima del máximo", () => {
-    setMultiplier(999);
-    expect(getMultiplier()).toBe(MAX_MULTIPLIER);
-  });
-
-  it("cae al default si le pasan basura", () => {
-    setMultiplier("no es un número");
-    expect(getMultiplier()).toBe(DEFAULT_MULTIPLIER);
-  });
-
-  it("acepta el string del input range", () => {
-    setMultiplier("2.5");
-    expect(getMultiplier()).toBe(2.5);
-  });
-
-  it("persiste en localStorage", () => {
-    setMultiplier(2);
-    expect(localStorage.getItem("carouselSpeedMultiplier")).toBe("2");
-  });
-
-  it("reset limpia el storage y vuelve al original", () => {
-    setMultiplier(4);
-    resetMultiplier();
-    expect(getMultiplier()).toBe(DEFAULT_MULTIPLIER);
-    expect(localStorage.getItem("carouselSpeedMultiplier")).toBeNull();
-  });
-
-  it("avisa a los suscriptores cuando cambia", () => {
-    // useSyncExternalStore depende de esto: sin emit, el slider no repinta.
-    let llamadas = 0;
-    const unsub = subscribe(() => llamadas++);
-    setMultiplier(2);
-    expect(llamadas).toBe(1);
-    unsub();
-    setMultiplier(3);
-    expect(llamadas).toBe(1); // ya no escucha
-  });
-
-  it("no avisa si el valor no cambió", () => {
-    setMultiplier(2);
-    let llamadas = 0;
-    const unsub = subscribe(() => llamadas++);
-    setMultiplier(2);
-    expect(llamadas).toBe(0);
-    unsub();
+  it("es la que reciben los carruseles de la home", () => {
+    // Los hooks no tienen estado: son constantes con forma de hook para no
+    // tocar los componentes que ya los usaban.
+    expect(useCarouselSpeed()).toBe(CAROUSEL_SPEED);
   });
 });
 
-describe("px por segundo", () => {
-  it("el original son ~30 px/s", () => {
-    expect(toPixelsPerSecond(1)).toBe(Math.round(BASE_SPEED * 60));
+describe("duración de las animaciones de CSS", () => {
+  // Los rieles de /reviews y el strip de marcas se mueven con animation, no
+  // con rAF: acelerarlos es acortarles la duración.
+  it("acorta la duración en la misma proporción", () => {
+    expect(useAnimationDuration(40)).toBe("13.33s");
+    expect(useAnimationDuration(30)).toBe("10.00s");
   });
 
-  it("el triple que pidió el cliente son ~90 px/s", () => {
-    expect(toPixelsPerSecond(3)).toBe(90);
-  });
-});
-
-describe("activación del panel", () => {
-  // Se muestra por defecto: la web no está lanzada y se trabaja sobre la URL
-  // normal. El query param sólo sirve para apagarlo.
-  it("está prendido sin query param", () => {
-    expect(isTunerEnabled("")).toBe(true);
-  });
-
-  it("sigue prendido con ?tune=1", () => {
-    expect(isTunerEnabled("?tune=1")).toBe(true);
-  });
-
-  it("se apaga con ?tune=0", () => {
-    expect(isTunerEnabled("?tune=0")).toBe(false);
-  });
-
-  it("queda apagado al navegar sin el param", () => {
-    isTunerEnabled("?tune=0");
-    expect(isTunerEnabled("")).toBe(false);
-  });
-
-  it("?tune=1 lo vuelve a prender después de apagarlo", () => {
-    isTunerEnabled("?tune=0");
-    expect(isTunerEnabled("?tune=1")).toBe(true);
-    expect(isTunerEnabled("")).toBe(true);
-  });
-
-  it("disableTuner lo apaga para el resto de la sesión", () => {
-    disableTuner();
-    expect(isTunerEnabled("")).toBe(false);
-  });
-
-  it("otros query params no lo apagan", () => {
-    expect(isTunerEnabled("?lang=de&utm_source=wa")).toBe(true);
-  });
-
-  it("?tune=off también apaga", () => {
-    expect(isTunerEnabled("?tune=off")).toBe(false);
+  it("devuelve un string listo para animationDuration", () => {
+    expect(useAnimationDuration(9)).toMatch(/^[0-9.]+s$/);
   });
 });

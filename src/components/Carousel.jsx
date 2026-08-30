@@ -12,7 +12,7 @@ export default function Carousel({ items, onClickItem, autoPlay = true }) {
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, pos: 0 });
 
-  // px por frame — ajustable en vivo con ?tune=1 hasta que el cliente elija.
+  // px por frame — el valor lo fija carouselSpeed.js, ya elegido por el cliente.
   const speed = useCarouselSpeed();
   const speedRef = useRef(speed);
   speedRef.current = speed;

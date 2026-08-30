@@ -5,8 +5,8 @@ import { useAnimationDuration } from "../lib/carouselSpeed";
 // Duración base del marquee, en segundos (la del CSS en constants.js).
 // Subió de 25 a 50 al pasar a las piezas de Anibal: el riel mide casi el triple
 // de ancho que con los logos pelados, así que a 25s la velocidad lineal se
-// triplicaba. 50s deja los px/s apenas por encima de los originales. Igual el
-// panel de ?tune la ajusta en vivo.
+// triplicaba. 50s deja los px/s apenas por encima de los originales; sobre eso
+// corre el multiplicador global que eligió el cliente (carouselSpeed.js).
 const STRIP_SECONDS = 50;
 
 // Las piezas las compone Anibal: el logo ya viene con su marco naranja quemado

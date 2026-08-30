@@ -28,8 +28,6 @@ import { FAQHome, FAQPage } from "./components/FAQ";
 import Footer from "./components/Footer";
 import Lightbox from "./components/Lightbox";
 import StickyBar from "./components/StickyBar";
-import SpeedTuner from "./components/SpeedTuner";
-import { isTunerEnabled } from "./lib/carouselSpeed";
 
 // Lazy-loaded routes (code-split — only downloaded when user navigates)
 const Portfolio = lazy(() => import("./components/Portfolio"));
@@ -57,13 +55,6 @@ export default function App() {
   useEffect(() => {
     document.documentElement.lang = i18n.language === 'en' ? 'en-CH' : i18n.language;
   }, [i18n.language]);
-
-  // Panel de velocidad de carruseles: visible por defecto mientras la web no
-  // esté lanzada. ?tune=0 o la X lo apagan por el resto de la pestaña.
-  const [tuner, setTuner] = useState(false);
-  useEffect(() => {
-    setTuner(isTunerEnabled(location.search));
-  }, [location.search]);
 
   // ── Navigation ──
   // Derive page from current pathname for Nav highlighting
@@ -206,14 +197,17 @@ export default function App() {
           <ServiceAreasCTA siteConfig={siteConfig}/>
           {/* Carousel order per client feedback: Recent works → Custom projects →
               orange Customs CTA → Highlights. Returning Customers was retired. */}
-          <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={openLightbox} nav={nav} siteConfig={siteConfig}/>
+          <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={openLightbox} siteConfig={siteConfig}/>
           <TailorJobs items={carouselData.tailor_jobs} setLb={openLightbox} siteConfig={siteConfig}/>
           <TailoringCTA nav={nav} siteConfig={siteConfig}/>
           <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={openLightbox} siteConfig={siteConfig}/>
-          <BrandStrip/>
           <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews} siteConfig={siteConfig}/>
           <FAQHome faqs={faqs} nav={nav}/>
           <BottomCTA siteConfig={siteConfig}/>
+          {/* Las marcas van al cierre, entre el CTA y el footer: es prueba social
+              pasiva —no vende sola, blinda la decisión ya tomada— y en el medio
+              del sitio partía al bloque de trabajos en dos. Pedido de Anibal. */}
+          <BrandStrip/>
         </>
       )}
     </>
@@ -265,9 +259,6 @@ export default function App() {
               a WhatsApp queda en el hero, en la StickyBar al scrollear y en el
               CTA de cierre. */}
           <Lightbox item={lb} items={lbItems} onClose={() => { setLb(null); setLbItems([]); }} onNavigate={setLb}/>
-          {/* Panel para que el cliente elija la velocidad de los carruseles
-              mirándolos. Se va del todo cuando defina el número. */}
-          {tuner && <SpeedTuner/>}
         </>
       )}
     </div>

@@ -48,13 +48,26 @@ export const DEFAULT_FB_REVIEWS = [
   { id: "fb11", name: "Karen Orozco", rating: 5, text: "Hace unas semanas, Aníbal vino a casa e instaló los rieles para cortinas en cuatro ventanales, además de la iluminación de nuestra sala. ¡Queremos destacar su profesionalismo y la excelente calidad de su trabajo! Estamos súper contentos con el resultado! Súper recomendado 🙌🏽", review_date: "2025" },
 ];
 
+// Fallback: la lista de verdad vive en site_config.site_service_areas y se
+// edita desde el admin. Esto es lo que se ve si Supabase no responde, así que
+// conviene que diga lo mismo. Bern lo pidió Anibal el 29/08/2026 ("el
+// miércoles 9 voy").
 export const SERVICE_AREAS = [
   { name: "Zurich", primary: true },
-  { name: "Saint Gallen", primary: false },
   { name: "Zug", primary: false },
+  { name: "St. Gallen", primary: false },
+  { name: "Lucerne", primary: false },
+  { name: "Bern", primary: false },
   { name: "Basel", primary: false },
   { name: "Schwyz", primary: false },
-  { name: "Aarau", primary: false },
+  { name: "Aargau", primary: false },
+  { name: "Schaffhausen", primary: false },
+  { name: "Uri", primary: false },
+  { name: "Obwalden", primary: false },
+  { name: "Nidwalden", primary: false },
+  { name: "Glarus", primary: false },
+  { name: "Solothurn", primary: false },
+  { name: "Thurgau", primary: false },
 ];
 
 export const LANGS = [
@@ -329,11 +342,17 @@ export const css = `
 
        El div que envuelve título/bio/tags va con display:contents para que sus hijos
        entren en la grilla del padre sin tocar el JSX. */
-    /* La sección respira menos que en desktop: cada píxel acá se lo lleva el hero. */
-    section:has(> .about-row) { padding: 14px 24px 16px !important; }
+    /* La sección respira menos que en desktop: cada píxel acá se lo lleva el hero. Los
+       10 de arriba en vez de 14 son parte de la holgura del fold (ver .hero-section): en
+       727 px el hero ya está contra su min-height y no puede ceder más, así que los
+       píxeles tienen que salir de acá. Es espacio muerto entre las tarjetas de redes y
+       la foto, no se nota. */
+    section:has(> .about-row) { padding: 10px 24px 16px !important; }
+    /* La foto va en la segunda columna, no en la primera: se lee el titulo y
+       recien despues aparece la cara. Es el mismo orden que en desktop. */
     .about-row {
       display: grid !important;
-      grid-template-columns: 88px 1fr;
+      grid-template-columns: 1fr 88px;
       column-gap: 12px;
       row-gap: 8px;
       justify-content: start !important;
@@ -341,11 +360,11 @@ export const css = `
     }
     .about-row > div { display: contents; }
     .about-row img {
-      grid-column: 1; grid-row: 1;
+      grid-column: 2; grid-row: 1;
       align-self: center;
       width: 88px !important; height: 88px !important; margin: 0 !important;
     }
-    .about-row h2 { grid-column: 2; grid-row: 1; align-self: center; }
+    .about-row h2 { grid-column: 1; grid-row: 1; align-self: center; }
     .about-row > div > p { grid-column: 1 / -1; grid-row: 2; font-size: 13px !important; line-height: 1.5 !important; }
     .skill-tags {
       grid-column: 1 / -1; grid-row: 3;
@@ -366,11 +385,19 @@ export const css = `
        la pantalla. dvh y no vh porque en mobile vh cuenta la barra del browser.
 
        El min-height no es cosmético: por debajo, en pantallas angostas el título se va a
-       dos líneas y el bloque de texto se desborda del hero. */
+       dos líneas y el bloque de texto se desborda del hero.
+
+       Se restan 574 y no los 568 que miden nav + números + redes + el bloque de Anibal:
+       con el número justo los tags terminaban a 0.1 px del borde y cualquier redondeo
+       sub-pixel —densidad de pantalla, métricas de la tipografía, cuándo decodifica la
+       foto— los empujaba abajo del fold. El test los veía entrar o no entrar según el
+       run. Los 6 px de más son holgura: se los come el collage, que a esta altura ya
+       está recortado a los costados, y del otro lado siguen sobrando ~40 px antes de que
+       asomen las tarjetas de "What to expect". */
     .hero-section {
       aspect-ratio: auto !important;
-      height: calc(100vh - 568px) !important;
-      height: calc(100dvh - 568px) !important;
+      height: calc(100vh - 574px) !important;
+      height: calc(100dvh - 574px) !important;
       min-height: 158px !important; max-height: 460px !important;
     }
     /* El texto pesa mucho sobre un hero bajo: se achica para dejar ver el collage. */
