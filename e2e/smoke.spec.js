@@ -215,6 +215,20 @@ test.describe('SEO / prerender', () => {
       const desc = page.locator('meta[name="description"]');
       await expect(desc).toHaveAttribute('content', /.{20,}/);
     });
+
+    test(`${route} se declara canónica a sí misma`, async ({ page }) => {
+      // Las 4 rutas salían con canonical apuntando a la home: /portfolio,
+      // /reviews y /faq le estaban pidiendo al buscador que no las indexara.
+      // El sufijo tiene que ser exactamente el del sitemap: la home con barra
+      // final, las internas sin ella.
+      await visit(page, route);
+      const esperado = route === '/' ? '/' : route;
+      await expect(page.locator('link[rel="canonical"]'))
+        .toHaveAttribute('href', new RegExp(`${esperado.replace('/', '\\/')}$`));
+      // og:url la usan WhatsApp y LinkedIn para la previsualización del link.
+      await expect(page.locator('meta[property="og:url"]'))
+        .toHaveAttribute('content', new RegExp(`${esperado.replace('/', '\\/')}$`));
+    });
   }
 });
 

@@ -28,6 +28,7 @@ import { FAQHome, FAQPage } from "./components/FAQ";
 import Footer from "./components/Footer";
 import Lightbox from "./components/Lightbox";
 import StickyBar from "./components/StickyBar";
+import Seo from "./components/Seo";
 
 // Lazy-loaded routes (code-split — only downloaded when user navigates)
 const Portfolio = lazy(() => import("./components/Portfolio"));
@@ -234,6 +235,7 @@ export default function App() {
       {page !== "admin" && <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>}
       <main id="main-content">
         <Suspense fallback={<div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}><div style={{ width: 40, height: 40, border: "3px solid #f0f0f0", borderTop: "3px solid #D4781F", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/></div>}>
+          <Seo/>
           <Routes>
             <Route path="/" element={<HomePage/>}/>
             <Route path="/portfolio" element={
