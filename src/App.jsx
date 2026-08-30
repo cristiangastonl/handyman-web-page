@@ -93,7 +93,6 @@ export default function App() {
   };
   const [portfolioView, setPortfolioView] = useState("categories");
   const [loading, setLoading] = useState(!!supabase);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   // ── Data ──
   const [cats, setCats] = useState(DEFAULT_CATS);
@@ -116,13 +115,9 @@ export default function App() {
   });
 
   // ── Effects ──
-  // Check admin session
-  useEffect(() => {
-    if (!supabase) return;
-    supabase.auth.getSession().then(({ data: { session } }) => { if (session) setIsAdmin(true); });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setIsAdmin(!!s));
-    return () => subscription.unsubscribe();
-  }, []);
+  // La sesión de admin la maneja AdminPanel, que es el único que la necesita.
+  // App tenía su propio getSession/onAuthStateChange sólo para pintar el botón
+  // "Adjust Image" sobre el hero del sitio público; sin ese botón, sobra.
 
   // Admin shortcut: Ctrl+Shift+A navigates to /admin
   useEffect(() => {
@@ -191,7 +186,7 @@ export default function App() {
       )}
       {!loading && (
         <>
-          <Hero siteConfig={siteConfig} isAdmin={isAdmin} onConfigUpdate={setSiteConfig}/>
+          <Hero siteConfig={siteConfig}/>
           <StatsBar siteConfig={siteConfig}/>
           <About nav={nav} navToCategory={navToCategory} cats={cats} siteConfig={siteConfig}/>
           <ServiceAreasCTA siteConfig={siteConfig}/>
