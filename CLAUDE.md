@@ -51,6 +51,7 @@ run, read the failure, fix the cause, run again. Converge, then report.
 | `npm run verify` | guards + unit + build + e2e | ~1–2 min | Before commit / deploy |
 | `npm run verify -- --stage=e2e` | one stage only | — | Debugging a specific failure |
 | `npm run e2e:ui` | Playwright UI mode | — | Writing or fixing E2E tests |
+| `npm run verify:prod` | prerender del sitio publicado | ~2s | Después de cada deploy |
 
 `verify:scope` runs the full cycle when the diff touches anything that reaches
 the browser (`src/components`, `src/lib`, `src/hooks`, `App.jsx`, `i18n.js`,
@@ -80,6 +81,13 @@ with the reason in the commit message.
 - **`scripts/guards/conventions.mjs`** — no CSS imports or Tailwind classes
   (inline styles only), no hardcoded Supabase URLs/JWTs, no `debugger` or
   `.only`, required env vars present.
+- **`scripts/check-prod-seo.mjs`** — pega contra el sitio **publicado** y verifica
+  que las 4 rutas lleguen prerenderizadas (`<div id="root">` con contenido) y con
+  title y meta description propios. No corre dentro de `verify` porque necesita
+  red y un deploy vivo: se corre a mano después de deployar.
+  Existe porque el resto del harness mira el build local, y eso no alcanzaba:
+  Vercel estuvo buildeando con `build:fast` (sin prerender) y sirviendo 8 KB de
+  cáscara vacía mientras los tests de SEO daban verde contra el build de acá.
 - **`e2e/smoke.spec.js`** (Playwright, desktop + mobile) — the 4 public routes
   render with no console errors and no raw i18n keys, nav works, language
   switching persists across pages, portfolio images have `alt`, `/admin` shows

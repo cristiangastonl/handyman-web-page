@@ -65,7 +65,15 @@ async function prerender() {
 
   try {
     const puppeteer = await import('puppeteer');
-    const browser = await puppeteer.default.launch({ headless: true });
+    // Los flags no son cosmeticos: sin ellos Chrome no arranca en un contenedor.
+    // El sandbox necesita privilegios que el build de Vercel no da, y /dev/shm
+    // ahi es de 64 MB, con lo que Chrome se cae al renderizar paginas con
+    // muchas imagenes. Correr sin sandbox es aceptable aca porque el unico sitio
+    // que se abre es el nuestro, servido desde localhost.
+    const browser = await puppeteer.default.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
 
     for (const route of ROUTES) {
       console.log(`  Pre-rendering ${route}...`);
@@ -101,7 +109,16 @@ async function prerender() {
   }
 }
 
+// Falla ruidosa y a proposito: si el prerender no corre, lo que se publica es
+// un shell vacio y el SEO desaparece sin que nadie se entere. Ya pasó — Vercel
+// estuvo meses buildeando con `build:fast` (sin este paso) y sirviendo 8 KB de
+// cascara mientras el harness daba verde contra el build local. Que el deploy
+// falle es preferible: deja en linea el ultimo build bueno y avisa.
 prerender().catch((err) => {
-  console.error('Pre-render failed:', err);
+  console.error('\nPre-render failed:', err);
+  console.error(
+    '\nEl deploy se corta a proposito: sin prerender se publica un shell vacio\n' +
+    'y las paginas pierden el contenido que indexan los buscadores.\n'
+  );
   process.exit(1);
 });

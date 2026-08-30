@@ -1,4 +1,4 @@
 {
-  "buildCommand": "npm run build:fast",
+  "buildCommand": "npx puppeteer browsers install chrome && npm run build",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
