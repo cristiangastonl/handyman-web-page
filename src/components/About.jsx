@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, PROFILE_IMG, parseSiteText, getHighlightField } from "../lib/constants";
+import { R, PROFILE_IMG, parseSiteText, getHighlightField, SECTION_PAD } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
 // Fallback skill tags for when no categories exist yet (fresh install / Supabase down).
@@ -25,14 +25,19 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
     : FALLBACK_SKILLS.map(s => ({ key: s, label: t(`about.skills.${s}`), target: s }));
   return (
     <FadeIn>
-    <section style={{ padding: "40px 24px", maxWidth: 940, margin: "0 auto" }}>
+    <section style={{ padding: SECTION_PAD, maxWidth: 940, margin: "0 auto" }}>
       {/* La foto va después del texto, a la derecha. Pedido de Anibal: "primero
           lees 'meet your handyman', y tu cerebro está listo para que cuando
           abren la puerta, pum, este es el gato". El título planta el contexto y
           recién ahí aparece la cara. En mobile el grid de constants.js hace lo
           mismo con las columnas. */}
+      {/* La foto va PRIMERA en el DOM y no última: en mobile flota y el texto la
+          envuelve, y un float sólo envuelve lo que viene después de él. En desktop
+          el order la manda de vuelta a la derecha, así que se sigue leyendo el
+          título antes que la cara, que es como lo quería Anibal. */}
       <div className="about-row" style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: 240 }}>
+        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ order: 2, width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
+        <div style={{ order: 1, flex: 1, minWidth: 240 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{t("about.title")}</h2>
           {(() => { const bio = parseSiteText(siteConfig.bio_text); return (
           <p style={{
@@ -60,7 +65,6 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
             ))}
           </div>
         </div>
-        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
       </div>
       {/* Highlight cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginTop: 28 }}>

@@ -1,10 +1,28 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { R, REVIEWS, svgP, WA_LINK, ab, getStyleConfig, parseReviewDate, formatReviewDate } from "../lib/constants";
+import { R, REVIEWS, svgP, WA_LINK, ab, getStyleConfig, parseReviewDate, formatReviewDate, socialUrls, SECTION_PAD } from "../lib/constants";
+import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 import HappyCustomerRails, { HappyCustomerTile } from "./HappyCustomers";
+
+// "G + f Reviews" se leía como si "Reviews" fuera sólo lo de Facebook: la palabra
+// quedaba pegada al ícono azul y el de Google, al otro extremo, no llegaba a
+// alcanzarla. Ahora el título va primero y los dos íconos van detrás agrupados en
+// una pastilla, que se lee como "estas son las fuentes" y no como parte de la frase.
+const sourcePill = {
+  display: "inline-flex", alignItems: "center", gap: 6,
+  padding: "3px 10px", borderRadius: 999,
+  background: "#fff", border: "1px solid #e8e8e8",
+};
+
+// Sentido de marcha del carrusel de reseñas de la home.
+//   -1 → de izquierda a derecha: las tarjetas entran por el borde izquierdo.
+//    1 → de derecha a izquierda, que es como corren los carruseles de fotos.
+// Anibal quiso ver las dos. Cambiar el signo alcanza; el wrap del loop funciona
+// en los dos sentidos porque contempla los dos bordes.
+const REVIEWS_DIR = -1;
 
 // Facebook no da estrellas, da recomendación. El pulgar arriba le da al badge el
 // mismo peso visual que las 5 estrellas de una card de Google al lado.
@@ -59,6 +77,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
   const revTitleStyle = getStyleConfig(siteConfig, "reviews_title_style");
   const revRef = useRef(null);
   const [expanded, setExpanded] = useState(new Set());
+  const [paused, setPaused] = useState(false);
   const toggleExpand = (e, i) => {
     e.stopPropagation();
     setExpanded(prev => {
@@ -71,17 +90,54 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
   const allReviews = useAllReviews(googleReviews, fbReviews, i18n.language, "desc");
   const avg = starAverage(allReviews);
 
+  // La lista se duplica para que el loop no muestre la costura al reiniciar, igual
+  // que en Carousel.jsx. El clon comparte el índice de su original, así que "Read
+  // more" abre las dos copias de la misma reseña y no una sí y otra no.
+  const base = allReviews.slice(0, 12);
+  const loop = base.length > 1 ? [...base, ...base] : base;
+
+  const speed = useCarouselSpeed(SPEED_FACTORS.homeReviews);
+
+  // Se mueve empujando scrollLeft en vez de con un transform: así las flechas, el
+  // swipe y la rueda del mouse siguen andando sobre el mismo elemento, sin tener
+  // que reimplementarlos. La posición se lleva aparte en un ref porque acumular
+  // fracciones de pixel directamente en scrollLeft se pierde con el redondeo.
+  const posRef = useRef(0);
+  useEffect(() => {
+    const el = revRef.current;
+    if (!el || base.length <= 1) return;
+    let raf;
+    const step = () => {
+      if (!paused && el.scrollWidth > 0) {
+        const unSet = el.scrollWidth / 2;
+        // Si alguien scrolleó a mano o tocó una flecha, se retoma desde ahí.
+        if (Math.abs(el.scrollLeft - posRef.current) > 2) posRef.current = el.scrollLeft;
+        posRef.current += speed * REVIEWS_DIR;
+        // Los dos bordes: yendo hacia atrás el navegador clava scrollLeft en 0 y el
+        // carrusel se quedaría trabado ahí, así que se salta al final del primer set.
+        if (posRef.current >= unSet) posRef.current -= unSet;
+        if (posRef.current <= 0) posRef.current += unSet;
+        el.scrollLeft = posRef.current;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [paused, speed, base.length]);
+
   return (
     <FadeIn>
-    <section style={{ padding: "40px 24px 48px", background: "#fafafa" }}>
+    <section style={{ padding: SECTION_PAD, background: "#fafafa" }}>
       <div style={{ maxWidth: 940, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <GoogleG/>
-              <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
-              <SocialIcon type="fb" size={20}/>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: revTitleStyle.fontSize, fontFamily: `'${revTitleStyle.fontFamily}', sans-serif`, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
+              <span style={sourcePill}>
+                <GoogleG/>
+                <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
+                <SocialIcon type="fb" size={16}/>
+              </span>
             </div>
             <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
@@ -95,10 +151,18 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
           <button onClick={() => nav("reviews")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("reviews.seeAll")}</button>
         </div>
 
-        <div style={{ position: "relative" }}>
-          <div ref={revRef} className="hs" style={{ display: "flex", gap: 14, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4 }}>
-            {allReviews.slice(0, 12).map((rev, i) => (
-              <div key={i} className="review-card" style={{ minWidth: 280, maxWidth: 310, flexShrink: 0, scrollSnapAlign: "start", padding: "18px", borderRadius: 12, background: "#fff", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+        {/* Se frena con el mouse encima y al tocar: si no, no se alcanza a terminar
+            de leer una reseña ni a abrir "Read more". Y sin scroll-snap, que peleaba
+            con el avance continuo tirando la tarjeta de vuelta a la grilla. */}
+        <div style={{ position: "relative" }}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onTouchStart={() => setPaused(true)}>
+          <div ref={revRef} className="hs" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 4 }}>
+            {loop.map((rev, k) => {
+              const i = k % base.length;
+              return (
+              <div key={k} className="review-card" style={{ minWidth: 280, maxWidth: 310, flexShrink: 0, padding: "18px", borderRadius: 12, background: "#fff", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                   <div style={{ width: 36, height: 36, borderRadius: "50%", background: `hsl(${i * 47}, 45%, 65%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15, color: "#fff" }}>{rev.name[0]}</div>
                   <div style={{ flex: 1 }}>
@@ -114,7 +178,8 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
                   style={{ fontSize: 12, color: R, cursor: "pointer", fontWeight: 600, marginTop: 4, display: "inline-block" }}
                 >{expanded.has(i) ? t("reviews.readLess", "Read less") : t("reviews.readMore", "Read more")}</span>
               </div>
-            ))}
+              );
+            })}
           </div>
           <button onClick={() => revRef.current?.scrollBy({ left: -340, behavior: "smooth" })} style={ab("left")} aria-label="Previous">&#8249;</button>
           <button onClick={() => revRef.current?.scrollBy({ left: 340, behavior: "smooth" })} style={ab("right")} aria-label="Next">&#8250;</button>
@@ -192,16 +257,18 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
       <HappyCustomerRails items={happy} setLb={setLb}/>
       <div style={{ textAlign: "center", padding: "24px 0 36px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
-          <svg width="28" height="28" viewBox="0 0 24 24">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
+          <span style={sourcePill}>
+          <svg width="22" height="22" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
           <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
-          <SocialIcon type="fb" size={26}/>
-          <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
+          <SocialIcon type="fb" size={20}/>
+          </span>
         </div>
         <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
         <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
@@ -237,10 +304,21 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
           </button>
         </div>
 
-        <a href="https://www.google.com/maps/place/Handyman+Services+in+Zurich/" target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-block", marginTop: 20, padding: "8px 20px", border: "1px solid #ddd", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none" }}>
-          {t("reviews.leaveReview")}
-        </a>
+        {/* Las dos fuentes tienen el mismo peso en las tarjetas, así que también
+            lo tienen acá: dejar la reseña en Google era la única opción visible. */}
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
+          {[
+            { href: "https://www.google.com/maps/place/Handyman+Services+in+Zurich/", label: t("reviews.leaveReview"), icon: <GoogleG/> },
+            { href: `${socialUrls.fb}/reviews`, label: t("reviews.leaveReviewFb"), icon: <SocialIcon type="fb" size={16}/> },
+          ].map(b => (
+            <a key={b.href} href={b.href} target="_blank" rel="noopener noreferrer"
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 20px", border: "1px solid #ddd", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none", transition: "border-color .2s, color .2s" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#ddd"; e.currentTarget.style.color = "#555"; }}>
+              {b.icon}{b.label}
+            </a>
+          ))}
+        </div>
       </div>
 
       {/* All reviews grid */}

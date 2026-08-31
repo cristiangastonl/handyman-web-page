@@ -27,7 +27,6 @@ import { GoogleReviewsHome, ReviewsPage } from "./components/Reviews";
 import { FAQHome, FAQPage } from "./components/FAQ";
 import Footer from "./components/Footer";
 import Lightbox from "./components/Lightbox";
-import StickyBar from "./components/StickyBar";
 import Seo from "./components/Seo";
 
 // Lazy-loaded routes (code-split — only downloaded when user navigates)
@@ -251,10 +250,8 @@ export default function App() {
       {page !== "admin" && (
         <>
           <Footer nav={nav} siteConfig={siteConfig}/>
-          <StickyBar nav={nav}/>
-          {/* Sin FAB flotante de WhatsApp: el cliente lo pidió fuera. El acceso
-              a WhatsApp queda en el hero, en la StickyBar al scrollear y en el
-              CTA de cierre. */}
+          {/* Sin FAB flotante de WhatsApp ni barra sticky: el cliente pidió las dos
+              fuera. El acceso a WhatsApp queda en el hero y en el CTA de cierre. */}
           <Lightbox item={lb} items={lbItems} onClose={() => { setLb(null); setLbItems([]); }} onNavigate={setLb}/>
         </>
       )}

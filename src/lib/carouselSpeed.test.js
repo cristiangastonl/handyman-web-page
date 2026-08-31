@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  BASE_SPEED, SPEED_MULTIPLIER, CAROUSEL_SPEED,
+  BASE_SPEED, SPEED_MULTIPLIER, CAROUSEL_SPEED, SPEED_FACTORS,
   useCarouselSpeed, useAnimationDuration, toPixelsPerSecond,
 } from "./carouselSpeed";
 
@@ -35,5 +35,32 @@ describe("duración de las animaciones de CSS", () => {
 
   it("devuelve un string listo para animationDuration", () => {
     expect(useAnimationDuration(9)).toMatch(/^[0-9.]+s$/);
+  });
+});
+
+// Ronda del 31/08: el número global dejó de aplicarse a todo por igual. Lo que
+// se verifica acá es que "la mitad" sea efectivamente la mitad y que quien no
+// pide factor propio siga corriendo a la velocidad que el cliente ya había
+// elegido — el riesgo real es que agregar un factor mueva de más.
+describe("velocidad por carrusel", () => {
+  it("sin factor, nada cambia respecto de la velocidad global", () => {
+    expect(useCarouselSpeed()).toBe(CAROUSEL_SPEED);
+    expect(useAnimationDuration(40)).toBe("13.33s");
+  });
+
+  it("Custom Projects va a la mitad", () => {
+    expect(SPEED_FACTORS.tailorJobs).toBe(0.5);
+    expect(useCarouselSpeed(SPEED_FACTORS.tailorJobs)).toBe(CAROUSEL_SPEED / 2);
+  });
+
+  it("los rieles de Happy Customers van a la mitad", () => {
+    expect(SPEED_FACTORS.happyRails).toBe(0.5);
+    // Mitad de velocidad en una animación de CSS es el doble de duración.
+    expect(useAnimationDuration(40, SPEED_FACTORS.happyRails)).toBe("26.67s");
+  });
+
+  it("un factor de 1 es exactamente no tocar nada", () => {
+    expect(useCarouselSpeed(SPEED_FACTORS.default)).toBe(useCarouselSpeed());
+    expect(useAnimationDuration(40, SPEED_FACTORS.default)).toBe(useAnimationDuration(40));
   });
 });

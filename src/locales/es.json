@@ -3,26 +3,22 @@
   "nav.portfolio": "Portfolio",
   "nav.reviews": "Reseñas",
   "nav.faq": "FAQs",
-
   "hero.title": "Professional Handyman\nServices in Zurich",
   "hero.subtitle": "Tu satisfacción, mi compromiso",
   "hero.whatsapp": "Escríbeme por WhatsApp",
   "hero.seeWork": "Ver mis trabajos",
   "hero.reviews": "reseñas",
-
   "stats.experience": "Años de experiencia",
   "stats.reviews": "Reseñas reales",
   "stats.videos": "Videos",
   "stats.ytViews": "Vistas en YouTube",
   "stats.fbFollowers": "Seguidores en Facebook",
   "stats.response": "Tiempo de respuesta",
-
   "social.title": "¿Por qué seguir, suscribirse o contactar?",
   "social.fb": "+100 reseñas reales",
   "social.yt": "44 playlists",
   "social.wa": "Respuesta en menos de 24hs",
   "social.reviewsNote": "+100 reseñas y menciones genuinas de personas reales (con muchos clientes recurrentes)\nSiempre un placer ayudar a todos en Suiza en nuestra comunidad de expatriados",
-
   "about.title": "Conoce a tu handyman",
   "about.bio": "Después de más de 20 años de experiencia en construcción alrededor del mundo, ahora estoy basado en Zurich ofreciendo una amplia gama de servicios profesionales — desde trabajos eléctricos, montaje y estanterías, hasta instalación de muebles, pintura y renovación de decoración del hogar.",
   "about.highlight1.title": "Qué esperar",
@@ -37,48 +33,36 @@
   "about.skills.fixings": "Reparaciones",
   "about.skills.gardening": "Jardinería",
   "about.skills.wallMounting": "Montaje en pared",
-
   "serviceAreas.title": "Áreas de servicio",
   "serviceAreas.subtitle": "All around Zurich & cantons nearby",
   "serviceAreas.surroundingCanton": "y los cantones circundantes",
-
   "recentWork.title": "Trabajos recientes",
-
   "videos.title": "Videos",
   "videos.viewAll": "Ver todos →",
-
   "reviews.title": "Reseñas",
   "reviews.based": "Basado en {{count}} reseñas",
   "reviews.count": "{{count}} reseñas",
   "reviews.seeAll": "Todas las reseñas →",
   "reviews.leaveReview": "Dejar una reseña en Google",
+  "reviews.leaveReviewFb": "Dejar una reseña en Facebook",
   "reviews.newestFirst": "Más recientes primero",
   "reviews.oldestFirst": "Más antiguas primero",
   "reviews.sortAria": "Cambiar orden de las reseñas",
-
   "carousel.cta": "¿Te interesa? Pregúntame por WhatsApp",
-
   "faq.title": "FAQs",
   "faq.common": "Preguntas Principales",
   "faq.viewAll": "Todas las FAQs",
-
   "cta.title": "¿Listo para empezar?",
   "cta.subtitle": "Respuesta en 24 horas · Garantía de por vida",
   "cta.multilingual": "Servicio multilingüe para la diversa comunidad de Zurich",
   "cta.description": "Envíame fotos de tu proyecto y recibe un presupuesto gratis",
   "cta.button": "Escríbeme por WhatsApp",
-
   "footer.contact": "Contacto",
   "footer.hoursTitle": "Horarios",
   "footer.hours": "Lun–Sáb · 8:00–19:00",
-    "footer.follow": "¡Sígueme, suscríbete o escríbeme!",
+  "footer.follow": "¡Sígueme, suscríbete o escríbeme!",
   "footer.copyright": "© {{year}} Handyman Services in Zurich",
   "footer.credit": "Diseñado y desarrollado por",
-
-  "sticky.tagline": "Tu satisfacción, mi compromiso",
-  "sticky.whatsapp": "WhatsApp",
-  "sticky.seeWork": "Mis trabajos",
-
   "portfolio.title": "Portfolio",
   "portfolio.all": "Todos",
   "portfolio.photos": "Fotos",
@@ -94,9 +78,7 @@
   "portfolio.categories": "categorías",
   "portfolio.ctaTitle": "¿Te gusta lo que ves?",
   "portfolio.ctaButton": "Contame sobre tu proyecto",
-
   "lightbox.close": "Cerrar",
-
   "brand.subtitle": "Specialist Technician At Domestic Matters",
   "highlights.title": "Highlights",
   "tailoring.title": "¿Necesitas algo específico?",
@@ -110,5 +92,5 @@
   "faq.businessHours.a": "Estoy disponible de lunes a sábado, de 8:00 a 18:00. Para emergencias, también ofrezco disponibilidad los fines de semana — solo envíame un mensaje por WhatsApp.",
   "returningCustomers.title": "Clientes Recurrentes",
   "tailorJobs.title": "Proyectos Personalizados",
-  "brands.title": "Marcas de confianza con las que trabajamos"
+  "brands.title": "Marcas de confianza con las que trabajo"
 }

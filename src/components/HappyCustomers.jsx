@@ -1,5 +1,5 @@
 import { itemThumb } from "../lib/constants";
-import { useAnimationDuration } from "../lib/carouselSpeed";
+import { useAnimationDuration, SPEED_FACTORS } from "../lib/carouselSpeed";
 
 // Duración base del riel, en segundos (la del CSS en constants.js).
 const RAIL_SECONDS = 40;
@@ -53,8 +53,9 @@ const PhotoTile = ({ item, onClick }) => {
  */
 const EdgeRail = ({ col, side, setLb }) => {
   // 40s es la duración base del riel; useAnimationDuration la acorta con la
-// velocidad global que eligió el cliente (carouselSpeed.js).
-  const animationDuration = useAnimationDuration(RAIL_SECONDS);
+  // velocidad global que eligió el cliente (carouselSpeed.js). El factor propio
+  // la vuelve a estirar: Anibal pidió estos rieles a la mitad el 31/08.
+  const animationDuration = useAnimationDuration(RAIL_SECONDS, SPEED_FACTORS.happyRails);
   return (
   <div className={`hc-edges ${side}`}>
     <div className="hc-edge-scroll">

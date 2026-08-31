@@ -39,7 +39,7 @@ export default function BrandStrip() {
     <FadeIn>
       <section style={{ padding: "24px 0 20px", overflow: "hidden", background: "#fafafa", borderTop: "1px solid #f0f0f0", borderBottom: "1px solid #f0f0f0" }}>
         <p style={{ textAlign: "center", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", margin: "0 0 16px" }}>
-          {t("brands.title", "Trusted Brands We Work With")}
+          {t("brands.title", "Trusted Brands I Work With")}
         </p>
         <div style={{ position: "relative", maxWidth: 940, margin: "0 auto", overflow: "hidden" }}>
           {/* Fade edges */}

@@ -97,6 +97,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
 
   // Category form
   const [ncLabel, setNcLabel] = useState("");
+  const [ncPlaylistId, setNcPlaylistId] = useState("");
   const [ncFile, setNcFile] = useState(null);
 
   // Work item form
@@ -217,9 +218,9 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     try {
       let headerImage = null;
       if (ncFile) headerImage = await uploadImage(ncFile, "categories");
-      await addCategory(id, label, headerImage);
-      setCats(prev => [...prev, { id, label, header_image: headerImage }]);
-      setNcLabel(""); setNcFile(null); resetFiles();
+      await addCategory(id, label, headerImage, ncPlaylistId);
+      setCats(prev => [...prev, { id, label, header_image: headerImage, playlist_id: ncPlaylistId.trim() || null }]);
+      setNcLabel(""); setNcFile(null); setNcPlaylistId(""); resetFiles();
       flash("Category added");
     } catch (err) { flash("Error: " + err.message); }
     finally { setAdminLoading(false); }
@@ -254,8 +255,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     try {
       let src = null, thumb = null;
       if (wiType === "image" && wiFile) src = await uploadImage(wiFile, "work");
-      if ((wiType === "video" || wiType === "facebook") && wiThumbFile) thumb = await uploadImage(wiThumbFile, "work");
-      if (wiType === "facebook") src = wiVideoId.trim() || null; // Store FB URL in src
+      if (wiType === "video" && wiThumbFile) thumb = await uploadImage(wiThumbFile, "work");
       // Assign sort_order = max(siblings in same cat/subcat) + 1 so new items go to the END
       const siblings = items.filter(it =>
         it.cat === wiCat && (it.subcategory_id || null) === (wiSubcat || null)
@@ -450,6 +450,12 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
         await updateCategory(editing.id, { label: editing.value.trim() });
         setCats(prev => prev.map(c => c.id === editing.id ? { ...c, label: editing.value.trim() } : c));
         flash("Category updated");
+      } else if (editing.type === "catPlaylist") {
+        // Vacío borra la playlist; playlistUrl() en el sitio tolera ID o URL entera.
+        const playlistId = editing.value.trim() || null;
+        await updateCategory(editing.id, { playlist_id: playlistId });
+        setCats(prev => prev.map(c => c.id === editing.id ? { ...c, playlist_id: playlistId } : c));
+        flash(playlistId ? "Playlist updated" : "Playlist removed");
       } else if (editing.type === "subcat") {
         await updateSubcategory(editing.id, { name: editing.value.trim() });
         setSubcats(prev => prev.map(s => s.id === editing.id ? { ...s, name: editing.value.trim() } : s));
@@ -622,6 +628,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                 <AdminCard title="Add Category">
                   <form onSubmit={prevent(handleAddCategory)}>
                     <AdminInput label="Category name" value={ncLabel} onChange={e => setNcLabel(e.target.value)} placeholder="Category name" />
+                    <AdminInput label="YouTube Playlist (optional)" value={ncPlaylistId} onChange={e => setNcPlaylistId(e.target.value)} placeholder="Playlist ID or full YouTube URL" />
                     <div>
                       <label style={typography.caption}>Header image (optional) — shown as category cover in Portfolio</label>
                       <input key={fileKey} type="file" accept="image/*" onChange={e => setNcFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
@@ -663,6 +670,30 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                                 : <span style={{ width: 18, height: 18, borderRadius: radii.sm, background: colors.gray300, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: colors.gray600 }}>📷</span>
                               }
                             </button>
+                            {/* Las categorías ya existían antes de que la playlist fuera
+                                un campo, así que sin esto sólo se le podía poner playlist a
+                                una categoría nueva — inservible para las que ya están. */}
+                            <button
+                              type="button"
+                              onClick={() => setEditing({ type: "catPlaylist", id: c.id, value: c.playlist_id || "" })}
+                              title={c.playlist_id ? "Change YouTube playlist" : "Add YouTube playlist"}
+                              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "inline-flex", alignItems: "center", fontSize: 11, color: c.playlist_id ? colors.brand : colors.gray400 }}
+                            >
+                              &#9654;
+                            </button>
+                            {editing?.type === "catPlaylist" && editing.id === c.id && (
+                              <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                <input
+                                  autoFocus
+                                  placeholder="Playlist ID or YouTube URL (empty removes it)"
+                                  value={editing.value}
+                                  onChange={e => setEditing({ ...editing, value: e.target.value })}
+                                  onBlur={handleSaveEdit}
+                                  onKeyDown={e => e.key === "Escape" && setEditing(null)}
+                                  style={{ width: 260, fontSize: 12, border: `1px solid ${colors.brand}`, borderRadius: radii.sm, padding: "2px 6px", outline: "none" }}
+                                />
+                              </form>
+                            )}
                             {editing?.type === "cat" && editing.id === c.id ? (
                               <form onSubmit={e => { e.preventDefault(); handleSaveEdit(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                                 <input
@@ -777,12 +808,12 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
             {adminTab === "work" && (
               <div>
                 <div style={{ ...A.infoBox, marginBottom: spacing.lg, fontSize: 11, lineHeight: 1.6 }}>
-                  <strong>How it works:</strong> Upload photos, YouTube videos, or Facebook reels here. Each item needs a category and a subcategory (both required when subcategories exist for that category). These items appear in the Portfolio page and can be selected for the home page carousels.
+                  <strong>How it works:</strong> Upload photos or YouTube videos here. Each item needs a category and a subcategory (both required when subcategories exist for that category). These items appear in the Portfolio page and can be selected for the home page carousels.
                 </div>
                 <AdminCard title="Add Item" style={{ marginBottom: spacing.xl }}>
                   <form onSubmit={prevent(handleAddWorkItem)}>
                     <div style={{ display: "flex", gap: spacing.sm, marginBottom: spacing.sm }}>
-                      {["image","video","facebook"].map(t => (
+                      {["image","video"].map(t => (
                         <button key={t} type="button" onClick={() => setWiType(t)}
                           style={{
                             ...A.btnSmall,
@@ -792,7 +823,7 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                             borderRadius: radii.md,
                             cursor: "pointer",
                           }}>
-                          {t === "image" ? "Image" : t === "video" ? "YouTube" : "Facebook"}
+                          {t === "image" ? "Image" : "YouTube"}
                         </button>
                       ))}
                     </div>
@@ -819,15 +850,6 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
                         <AdminInput label="YouTube video ID" value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="YouTube video ID" />
                         <div style={{ marginBottom: spacing.sm }}>
                           <label style={typography.caption}>Thumbnail image <span style={{ color: colors.gray400 }}>(optional)</span></label>
-                          <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
-                        </div>
-                      </>
-                    )}
-                    {wiType === "facebook" && (
-                      <>
-                        <AdminInput label="Facebook reel/video URL" value={wiVideoId} onChange={e => setWiVideoId(e.target.value)} placeholder="https://www.facebook.com/reel/123..." />
-                        <div style={{ marginBottom: spacing.sm }}>
-                          <label style={typography.caption}>Thumbnail image <span style={{ color: colors.gray400 }}>(recommended)</span></label>
                           <input key={fileKey} type="file" accept="image/*" onChange={e => setWiThumbFile(e.target.files[0] || null)} style={{ display: "block", marginTop: spacing.xs, fontSize: 11 }}/>
                         </div>
                       </>

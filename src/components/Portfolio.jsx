@@ -1,6 +1,29 @@
 import { useTranslation } from "react-i18next";
-import { R, G, WA_LINK, itemThumb, svgP } from "../lib/constants";
+import { R, G, WA_LINK, itemThumb, svgP, playlistUrl } from "../lib/constants";
 import { SocialIcon } from "./ui";
+
+/**
+ * Link a la playlist de YouTube. Vive acá y no inline porque ahora lo usan los
+ * dos niveles: la categoría y la subcategoría. Anibal pidió las playlists en
+ * categorías también — "si no tiene una playlist cargada se ve como si no
+ * tuviera".
+ */
+function PlaylistLink({ playlistId, t }) {
+  const href = playlistUrl(playlistId);
+  if (!href) return null;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer"
+      style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 10, border: "1px solid #eee", background: "#fafafa", textDecoration: "none", color: "#333", marginBottom: 20, transition: "border-color .2s, box-shadow .2s" }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF0000"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,0,0,0.08)"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "none"; }}>
+      <SocialIcon type="yt" size={28}/>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>{t("portfolio.viewPlaylist", "View Playlist")}</div>
+        <div style={{ fontSize: 10, color: "#666" }}>YouTube</div>
+      </div>
+    </a>
+  );
+}
 
 // Reusable item card
 function ItemCard({ item, setLb, contextItems }) {
@@ -134,6 +157,11 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                         {catItems.length > 0 && <>{catItems.length} {catItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
                         {catItems.length > 0 && catSubcats.length > 0 && " · "}
                         {catSubcats.length > 0 && <>{catSubcats.length} {t("portfolio.subcategories", "subcategories")}</>}
+                        {c.playlist_id && <>
+                          {(catItems.length > 0 || catSubcats.length > 0) && " · "}
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" style={{ verticalAlign: "middle", marginRight: 3 }}><path d="M23 12l-10.5-7v14L23 12zM1 5h2v14H1V5zm4 0h2v14H5V5zm4 0h2v14H9V5z"/></svg>
+                          {t("portfolio.playlist", "Playlist")}
+                        </>}
                       </div>
                     </div>
                   </div>
@@ -173,6 +201,8 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
               onBack={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
               backLabel={t("portfolio.backToCategories")} /* the translation already carries the ← */
             />
+
+            <PlaylistLink playlistId={currentCat?.playlist_id} t={t}/>
 
             {/* Subcategory cards */}
             {catSubcats.length > 0 && (
@@ -289,20 +319,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
               backLabel={`← ${currentCat?.label}`}
             />
 
-            {/* YouTube playlist link if available */}
-            {currentSubcat?.playlist_id && (
-              <a href={`https://www.youtube.com/playlist?list=${currentSubcat.playlist_id}`}
-                target="_blank" rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 10, border: "1px solid #eee", background: "#fafafa", textDecoration: "none", color: "#333", marginBottom: 20, transition: "border-color .2s, box-shadow .2s" }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF0000"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,0,0,0.08)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "none"; }}>
-                <SocialIcon type="yt" size={28}/>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{t("portfolio.viewPlaylist", "View Playlist")}</div>
-                  <div style={{ fontSize: 10, color: "#666" }}>YouTube</div>
-                </div>
-              </a>
-            )}
+            <PlaylistLink playlistId={currentSubcat?.playlist_id} t={t}/>
 
             <ItemsGrid
               items={scItems}

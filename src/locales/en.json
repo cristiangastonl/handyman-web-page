@@ -3,26 +3,22 @@
   "nav.portfolio": "Portfolio",
   "nav.reviews": "Reviews",
   "nav.faq": "FAQs",
-
   "hero.title": "Professional Handyman\nServices in Zurich",
   "hero.subtitle": "Your satisfaction, my commitment",
   "hero.whatsapp": "WhatsApp me",
   "hero.seeWork": "See my work",
   "hero.reviews": "reviews",
-
   "stats.experience": "Years Experience",
   "stats.reviews": "Real Reviews",
   "stats.videos": "Video Shows",
   "stats.ytViews": "YouTube Views",
   "stats.fbFollowers": "Facebook Followers",
   "stats.response": "Response Time",
-
   "social.title": "Why follow, subscribe or contact?",
   "social.fb": "+100 Real Reviews",
   "social.yt": "44 Playlists",
   "social.wa": "Response in less than 24hs",
   "social.reviewsNote": "+100 genuine reviews and mentions from real people (with lot of returning customers)\nAlways a pleasure to help everybody at Switzerland in our expats community",
-
   "about.title": "Meet your handyman",
   "about.bio": "After 20+ years of building experience around the world, I'm now based in Zurich offering a wide range of professional services — from electrical work, assembly and shelving, to furniture installation, painting, and home décor renovation.",
   "about.highlight1.title": "What to expect",
@@ -37,48 +33,36 @@
   "about.skills.fixings": "Fixings",
   "about.skills.gardening": "Gardening",
   "about.skills.wallMounting": "Wall Mounting",
-
   "serviceAreas.title": "Service Areas",
   "serviceAreas.subtitle": "All around Zurich & cantons nearby",
   "serviceAreas.surroundingCanton": "and the surrounding cantons",
-
   "recentWork.title": "Recent work",
-
   "videos.title": "Videos",
   "videos.viewAll": "View all →",
-
   "reviews.title": "Reviews",
   "reviews.based": "Based on {{count}} reviews",
   "reviews.count": "{{count}} reviews",
   "reviews.seeAll": "See all reviews →",
   "reviews.leaveReview": "Leave a review on Google",
+  "reviews.leaveReviewFb": "Leave a review on Facebook",
   "reviews.newestFirst": "Newest first",
   "reviews.oldestFirst": "Oldest first",
   "reviews.sortAria": "Change review order",
-
   "carousel.cta": "Interested? Ask me via WhatsApp",
-
   "faq.title": "FAQs",
   "faq.common": "Top Questions",
   "faq.viewAll": "View all FAQs",
-
   "cta.title": "Ready to get started?",
   "cta.subtitle": "Reply within 24 hours · Lifetime guarantee",
   "cta.multilingual": "Multilingual service for Zurich's diverse community",
   "cta.description": "Send me photos of your project and get a free quote instantly",
   "cta.button": "WhatsApp me now",
-
   "footer.contact": "Contact",
   "footer.hoursTitle": "Hours",
   "footer.hours": "Mon–Sat · 8:00–19:00",
-    "footer.follow": "Why not follow, subscribe or message me?",
+  "footer.follow": "Why not follow, subscribe or message me?",
   "footer.copyright": "© {{year}} Handyman Services in Zurich",
   "footer.credit": "Designed & developed by",
-
-  "sticky.tagline": "Your satisfaction, my commitment",
-  "sticky.whatsapp": "WhatsApp me",
-  "sticky.seeWork": "See my work",
-
   "portfolio.title": "Portfolio",
   "portfolio.all": "All",
   "portfolio.photos": "Photos",
@@ -94,9 +78,7 @@
   "portfolio.categories": "categories",
   "portfolio.ctaTitle": "Like what you see?",
   "portfolio.ctaButton": "Tell me about your project",
-
   "lightbox.close": "Close",
-
   "brand.subtitle": "Specialist Technician At Domestic Matters",
   "highlights.title": "Highlights",
   "tailoring.title": "Need something specific?",
@@ -110,5 +92,5 @@
   "faq.businessHours.a": "I'm available Monday to Saturday, 8:00 AM to 6:00 PM. For emergencies, I also offer weekend availability — just send me a WhatsApp message.",
   "returningCustomers.title": "Returning Customers",
   "tailorJobs.title": "Custom Projects",
-  "brands.title": "Trusted Brands We Work With"
+  "brands.title": "Trusted Brands I Work With"
 }

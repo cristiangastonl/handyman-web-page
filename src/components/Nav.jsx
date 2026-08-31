@@ -23,7 +23,7 @@ export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang }
         </div>
         {/* Mobile hamburger */}
         <button className="mobile-hamburger" onClick={() => setMobileMenu(!mobileMenu)}
-          style={{ background: "none", border: "none", cursor: "pointer", padding: 12, fontSize: 22, lineHeight: 1, display: "none" }}
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 12, fontSize: 22, lineHeight: 1, display: "none", color: R }}
           aria-label="Toggle menu">
           {mobileMenu ? "×" : "☰"}
         </button>

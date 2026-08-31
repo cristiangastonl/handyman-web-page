@@ -465,6 +465,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <SiteTextRow configKey="highlights_section_title" def={SITE_TEXTS.highlights_section_title} currentValue={siteConfig.highlights_section_title} onSave={onSave} loading={loading} />
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Carousel Title Typography</p>
         <StyleControl configKey="carousel_recent_work_title_style" label="Recent Work — Section Title" hint="Recent work" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="carousel_highlights_title_style" label="Highlights — Section Title" hint="Highlights" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="carousel_tailor_jobs_title_style" label="Custom Projects — Section Title" hint="Custom Projects" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <p style={{ ...typography.caption, marginTop: spacing.sm }}>
           Carousel content is managed in the Carousels tab.

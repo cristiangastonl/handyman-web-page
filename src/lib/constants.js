@@ -153,12 +153,23 @@ export const getStatValue = (siteConfig, stat) => {
 /** "K" -> "K+",  "" -> "+" */
 export const formatStatSuffix = (unit) => `${unit || ""}+`;
 
+// Los tres carruseles de la home muestran el mismo título visual, pero vivían en
+// dos sistemas distintos: Recent Work y Custom Projects leían de STYLE_KEYS (18px)
+// y Highlights de SITE_TEXTS (17px), porque su título además es editable. Encima
+// Highlights caía en fontFamily undefined y heredaba la tipografía del body. Anibal
+// lo marcó: "en highlights se ve el peor tamaño". El default vive acá una sola vez
+// y lo consumen los dos sistemas, así que no puede volver a desincronizarse.
+export const CAROUSEL_TITLE = { fontSize: 18, fontFamily: "DM Sans" };
+
 // ─── Site text definitions (known keys with defaults) ───
 export const SITE_TEXTS = {
   hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zurich", defaultFontSize: 36, defaultFontFamily: "DM Sans" },
   hero_subtitle: { label: "Hero Subtitle", defaultText: "Your satisfaction, my commitment", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
   hero_brand_subtitle: { label: "Hero Brand Subtitle", defaultText: "Specialist Technician At Domestic Matters", defaultFontSize: 15, defaultFontFamily: "Dancing Script" },
-  highlights_section_title: { label: "Highlights Section Title", defaultText: "Highlights", defaultFontSize: 17, defaultFontFamily: "DM Sans" },
+  // Sólo aporta el TEXTO. El tamaño y la fuente salen de carousel_highlights_title_style,
+  // como los otros dos carruseles: tenerlo acá dejaba un fontSize guardado (17) que le
+  // ganaba al default y desalineaba el título respecto de sus hermanos.
+  highlights_section_title: { label: "Highlights Section Title", defaultText: "Highlights", defaultFontSize: CAROUSEL_TITLE.fontSize, defaultFontFamily: CAROUSEL_TITLE.fontFamily },
   bio_text: { label: "About / Bio Text", defaultText: "", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
   // About highlight boxes — editable copy (defaults mirror the English translations)
   about_highlight1_title: { label: "Highlight 1 — Title", defaultText: "What to expect", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
@@ -189,9 +200,10 @@ export const STYLE_KEYS = {
   about_highlight3_title_style: { fontSize: 13, fontFamily: "DM Sans" },
   about_highlight3_text_style: { fontSize: 12, fontFamily: "DM Sans" },
   // Carousel titles (TYPO-03)
-  carousel_recent_work_title_style: { fontSize: 18, fontFamily: "DM Sans" },
-  carousel_returning_customers_title_style: { fontSize: 18, fontFamily: "DM Sans" },
-  carousel_tailor_jobs_title_style: { fontSize: 18, fontFamily: "DM Sans" },
+  carousel_recent_work_title_style: { ...CAROUSEL_TITLE },
+  carousel_highlights_title_style: { ...CAROUSEL_TITLE },
+  carousel_returning_customers_title_style: { ...CAROUSEL_TITLE },
+  carousel_tailor_jobs_title_style: { ...CAROUSEL_TITLE },
   // CTA sections (TYPO-04)
   cta_tailoring_title_style: { fontSize: 20, fontFamily: "DM Sans" },
   cta_tailoring_text_style: { fontSize: 14, fontFamily: "DM Sans" },
@@ -273,6 +285,31 @@ export const getHighlightField = (siteConfig, key, fallbackText) => {
   };
 };
 
+// El campo del admin se llama "YouTube Playlist ID", pero pegar la URL entera es
+// lo natural y es lo que venía pasando: al concatenarla contra el prefijo salía
+// https://www.youtube.com/playlist?list=https://www.youtube.com/playlist?list=XXX
+// y el link moría. Se acepta cualquiera de las dos formas.
+// Ritmo vertical de las secciones de la home. Anibal marcó que "los márgenes
+// entre los títulos, carruseles y lo demás debería estar normalizado, hoy hay
+// medidas distintas": convivían cierres de 12, 40 y 48 px y títulos de carrusel
+// con 12 y con 14. Ahora sale todo de acá.
+export const SECTION_X = 24;
+export const SECTION_Y = 40;
+// Sección que abre y cierra con el mismo aire.
+export const SECTION_PAD = `${SECTION_Y}px ${SECTION_X}px`;
+// Sección que viene pegada a la de arriba y sólo cierra: si además abriera con
+// SECTION_Y, el aire entre dos carruseles seguidos sería el doble.
+export const SECTION_PAD_TIGHT = `0 ${SECTION_X}px ${SECTION_Y}px`;
+// Título de sección -> su contenido.
+export const SECTION_TITLE_MB = 14;
+
+export const playlistUrl = (raw) => {
+  const v = String(raw || "").trim();
+  if (!v) return null;
+  const fromUrl = v.match(/[?&]list=([^&#\s]+)/);
+  return `https://www.youtube.com/playlist?list=${fromUrl ? fromUrl[1] : v}`;
+};
+
 export const fbEmbedUrl = (url) => `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
 export const itemThumb = (item) => {
   if (!item) return "";
@@ -348,28 +385,54 @@ export const css = `
        píxeles tienen que salir de acá. Es espacio muerto entre las tarjetas de redes y
        la foto, no se nota. */
     section:has(> .about-row) { padding: 10px 24px 16px !important; }
-    /* La foto va en la segunda columna, no en la primera: se lee el titulo y
-       recien despues aparece la cara. Es el mismo orden que en desktop. */
+    /* Dos columnas: el texto en la primera y la foto en la segunda, centrada
+       verticalmente contra el bloque entero de título + bio.
+
+       Pasó por tres formas hasta acá. Primero la foto ocupaba una fila de 88px y
+       al lado sólo entraba el título, con la bio cruzando a lo ancho por debajo:
+       quedaba una franja de aire muerto que Anibal marcó dos veces. Después flotó
+       dentro del texto, que mató el hueco pero dejaba la bio metiéndose abajo de
+       la foto a partir del cuarto renglón. Ahora la foto tiene columna propia y el
+       texto la respeta de arriba a abajo: no hay aire muerto, no hay texto que se
+       meta debajo, y el bloque queda más alto —a propósito, porque así "What to
+       expect" no asoma en la primera pantalla.
+
+       El !important es porque About.jsx trae display:flex inline para desktop.
+       (Ojo: nada de backticks acá adentro, este CSS es un template literal.) */
     .about-row {
       display: grid !important;
-      grid-template-columns: 1fr 88px;
-      column-gap: 12px;
-      row-gap: 8px;
+      grid-template-columns: 1fr 112px;
+      column-gap: 12px !important;
+      row-gap: 6px !important;
       justify-content: start !important;
       text-align: left !important;
     }
+    /* display:contents saca al div del medio para que la foto y el texto queden
+       como hermanos y entren los cuatro en la misma grilla, sin tocar el JSX. */
     .about-row > div { display: contents; }
     .about-row img {
-      grid-column: 2; grid-row: 1;
+      /* Abarca las filas del título y de la bio, y se centra contra las dos: es lo
+         que la deja a media altura del texto en vez de colgada de un extremo. */
+      grid-column: 2; grid-row: 1 / span 2;
       align-self: center;
-      width: 88px !important; height: 88px !important; margin: 0 !important;
+      /* 112 y no 88: la foto crece 27% y cuesta un solo renglón de bio, exactamente
+         lo mismo que costaría llevarla apenas a 100. De 112 para arriba cada salto
+         cuesta el doble o el triple, porque la columna del texto se angosta y la
+         bio se va a 11 y 12 renglones. Medido en un Pixel 5. */
+      width: 112px !important; height: 112px !important; margin: 0 !important;
     }
-    .about-row h2 { grid-column: 1; grid-row: 1; align-self: center; }
-    .about-row > div > p { grid-column: 1 / -1; grid-row: 2; font-size: 13px !important; line-height: 1.5 !important; }
+    /* El título iba centrado en una fila que mide 88px por culpa de la foto, así
+       que abajo le quedaban ~28px de aire antes del texto y se leía como dos
+       bloques sueltos. Alineado al final de la fila queda pegado a su párrafo,
+       que es lo que pidió Anibal ("que no quede tanto espacio entre handyman y
+       texto"). La foto sigue centrada contra el bloque entero. */
+    .about-row h2 { grid-column: 1; grid-row: 1; align-self: end; margin-bottom: 0 !important; }
+    .about-row > div > p { grid-column: 1; grid-row: 2; font-size: 13px !important; line-height: 1.5 !important; margin-bottom: 0 !important; }
+    /* Los tags sí van a lo ancho: abajo de la foto ya no hay columna que respetar. */
     .skill-tags {
       grid-column: 1 / -1; grid-row: 3;
       justify-content: center !important;
-      margin-top: 0 !important;
+      margin-top: 12px !important;
     }
     /* En la primera pantalla tienen que entrar hero, stats, redes, la foto de Anibal, la
        presentación y los tags. En un celular de 727 px el resto se lleva 531, así que al
@@ -387,18 +450,30 @@ export const css = `
        El min-height no es cosmético: por debajo, en pantallas angostas el título se va a
        dos líneas y el bloque de texto se desborda del hero.
 
-       Se restan 574 y no los 568 que miden nav + números + redes + el bloque de Anibal:
-       con el número justo los tags terminaban a 0.1 px del borde y cualquier redondeo
-       sub-pixel —densidad de pantalla, métricas de la tipografía, cuándo decodifica la
-       foto— los empujaba abajo del fold. El test los veía entrar o no entrar según el
-       run. Los 6 px de más son holgura: se los come el collage, que a esta altura ya
-       está recortado a los costados, y del otro lado siguen sobrando ~40 px antes de que
-       asomen las tarjetas de "What to expect". */
+       El número que se resta mide nav + números + redes + el bloque de Anibal, más unos
+       píxeles de holgura: con el número justo los tags terminaban a 0.1 px del borde y
+       cualquier redondeo sub-pixel —densidad de pantalla, métricas de la tipografía,
+       cuándo decodifica la foto— los empujaba abajo del fold, y el test los veía entrar o
+       no entrar según el run.
+
+       Era 574, después 528, 483, 509, y ahora 528 otra vez. Cada vez que la presentación se achica hay
+       que devolverle esos píxeles al hero, o si no las tarjetas de "What to expect"
+       suben y asoman arriba del pliegue. Primero fue pegar el título a su bio, y
+       después pasar la foto a flotar dentro del texto (~45 px menos), y por último
+       darle columna propia a la foto, que volvió a alargar la presentación ~26 px
+       —eso es deliberado: es lo que empuja las tarjetas abajo del pliegue—, y por
+       último agrandar la foto de 88 a 112, que sumó el renglón de bio que faltaba. El síntoma era exacto: las tarjetas
+       de "What to expect" asomaban 29 px arriba del fold. Si mañana vuelve a cambiar el
+       alto de la presentación, este número se recalcula —no se toca el test, que es el
+       que lo detecta. */
     .hero-section {
       aspect-ratio: auto !important;
-      height: calc(100vh - 574px) !important;
-      height: calc(100dvh - 574px) !important;
-      min-height: 158px !important; max-height: 460px !important;
+      height: calc(100vh - 528px) !important;
+      height: calc(100dvh - 528px) !important;
+      /* El max-height topaba al hero en 460 y en pantallas altas (956) le quedaban
+         13 px sin absorber, justo los que hacían asomar las tarjetas de "What to
+         expect". 500 le deja llegar a los 473 que pide esa altura sin clamp. */
+      min-height: 158px !important; max-height: 500px !important;
     }
     /* El texto pesa mucho sobre un hero bajo: se achica para dejar ver el collage. */
     .hero-section .heroContent h1 { font-size: 26px !important; }

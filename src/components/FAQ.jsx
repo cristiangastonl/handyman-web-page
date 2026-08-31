@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R, G, WA_LINK, svgP } from "../lib/constants";
+import { R, G, WA_LINK, svgP, SECTION_PAD } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
 function faqText(f, field, lang) {
@@ -17,7 +17,7 @@ export function FAQHome({ faqs, nav }) {
   const lang = i18n.language?.slice(0, 2) || "en";
   return (
     <FadeIn>
-    <section style={{ padding: "40px 24px" }}>
+    <section style={{ padding: SECTION_PAD }}>
       <div style={{ maxWidth: 600, margin: "0 auto", background: "#fafafa", borderRadius: 14, padding: "28px 24px", border: "1px solid #f0f0f0" }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 18, textAlign: "center", color: "#222" }}>{t("faq.common")}</h2>
         {faqs.slice(0, 3).map((f, i) => (
@@ -26,13 +26,11 @@ export function FAQHome({ faqs, nav }) {
             <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55 }}>{faqText(f, "answer", lang)}</div>
           </div>
         ))}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 18, flexWrap: "wrap" }}>
+        {/* Sin el atajo verde a WhatsApp: en la home el cliente lo pidió fuera y
+            queda sólo el paso a la página de preguntas. En /faq sí sobrevive, pero
+            en naranja — ver FAQPage. */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 18 }}>
           <button onClick={() => nav("faq")} style={{ background: "none", border: "none", color: R, fontSize: 12, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}>{t("faq.viewAll")}</button>
-          <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
-            {t("faq.askWhatsApp", "Ask me directly")}
-          </a>
         </div>
       </div>
     </section>
@@ -51,14 +49,19 @@ export function FAQPage({ faqs }) {
       {faqs.map((f, i) => {
         const isOpen = fq === i;
         return (
+          // El palito naranja va siempre, abierta o cerrada, para que la página se
+          // lea como el bloque de "top questions" de la home, donde las tres
+          // preguntas lo tienen fijo. Lo que marca el hover es la sombra.
           <div key={f.id || i} style={{
             borderBottom: "1px solid #eee",
             background: isOpen ? "#fafafa" : "transparent",
-            borderLeft: isOpen ? `3px solid ${R}` : "3px solid transparent",
-            borderRadius: isOpen ? 8 : 0,
-            marginBottom: isOpen ? 4 : 0,
-            transition: "background .2s, border-color .2s",
-          }}>
+            borderLeft: `3px solid ${R}`,
+            borderRadius: 8,
+            marginBottom: 4,
+            transition: "background .2s, box-shadow .2s",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(212,120,31,0.12)"; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; }}>
             <button onClick={() => setFq(isOpen ? null : i)}
               aria-expanded={isOpen}
               style={{
@@ -94,8 +97,8 @@ export function FAQPage({ faqs }) {
       })}
       <div style={{ textAlign: "center", marginTop: 24 }}>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: R, textDecoration: "none" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill={R}><path d={svgP.wa}/></svg>
           {t("faq.askWhatsApp", "Have another question? Ask me directly")}
         </a>
       </div>

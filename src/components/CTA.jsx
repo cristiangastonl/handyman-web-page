@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, WA_LINK, svgP, SERVICE_AREAS, getStyleConfig } from "../lib/constants";
+import { R, G, WA_LINK, svgP, SERVICE_AREAS, getStyleConfig, SECTION_PAD, SECTION_PAD_TIGHT } from "../lib/constants";
 import { MapPin } from "./ui";
 import { FadeIn } from "./FadeIn";
 
@@ -9,7 +9,10 @@ export function TailoringCTA({ nav, siteConfig = {} }) {
   const tTextStyle = getStyleConfig(siteConfig, "cta_tailoring_text_style");
   return (
     <FadeIn delay={0.15}>
-    <section style={{ padding: "0 24px 12px", maxWidth: 940, margin: "0 auto" }}>
+    {/* Cierra con SECTION_Y como todo lo demás. Con 12 el título de Highlights
+        quedaba pegado al banner: 12px de aire contra los 40 de los otros dos
+        carruseles. Fue lo que se me escapó al normalizar los márgenes. */}
+    <section style={{ padding: SECTION_PAD_TIGHT, maxWidth: 940, margin: "0 auto" }}>
       <div style={{
         padding: "36px 28px 32px", borderRadius: 14,
         background: `linear-gradient(180deg, ${R} 0%, #B5621A 50%, ${G} 100%)`,
@@ -45,7 +48,7 @@ export function ServiceAreasCTA({ siteConfig = {} }) {
   const areaNames = areasStr.split("·").map(s => s.trim()).filter(Boolean);
   return (
     <FadeIn delay={0.15}>
-    <section style={{ padding: "0 24px 40px", maxWidth: 940, margin: "0 auto" }}>
+    <section style={{ padding: SECTION_PAD_TIGHT, maxWidth: 940, margin: "0 auto" }}>
       <div style={{
         padding: "28px 28px 32px", borderRadius: 14,
         background: `linear-gradient(180deg, ${R} 0%, #B5621A 50%, ${G} 100%)`,
@@ -81,7 +84,7 @@ export function BottomCTA({ siteConfig = {} }) {
   const bSubStyle = getStyleConfig(siteConfig, "cta_bottom_subtitle_style");
   return (
     <FadeIn delay={0.1}>
-    <section style={{ padding: "8px 24px 48px", textAlign: "center" }}>
+    <section style={{ padding: SECTION_PAD, textAlign: "center" }}>
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 32px", background: `linear-gradient(135deg, ${G} 0%, #3a3a3a 100%)`, borderRadius: 16, color: "#fff" }}>
         <h3 style={{ fontSize: bTitleStyle.fontSize, fontFamily: `'${bTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 8 }}>{t("cta.title")}</h3>
         <p style={{ fontSize: bSubStyle.fontSize, fontFamily: `'${bSubStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>{t("cta.subtitle")}</p>

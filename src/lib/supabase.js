@@ -49,9 +49,9 @@ export async function fetchCategories() {
   if (error) throw error;
   return data;
 }
-export async function addCategory(id, label, headerImage) {
+export async function addCategory(id, label, headerImage, playlistId) {
   if (!supabase) return;
-  const { error } = await supabase.from("categories").insert({ id, label, header_image: headerImage });
+  const { error } = await supabase.from("categories").insert({ id, label, header_image: headerImage, playlist_id: playlistId || null });
   if (error) throw error;
 }
 export async function updateCategory(id, updates) {

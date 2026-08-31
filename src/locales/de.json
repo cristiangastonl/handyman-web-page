@@ -3,26 +3,22 @@
   "nav.portfolio": "Portfolio",
   "nav.reviews": "Bewertungen",
   "nav.faq": "FAQs",
-
   "hero.title": "Professional Handyman\nServices in Zurich",
   "hero.subtitle": "Ihre Zufriedenheit, mein Engagement",
   "hero.whatsapp": "WhatsApp",
   "hero.seeWork": "Meine Arbeit",
   "hero.reviews": "Bewertungen",
-
   "stats.experience": "Jahre Erfahrung",
   "stats.reviews": "Echte Bewertungen",
   "stats.videos": "Video-Shows",
   "stats.ytViews": "YouTube-Aufrufe",
   "stats.fbFollowers": "Facebook-Follower",
   "stats.response": "Antwortzeit",
-
   "social.title": "Warum folgen, abonnieren oder kontaktieren?",
   "social.fb": "+100 echte Bewertungen",
   "social.yt": "44 Playlists",
   "social.wa": "Antwort in weniger als 24 Stunden",
   "social.reviewsNote": "+100 echte Bewertungen und Erwähnungen von echten Menschen (mit vielen Stammkunden)\nImmer eine Freude jedem zu helfen in der Schweiz in unserer Expat-Gemeinschaft",
-
   "about.title": "Lernen Sie Ihren Handyman kennen",
   "about.bio": "Nach über 20 Jahren Bauerfahrung weltweit bin ich jetzt in Zurich tätig und biete ein breites Spektrum professioneller Dienstleistungen — von Elektroarbeit, Montage und Regalbau bis hin zu Möbelinstallation, Malerarbeiten und Wohnraumrenovierung.",
   "about.highlight1.title": "Was Sie erwartet",
@@ -37,48 +33,36 @@
   "about.skills.fixings": "Reparaturen",
   "about.skills.gardening": "Gartenarbeit",
   "about.skills.wallMounting": "Wandmontage",
-
   "serviceAreas.title": "Servicegebiete",
   "serviceAreas.subtitle": "All around Zurich & cantons nearby",
   "serviceAreas.surroundingCanton": "und umliegende Kantone",
-
   "recentWork.title": "Aktuelle Arbeiten",
-
   "videos.title": "Videos",
   "videos.viewAll": "Alle ansehen →",
-
   "reviews.title": "Bewertungen",
   "reviews.based": "Basierend auf {{count}} Bewertungen",
   "reviews.count": "{{count}} Bewertungen",
   "reviews.seeAll": "Alle Bewertungen →",
   "reviews.leaveReview": "Bewertung auf Google hinterlassen",
+  "reviews.leaveReviewFb": "Bewertung auf Facebook hinterlassen",
   "reviews.newestFirst": "Neueste zuerst",
   "reviews.oldestFirst": "Älteste zuerst",
   "reviews.sortAria": "Reihenfolge der Bewertungen ändern",
-
   "carousel.cta": "Interessiert? Schreib mir per WhatsApp",
-
   "faq.title": "FAQs",
   "faq.common": "Top Fragen",
   "faq.viewAll": "Alle FAQs ansehen",
-
   "cta.title": "Bereit loszulegen?",
   "cta.subtitle": "Antwort innerhalb von 24 Stunden · Lebenslange Garantie",
   "cta.multilingual": "Mehrsprachiger Service für Zurichs vielfältige Gemeinschaft",
   "cta.description": "Senden Sie mir Fotos Ihres Projekts und erhalten Sie sofort ein kostenloses Angebot",
   "cta.button": "Jetzt per WhatsApp schreiben",
-
   "footer.contact": "Kontakt",
   "footer.hoursTitle": "Öffnungszeiten",
   "footer.hours": "Mo–Sa · 8:00–19:00",
-    "footer.follow": "Folgen, abonnieren oder schreiben Sie mir!",
+  "footer.follow": "Folgen, abonnieren oder schreiben Sie mir!",
   "footer.copyright": "© {{year}} Handyman Services in Zurich",
   "footer.credit": "Entworfen & entwickelt von",
-
-  "sticky.tagline": "Ihre Zufriedenheit, mein Engagement",
-  "sticky.whatsapp": "WhatsApp",
-  "sticky.seeWork": "Meine Arbeit",
-
   "portfolio.title": "Portfolio",
   "portfolio.all": "Alle",
   "portfolio.photos": "Fotos",
@@ -94,9 +78,7 @@
   "portfolio.categories": "Kategorien",
   "portfolio.ctaTitle": "Gefällt Ihnen, was Sie sehen?",
   "portfolio.ctaButton": "Erzählen Sie mir von Ihrem Projekt",
-
   "lightbox.close": "Schliessen",
-
   "brand.subtitle": "Specialist Technician At Domestic Matters",
   "highlights.title": "Highlights",
   "tailoring.title": "Brauchen Sie etwas Bestimmtes?",
@@ -110,5 +92,5 @@
   "faq.businessHours.a": "Ich bin von Montag bis Samstag, 8:00 bis 18:00 Uhr erreichbar. Für Notfälle biete ich auch Wochenendverfügbarkeit an — schreiben Sie mir einfach eine WhatsApp-Nachricht.",
   "returningCustomers.title": "Stammkunden",
   "tailorJobs.title": "Individuelle Projekte",
-  "brands.title": "Vertrauenswürdige Marken, mit denen wir arbeiten"
+  "brands.title": "Vertrauenswürdige Marken, mit denen ich arbeite"
 }

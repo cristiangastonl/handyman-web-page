@@ -247,6 +247,202 @@ test.describe('velocidad de los carruseles', () => {
     console_.assertClean();
   });
 
+  test('el carrusel de reseñas de la home avanza solo y se frena con el mouse', async ({ page }) => {
+    // Era el único carrusel de la home que no se movía: scroll manual con flechas.
+    // Anibal pidió que corriera de derecha a izquierda, continuo y lento. Se mide
+    // px por FRAME y no por segundo, igual que en el otro check de velocidad: bajo
+    // carga el frame rate se desploma y medir contra el reloj lo haría flaky.
+    await visit(page, '/');
+    await page.mouse.move(0, 0); // lejos del carrusel, que se pausa con el mouse encima
+
+    await page.waitForFunction(() => document.querySelectorAll('.review-card').length > 1,
+      null, { timeout: 20_000 });
+
+    const medir = () => page.evaluate(async () => {
+      const riel = document.querySelector('.review-card')?.parentElement;
+      if (!riel) return -1;
+      const frame = () => new Promise((r) => requestAnimationFrame(r));
+      await frame();
+      const desde = riel.scrollLeft;
+      const FRAMES = 30;
+      for (let i = 0; i < FRAMES; i++) await frame();
+      return (riel.scrollLeft - desde) / FRAMES;
+    });
+
+    const pxPorFrame = await medir();
+    // La velocidad se verifica en módulo y el sentido aparte: son dos decisiones
+    // distintas y el sentido lo cambia una constante (REVIEWS_DIR en Reviews.jsx).
+    // 0.5 (base) x 3 (velocidad global) x 0.35 (su factor) = 0.525 px/frame.
+    expect(Math.abs(pxPorFrame), 'el carrusel de reseñas no se está moviendo').toBeGreaterThan(0.2);
+    expect(Math.abs(pxPorFrame), 'va más rápido de lo pedido: tiene que ser lento').toBeLessThan(0.9);
+    // Hoy corre de izquierda a derecha (REVIEWS_DIR = -1), o sea que scrollLeft baja.
+    expect(pxPorFrame, 'cambió el sentido de marcha del carrusel').toBeLessThan(0);
+
+    // Con el mouse encima tiene que quedarse quieto para poder leer la reseña.
+    await page.locator('.review-card').first().hover();
+    const conMouse = await medir();
+    expect(Math.abs(conMouse), 'no se frena con el mouse encima').toBeLessThan(0.05);
+  });
+
+  test('los tres carruseles arrancan a la misma distancia de lo que tienen arriba', async ({ page }) => {
+    // "la distancia de Highlights con el componente de arriba no es el mismo que
+    // tienen los otros titulos de los carrouseles". Había tres huecos distintos:
+    // Recent work 80 (la sección de arriba cerraba con 40 y él abría con otros 40),
+    // Custom Projects 40, y Highlights 12 porque el banner naranja que lo precede
+    // cerraba con 12 — se me pasó al normalizar los márgenes.
+    //
+    // El hueco que ve una persona es el padding de abajo de la sección anterior más
+    // el de arriba de la del carrusel: entre secciones adyacentes no hay margen, así
+    // que medir los rects daría 0 y no diría nada.
+    await visit(page, '/');
+    await page.waitForFunction(
+      () => [...document.querySelectorAll('div')].some(
+        (d) => d.style.willChange === 'transform' && d.children.length > 3),
+      null,
+      { timeout: 20_000 },
+    );
+
+    const huecos = await page.evaluate(() => {
+      const secciones = [...document.querySelectorAll('section')];
+      const tracks = [...document.querySelectorAll('div')]
+        .filter((d) => d.style.willChange === 'transform' && d.children.length > 1);
+      const px = (el, prop) => parseFloat(getComputedStyle(el)[prop]) || 0;
+      return tracks.map((t) => {
+        const sec = t.closest('section');
+        const anterior = secciones[secciones.indexOf(sec) - 1];
+        if (!sec || !anterior) return null;
+        return {
+          titulo: sec.querySelector('h2')?.innerText.trim() ?? '(sin título)',
+          hueco: px(anterior, 'paddingBottom') + px(sec, 'paddingTop'),
+        };
+      }).filter(Boolean);
+    });
+
+    expect(huecos.length, 'deberían encontrarse los 3 carruseles de la home').toBeGreaterThanOrEqual(3);
+    const distintos = [...new Set(huecos.map((h) => h.hueco))];
+    expect(distintos, `huecos distintos arriba de cada carrusel: ${JSON.stringify(huecos)}`).toHaveLength(1);
+  });
+
+  test('los títulos de los tres carruseles se ven exactamente igual', async ({ page }) => {
+    // "en los titulos de los carrouseles deberia haber el mismo tamaño, en
+    // highlights se ve el peor". Highlights se configuraba por otro camino
+    // (SITE_TEXTS, 17px) que los otros dos (STYLE_KEYS, 18px) y encima caía en
+    // fontFamily undefined, así que heredaba la tipografía del body. Se mide lo
+    // que se ve, no la config: si mañana alguien vuelve a separarlos, falla acá.
+    await visit(page, '/');
+    await page.waitForFunction(
+      () => [...document.querySelectorAll('div')].some(
+        (d) => d.style.willChange === 'transform' && d.children.length > 3),
+      null,
+      { timeout: 20_000 },
+    );
+
+    const titulos = await page.evaluate(() => {
+      // El h2 que encabeza cada sección que contiene un carrusel.
+      const tracks = [...document.querySelectorAll('div')]
+        .filter((d) => d.style.willChange === 'transform' && d.children.length > 1);
+      return tracks.map((track) => {
+        const h2 = track.closest('section')?.querySelector('h2');
+        if (!h2) return null;
+        const cs = getComputedStyle(h2);
+        return { texto: h2.innerText.trim(), size: cs.fontSize, family: cs.fontFamily, weight: cs.fontWeight };
+      }).filter(Boolean);
+    });
+
+    expect(titulos.length, 'deberían encontrarse los 3 carruseles de la home').toBeGreaterThanOrEqual(3);
+    const distintos = (campo) => [...new Set(titulos.map((t) => t[campo]))];
+    expect(distintos('size'), `tamaños distintos: ${JSON.stringify(titulos)}`).toHaveLength(1);
+    expect(distintos('family'), `tipografías distintas: ${JSON.stringify(titulos)}`).toHaveLength(1);
+    expect(distintos('weight'), `pesos distintos: ${JSON.stringify(titulos)}`).toHaveLength(1);
+  });
+
+  test('todas las tarjetas de los carruseles miden exactamente igual', async ({ page }) => {
+    // Anibal mandó una captura de Recent work con las fotos de distinto alto. La
+    // causa no era la foto: la tarjeta tenía minWidth 280 / maxWidth 320 y sin un
+    // ancho fijo lo decidía el contenido, así que la de título largo se estiraba a
+    // 320. Como el alto de la foto es un porcentaje del ancho, esa tarjeta tenía la
+    // foto más alta y —al ser el track un flex— arrastraba a las demás, que
+    // quedaban con un hueco abajo. Se mide la consecuencia visible, no el CSS.
+    await visit(page, '/');
+    await page.mouse.move(0, 0); // con el mouse encima el carrusel se pausa
+
+    await page.waitForFunction(
+      () => [...document.querySelectorAll('div')].some(
+        (d) => d.style.willChange === 'transform' && d.children.length > 3),
+      null,
+      { timeout: 20_000 },
+    );
+    // No hace falta esperar a que las fotos decodifiquen: la caja la define el
+    // padding-top del contenedor, no la imagen. Y esperarlas colgaba el test,
+    // porque las que quedan fuera de pantalla son loading="lazy" y no cargan nunca.
+
+    const medidas = await page.evaluate(() => {
+      const tracks = [...document.querySelectorAll('div')]
+        .filter((d) => d.style.willChange === 'transform' && d.children.length > 1);
+      return tracks.map((track) => {
+        const cards = [...track.children];
+        const uno = (xs) => [...new Set(xs.map((n) => Math.round(n)))];
+        return {
+          anchos: uno(cards.map((c) => c.getBoundingClientRect().width)),
+          altosFoto: uno(cards.map((c) => c.querySelector('img').getBoundingClientRect().height)),
+          altosTarjeta: uno(cards.map((c) => c.getBoundingClientRect().height)),
+        };
+      });
+    });
+
+    expect(medidas.length, 'no se encontró ningún carrusel en la home').toBeGreaterThan(0);
+    for (const [i, m] of medidas.entries()) {
+      expect(m.anchos, `carrusel ${i}: las tarjetas tienen anchos distintos`).toHaveLength(1);
+      expect(m.altosFoto, `carrusel ${i}: las fotos tienen altos distintos`).toHaveLength(1);
+      expect(m.altosTarjeta, `carrusel ${i}: las tarjetas tienen altos distintos`).toHaveLength(1);
+    }
+  });
+
+  test('título y cuerpo se cortan a 3 renglones con puntos suspensivos', async ({ page }) => {
+    // "como mucho 3 renglones, si no llega se termina con ...".
+    //
+    // Este check pedía que la caja midiera EXACTAMENTE 3 renglones. Estaba mal
+    // planteado: con la altura fija, una tarjeta de título corto igual reservaba el
+    // lugar de tres y quedaban ~65px de aire adentro, que es lo que Anibal marcó
+    // como "los espacios". El requisito real siempre fue un TECHO. Ahora se verifica
+    // eso: que el recorte esté activo, que nada desborde, y que ninguna caja pase de
+    // 3 renglones — que es lo que impide que un título largo agrande la fila.
+    await visit(page, '/');
+    await page.waitForFunction(
+      () => [...document.querySelectorAll('div')].some(
+        (d) => d.style.willChange === 'transform' && d.children.length > 3),
+      null,
+      { timeout: 20_000 },
+    );
+
+    const cajas = await page.evaluate(() => {
+      const track = [...document.querySelectorAll('div')]
+        .filter((d) => d.style.willChange === 'transform')
+        .sort((a, b) => b.children.length - a.children.length)[0];
+      const pie = track.children[0].lastElementChild;
+      return [...pie.children].map((el) => {
+        const cs = getComputedStyle(el);
+        return {
+          clamp: cs.webkitLineClamp,
+          alto: Math.round(el.getBoundingClientRect().height),
+          // Alto de 3 renglones según su propia tipografía: la caja tiene que
+          // medir eso, ni un renglón más ni uno menos.
+          tresRenglones: Math.round(parseFloat(cs.lineHeight) * 3),
+          desborda: el.scrollHeight > el.clientHeight + 1,
+        };
+      });
+    });
+
+    expect(cajas.length, 'la tarjeta debería tener al menos el título').toBeGreaterThanOrEqual(1);
+    for (const [i, c] of cajas.entries()) {
+      const cual = i === 0 ? 'el título' : 'el cuerpo';
+      expect(c.clamp, `${cual} no está recortado a 3 renglones`).toBe('3');
+      expect(c.alto, `${cual} pasa de 3 renglones: el tope no se está aplicando`)
+        .toBeLessThanOrEqual(c.tresRenglones + 1);
+      expect(c.desborda, `${cual} se está desbordando de su caja`).toBe(false);
+    }
+  });
+
   test('los carruseles corren a la velocidad elegida', async ({ page }) => {
     await visit(page, '/');
     await page.mouse.move(0, 0); // el carrusel se pausa con el mouse encima
@@ -302,9 +498,12 @@ test.describe('velocidad de los carruseles', () => {
     expect(pxPorFrame).toBeLessThan(1.8);
   });
 
-  test('los rieles de /reviews corren a un tercio de la duración base', async ({ page }) => {
-    // Anibal reflotó lo de la velocidad justo después de elogiar los carruseles
-    // de reviews, así que el número elegido tiene que alcanzarlos a ellos también.
+  test('los rieles de /reviews corren a la mitad de la velocidad global', async ({ page }) => {
+    // Este check verificaba "un tercio de la duración base", que era la velocidad
+    // global aplicada a todo por igual. En la ronda del 31/08 Anibal pidió estos
+    // rieles más lentos ("la velocidad del carrousel de reviews a la mitad, mas
+    // despacio"), así que ahora llevan factor propio y lo que se verifica es que
+    // ese factor llegue: mitad de velocidad = doble de duración.
     await visit(page, '/reviews');
 
     const rieles = page.locator('.hc-marquee-track');
@@ -315,10 +514,13 @@ test.describe('velocidad de los carruseles', () => {
       return;
     }
 
-    // 40s es la duración base del riel (RAIL_SECONDS en HappyCustomers.jsx).
+    // 40s es la duración base del riel (RAIL_SECONDS en HappyCustomers.jsx),
+    // dividida por la velocidad global (3) y por el factor propio (0.5).
     const duracion = await rieles.first().evaluate(
       (el) => parseFloat(getComputedStyle(el).animationDuration));
-    expect(duracion).toBeCloseTo(40 / 3, 1);
+    expect(duracion).toBeCloseTo(40 / (3 * 0.5), 1);
+    // Y que sea efectivamente más lento que el resto, no sólo un número distinto.
+    expect(duracion).toBeGreaterThan(40 / 3);
   });
 });
 
@@ -328,7 +530,8 @@ test.describe('orden de la home', () => {
     // 'ready to get…' y el pie de página". Antes partía al medio el bloque de
     // trabajos.
     await visit(page, '/');
-    const marcas = page.getByText('Trusted Brands We Work With');
+    // "We Work With" -> "I work with": Anibal trabaja solo y el plural sonaba a agencia.
+    const marcas = page.getByText('Trusted Brands I Work With');
     await expect(marcas).toBeVisible();
 
     const orden = await page.evaluate(() => {
@@ -378,26 +581,45 @@ test.describe('presentación en mobile', () => {
     expect(m.bajadaVisible, 'la bajada tiene que entrar').toBe(true);
   });
 
-  test('la foto va centrada verticalmente contra el título', async ({ page, isMobile }) => {
+  test('el título queda pegado a su texto, no colgado del centro de la foto', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'sólo mobile');
     await visit(page, '/');
     await esperarPresentacionAsentada(page);
-    // Contra el título y no contra título+bio: con un bloque tan alto la foto termina
-    // arrastrada al final y se ve descolgada.
+    // Este check pedía la foto centrada contra el título. Eso dejaba al título
+    // flotando en el medio de una fila de 88px y abajo le quedaban ~28px de aire
+    // antes de la bio: Anibal lo marcó como "que no quede tanto espacio entre
+    // handyman y texto". Lo que se verifica ahora es el requisito de verdad —
+    // que no haya hueco— en vez del centrado, que era sólo un proxy.
     const m = await page.evaluate(() => {
       const foto = document.querySelector('.about-row img').getBoundingClientRect();
-      const h2 = [...document.querySelectorAll('h2')].find(h => h.innerText.includes('Meet your handyman')).getBoundingClientRect();
+      const h2El = [...document.querySelectorAll('h2')].find(h => h.innerText.includes('Meet your handyman'));
+      const h2 = h2El.getBoundingClientRect();
       const bio = document.querySelector('.about-row > div > p').getBoundingClientRect();
+      // Con la foto flotando, la CAJA del h2 sigue ocupando todo el ancho aunque su
+      // texto se acorte para esquivarla. Medir la caja diría que el título pisa la
+      // foto cuando en pantalla no la pisa: se mide el texto renderizado.
+      const textoDe = (el) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect(); };
       return {
-        desvio: Math.abs((foto.top + foto.bottom) / 2 - (h2.top + h2.bottom) / 2),
+        hueco: bio.top - h2.bottom,
         // El título va al lado y a la izquierda: se lee antes que la foto.
-        tituloAntesQueLaFoto: h2.right <= foto.left,
-        bioAnchoCompleto: bio.right > foto.left,   // la bio cruza la columna de la foto
+        tituloAntesQueLaFoto: textoDe(h2El).right <= foto.left + 1,
+        // La bio respeta la columna de la foto de arriba a abajo.
+        bioEnSuColumna: bio.right <= foto.left + 1,
+        // La foto va centrada contra el bloque entero de título + bio.
+        desvioDelCentro: Math.abs(
+          (foto.top + foto.bottom) / 2 - (h2.top + bio.bottom) / 2),
       };
     });
-    expect(m.desvio, 'la foto debería estar centrada contra el título').toBeLessThan(12);
+    expect(m.hueco, 'entre el título y su bio no debería quedar más que el row-gap').toBeLessThan(16);
+    expect(m.hueco, 'pero tampoco pueden quedar encimados').toBeGreaterThanOrEqual(0);
     expect(m.tituloAntesQueLaFoto, 'el título va a la izquierda y la foto a la derecha').toBe(true);
-    expect(m.bioAnchoCompleto, 'la bio va de borde a borde, no en la columna del texto').toBe(true);
+    // Este check pedía lo contrario —"la bio va de borde a borde"— porque en su
+    // momento se decidió que cruzara por debajo de la foto para no estirarse a
+    // nueve renglones en 227px. Anibal lo revirtió a propósito el 31/08: quiere que
+    // la foto tenga columna propia y que el texto la respete todo el recorrido, y
+    // que el bloque quede más alto justamente para que "What to expect" no asome.
+    expect(m.bioEnSuColumna, 'la bio se está metiendo abajo de la foto').toBe(true);
+    expect(m.desvioDelCentro, 'la foto no está centrada contra el texto').toBeLessThan(8);
   });
 
   test('los tags de categoría van a ancho completo y centrados', async ({ page, isMobile }) => {
