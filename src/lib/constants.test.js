@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL } from "./constants";
 
 describe("itemThumb", () => {
   // Regression: this is the bug that white-screened /portfolio in production.
@@ -207,5 +207,27 @@ describe("parseSiteText con configuración sin texto", () => {
 
   it("el texto plano heredado sigue funcionando", () => {
     expect(parseSiteText("un texto viejo sin JSON")).toEqual({ text: "un texto viejo sin JSON" });
+  });
+});
+
+// La tarjeta "44 Playlists" va a la solapa de playlists del canal, no a su
+// portada: es lo que promete su texto (pedido de Anibal, 02/09). La trampa es
+// dónde vive esa URL — ui.jsx dibuja un ícono de red por CADA clave de
+// socialUrls, así que agregarla ahí metería un ícono de YouTube de más en el nav
+// y en el pie. Por eso es una constante aparte, y eso es lo que se cuida acá.
+describe("link a las playlists de YouTube", () => {
+  it("apunta a la solapa de playlists y no a la portada del canal", () => {
+    expect(YT_PLAYLISTS_URL).toBe("https://www.youtube.com/@HandymanServicesinZurich/playlists");
+    expect(YT_PLAYLISTS_URL.startsWith(socialUrls.yt)).toBe(true);
+    expect(YT_PLAYLISTS_URL).not.toBe(socialUrls.yt);
+  });
+
+  it("no vive adentro de socialUrls: sumaría un ícono de más en el nav y el pie", () => {
+    expect(Object.keys(socialUrls).sort()).toEqual(["fb", "wa", "yt"]);
+    expect(Object.values(socialUrls)).not.toContain(YT_PLAYLISTS_URL);
+  });
+
+  it("los íconos de redes siguen yendo a la portada del canal", () => {
+    expect(socialUrls.yt).toBe("https://www.youtube.com/@HandymanServicesinZurich");
   });
 });

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, socialUrls, WA_LINK, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix } from "../lib/constants";
+import { R, G, socialUrls, YT_PLAYLISTS_URL, WA_LINK, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix } from "../lib/constants";
 import { SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
@@ -33,7 +33,7 @@ export default function StatsBar({ siteConfig = {} }) {
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           {[
             { type: "fb", url: socialUrls.fb, text: t("social.fb"), label: "Facebook" },
-            { type: "yt", url: socialUrls.yt, text: t("social.yt"), label: "YouTube" },
+            { type: "yt", url: YT_PLAYLISTS_URL, text: t("social.yt"), label: "YouTube" },
             { type: "wa", url: WA_LINK, text: t("social.wa"), label: "WhatsApp" },
           ].map((s, i) => (
             <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="social-card"

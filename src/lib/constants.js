@@ -111,6 +111,14 @@ export const socialUrls = {
   wa: WA_LINK,
 };
 
+// La tarjeta "44 Playlists" del bloque de redes va a la solapa de playlists, no a
+// la portada del canal: es lo que promete su texto. Pedido de Anibal (02/09).
+//
+// Vive afuera de socialUrls a propósito: ui.jsx dibuja un ícono por cada clave de
+// ese objeto, así que meterla ahí agregaría un ícono de YouTube de más en el nav
+// y en el pie. Los íconos siguen yendo a la portada del canal, que es lo correcto.
+export const YT_PLAYLISTS_URL = `${socialUrls.yt}/playlists`;
+
 export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "");
 
 // ─── Stats bar ───
