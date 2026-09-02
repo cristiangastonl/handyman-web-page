@@ -198,7 +198,7 @@ export default function App() {
           <TailoringCTA nav={nav} siteConfig={siteConfig}/>
           <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={openLightbox} siteConfig={siteConfig}/>
           <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews} siteConfig={siteConfig}/>
-          <FAQHome faqs={faqs} nav={nav}/>
+          <FAQHome faqs={faqs} nav={nav} siteConfig={siteConfig}/>
           <BottomCTA siteConfig={siteConfig}/>
           {/* Las marcas van al cierre, entre el CTA y el footer: es prueba social
               pasiva —no vende sola, blinda la decisión ya tomada— y en el medio
@@ -232,17 +232,17 @@ export default function App() {
       <img src="/anibal/watermark.png" alt="" aria-hidden="true"
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 940, width: "90%", opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 9999 }}/>
       <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
-      {page !== "admin" && <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang}/>}
+      {page !== "admin" && <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang} siteConfig={siteConfig}/>}
       <main id="main-content">
         <Suspense fallback={<div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}><div style={{ width: 40, height: 40, border: "3px solid #f0f0f0", borderTop: "3px solid #D4781F", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/></div>}>
           <Seo/>
           <Routes>
             <Route path="/" element={<HomePage/>}/>
             <Route path="/portfolio" element={
-              <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={openLightbox}/>
+              <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={openLightbox} siteConfig={siteConfig}/>
             }/>
-            <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews} happyItems={carouselData.happy_customers} setLb={openLightbox}/>}/>
-            <Route path="/faq" element={<FAQPage faqs={faqs}/>}/>
+            <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews} happyItems={carouselData.happy_customers} setLb={openLightbox} siteConfig={siteConfig}/>}/>
+            <Route path="/faq" element={<FAQPage faqs={faqs} siteConfig={siteConfig}/>}/>
             <Route path="/admin" element={adminPageContent}/>
             <Route path="*" element={<HomePage/>}/>
           </Routes>

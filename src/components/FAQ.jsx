@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R, G, WA_LINK, svgP, SECTION_PAD } from "../lib/constants";
+import { R, G, getSocialUrls, svgP, SECTION_PAD } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
 function faqText(f, field, lang) {
@@ -12,7 +12,7 @@ function faqText(f, field, lang) {
 }
 
 // Quick FAQs on home page
-export function FAQHome({ faqs, nav }) {
+export function FAQHome({ faqs, nav, siteConfig = {} }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.slice(0, 2) || "en";
   return (
@@ -39,7 +39,7 @@ export function FAQHome({ faqs, nav }) {
 }
 
 // Full FAQ page
-export function FAQPage({ faqs }) {
+export function FAQPage({ faqs, siteConfig = {} }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.slice(0, 2) || "en";
   const [fq, setFq] = useState(null);
@@ -96,7 +96,7 @@ export function FAQPage({ faqs }) {
         );
       })}
       <div style={{ textAlign: "center", marginTop: 24 }}>
-        <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+        <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: R, textDecoration: "none" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill={R}><path d={svgP.wa}/></svg>
           {t("faq.askWhatsApp", "Have another question? Ask me directly")}

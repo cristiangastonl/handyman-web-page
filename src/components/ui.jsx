@@ -1,4 +1,4 @@
-import { R, svgP, socialUrls, socialColors, LANGS } from "../lib/constants";
+import { R, svgP, getSocialUrls, socialColors, LANGS } from "../lib/constants";
 
 export const Stars = ({ n, sz = 12 }) => (
   <span role="img" aria-label={`${n} out of 5 stars`} style={{ fontSize: sz, letterSpacing: 1 }}>
@@ -22,10 +22,12 @@ export const SocialIcon = ({ type, size = 28 }) => {
   return null;
 };
 
-export const Socials = ({ sz = 14 }) => (
+export const Socials = ({ sz = 14, siteConfig = {} }) => {
+  const redes = getSocialUrls(siteConfig);
+  return (
   <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-    {Object.keys(socialUrls).map(k => (
-      <a key={k} href={socialUrls[k]} target="_blank" rel="noopener noreferrer"
+    {Object.keys(redes).map(k => (
+      <a key={k} href={redes[k]} target="_blank" rel="noopener noreferrer"
         aria-label={socialLabels[k] || k}
         style={{ opacity: 0.8, transition: "opacity .2s, transform .2s", display: "flex" }}
         onMouseEnter={e => { e.currentTarget.style.opacity = 1; e.currentTarget.style.transform = "scale(1.15)"; }}
@@ -34,7 +36,8 @@ export const Socials = ({ sz = 14 }) => (
       </a>
     ))}
   </div>
-);
+  );
+};
 
 export const Logo = () => (
   <img className="logo-desktop" src="/anibal/logo-horizontal.jpeg" alt="Handyman Services in Zurich"

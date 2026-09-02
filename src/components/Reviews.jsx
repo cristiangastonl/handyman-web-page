@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { R, REVIEWS, svgP, WA_LINK, ab, getStyleConfig, parseReviewDate, formatReviewDate, socialUrls, SECTION_PAD } from "../lib/constants";
+import { R, REVIEWS, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, SECTION_PAD } from "../lib/constants";
 import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
@@ -254,7 +254,7 @@ function interleaveHappy(reviews, photos) {
 }
 
 // Full reviews page
-export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [], setLb }) {
+export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [], setLb, siteConfig = {} }) {
   const { t, i18n } = useTranslation();
   const [direction, setDirection] = useState("desc");
   const happy = useHappyCustomers(happyItems);
@@ -319,7 +319,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
           {[
             { href: "https://www.google.com/maps/place/Handyman+Services+in+Zurich/", label: t("reviews.leaveReview"), icon: <GoogleG/> },
-            { href: `${socialUrls.fb}/reviews`, label: t("reviews.leaveReviewFb"), icon: <SocialIcon type="fb" size={16}/> },
+            { href: getFbReviewsUrl(siteConfig), label: t("reviews.leaveReviewFb"), icon: <SocialIcon type="fb" size={16}/> },
           ].map(b => (
             <a key={b.href} href={b.href} target="_blank" rel="noopener noreferrer"
               style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 20px", border: "1px solid #ddd", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none", transition: "border-color .2s, color .2s" }}
@@ -352,7 +352,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
       </div>
       <div style={{ textAlign: "center", marginTop: 32, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: "#4A4A4A", marginBottom: 10 }}>{t("reviews.ctaTitle", "Ready to experience the same quality?")}</p>
-        <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+        <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
           {t("cta.button")}

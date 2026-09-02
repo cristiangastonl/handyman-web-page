@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl } from "./constants";
 
 describe("itemThumb", () => {
   // Regression: this is the bug that white-screened /portfolio in production.
@@ -229,5 +229,48 @@ describe("link a las playlists de YouTube", () => {
 
   it("los íconos de redes siguen yendo a la portada del canal", () => {
     expect(socialUrls.yt).toBe("https://www.youtube.com/@HandymanServicesinZurich");
+  });
+});
+
+// Los campos Facebook URL / YouTube URL / WhatsApp URL existían en el admin
+// desde siempre y guardaban bien, pero ningún componente los leía: todo salía de
+// las constantes del código. Anibal podía cambiar de cuenta, editar el campo,
+// ver el toast, y el sitio seguía apuntando a la vieja. Acá se fija que lo que
+// carga en el admin efectivamente gane.
+describe("URLs de redes configurables desde el admin", () => {
+  it("sin nada cargado usa las constantes del código", () => {
+    expect(getSocialUrls({})).toEqual({ fb: socialUrls.fb, yt: socialUrls.yt, wa: getWALink("en") });
+    expect(getSocialUrls()).toEqual(getSocialUrls({}));
+  });
+
+  it("lo que carga el cliente le gana a la constante", () => {
+    const cfg = {
+      facebook_url: "https://www.facebook.com/OtraCuenta",
+      youtube_url: "https://www.youtube.com/@OtroCanal",
+      whatsapp_url: "https://wa.me/41000000000",
+    };
+    expect(getSocialUrls(cfg)).toEqual({ fb: cfg.facebook_url, yt: cfg.youtube_url, wa: cfg.whatsapp_url });
+  });
+
+  it("un campo vacío o con espacios no pisa nada", () => {
+    // El admin guarda "" cuando se borra el contenido de un campo. Sin el trim,
+    // un espacio suelto dejaría al sitio con un link roto.
+    expect(getSocialUrls({ facebook_url: "   ", youtube_url: "" }).fb).toBe(socialUrls.fb);
+    expect(getSocialUrls({ youtube_url: "  " }).yt).toBe(socialUrls.yt);
+  });
+
+  it("las URLs derivadas siguen al canal y a la página configurados", () => {
+    expect(getYtPlaylistsUrl({ youtube_url: "https://www.youtube.com/@OtroCanal" }))
+      .toBe("https://www.youtube.com/@OtroCanal/playlists");
+    expect(getFbReviewsUrl({ facebook_url: "https://www.facebook.com/OtraCuenta" }))
+      .toBe("https://www.facebook.com/OtraCuenta/reviews");
+  });
+
+  it("una barra final de más no duplica la barra", () => {
+    // Pegar la URL desde el navegador suele traerla con "/" al final.
+    expect(getYtPlaylistsUrl({ youtube_url: "https://www.youtube.com/@Otro/" }))
+      .toBe("https://www.youtube.com/@Otro/playlists");
+    expect(getFbReviewsUrl({ facebook_url: "https://www.facebook.com/Otra/" }))
+      .toBe("https://www.facebook.com/Otra/reviews");
   });
 });

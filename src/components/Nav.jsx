@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { R, S } from "../lib/constants";
 import { Socials, Logo, LangSelector } from "./ui";
 
-export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang }) {
+export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang, siteConfig = {} }) {
   const { t, i18n } = useTranslation();
   return (
     <nav style={S.nav}>
@@ -17,7 +17,7 @@ export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang }
             </button>
           ))}
           <div style={{ width: 1, height: 14, background: "#e5e5e5", margin: "0 6px" }}/>
-          <Socials sz={10}/>
+          <Socials sz={10} siteConfig={siteConfig}/>
           <div style={{ width: 1, height: 14, background: "#e5e5e5", margin: "0 6px" }}/>
           <LangSelector currentLang={i18n.language} onChange={changeLang}/>
         </div>
@@ -45,7 +45,7 @@ export default function Nav({ page, nav, mobileMenu, setMobileMenu, changeLang }
             </button>
           ))}
           <div style={{ paddingTop: 12, marginTop: 4, borderTop: "1px solid #f0f0f0", display: "flex", alignItems: "center", gap: 16 }}>
-            <Socials sz={16}/>
+            <Socials sz={16} siteConfig={siteConfig}/>
             <LangSelector currentLang={i18n.language} onChange={changeLang}/>
           </div>
         </div>

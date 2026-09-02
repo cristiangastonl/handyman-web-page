@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, WA_LINK, itemThumb, svgP, playlistUrl } from "../lib/constants";
+import { R, G, getSocialUrls, itemThumb, svgP, playlistUrl } from "../lib/constants";
 import { SocialIcon } from "./ui";
 
 /**
@@ -78,7 +78,7 @@ function ItemsGrid({ items, activeTab, onTabChange, setLb, t }) {
       {!displayItems.length && (
         <div style={{ textAlign: "center", padding: "48px 20px" }}>
           <p style={{ color: "#999", fontSize: 13, marginBottom: 12 }}>{t("portfolio.noItemsYet", "No items yet in this section.")}</p>
-          <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+          <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
             style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
             {t("portfolio.askForPhotos", "Ask me for photos of this work")}
@@ -109,7 +109,7 @@ function DetailHeader({ title, subtitle, thumb, onBack, backLabel }) {
   );
 }
 
-export default function Portfolio({ cats, items, subcats, portfolioView, setPortfolioView, setLb }) {
+export default function Portfolio({ cats, items, subcats, portfolioView, setPortfolioView, setLb, siteConfig = {} }) {
   const { t } = useTranslation();
   const activeCats = cats.filter(c => c.id !== "all" && (items.some(w => w.cat === c.id) || (subcats || []).some(s => s.category_id === c.id)));
   const totalPhotos = items.filter(w => w.type === "image").length;
@@ -276,7 +276,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
             {catSubcats.length === 0 && loosePhotos === 0 && looseVideos === 0 && (
               <div style={{ textAlign: "center", padding: "48px 20px" }}>
                 <p style={{ color: "#999", fontSize: 13, marginBottom: 12 }}>{t("portfolio.noItemsYet", "No items yet in this section.")}</p>
-                <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+                <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#25D366", textDecoration: "none" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
                   {t("portfolio.askForPhotos", "Ask me for photos of this work")}
@@ -335,7 +335,7 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
       {/* Bottom CTA */}
       <div style={{ textAlign: "center", marginTop: 40, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("portfolio.ctaTitle", "Like what you see?")}</p>
-        <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+        <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
           onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
           onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>

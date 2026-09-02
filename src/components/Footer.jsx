@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R, PHONE, WA_LINK, SERVICE_AREAS, svgP, socialUrls, getStyleConfig } from "../lib/constants";
+import { R, PHONE, SERVICE_AREAS, svgP, getSocialUrls, getStyleConfig } from "../lib/constants";
 import { SocialIcon } from "./ui";
 
 export default function Footer({ nav, siteConfig = {} }) {
@@ -9,6 +9,7 @@ export default function Footer({ nav, siteConfig = {} }) {
   const headStyle = getStyleConfig(siteConfig, "footer_heading_style");
   const hoursStyle = getStyleConfig(siteConfig, "footer_hours_style");
   const phone = siteConfig.site_phone || PHONE;
+  const redes = getSocialUrls(siteConfig);
   const hours = siteConfig.site_hours || t("footer.hours");
   const areas = siteConfig.site_service_areas || SERVICE_AREAS.map(a => a.name).join(" · ");
 
@@ -31,7 +32,7 @@ export default function Footer({ nav, siteConfig = {} }) {
           <div>
             <div style={{ fontSize: headStyle.fontSize, fontFamily: `'${headStyle.fontFamily}', sans-serif`, fontWeight: 700, marginBottom: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>{t("footer.contact")}</div>
             <a href={`tel:${phone.replace(/\s/g, "")}`} style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,0.85)", textDecoration: "none", marginBottom: 8 }}>{phone}</a>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#25D366", textDecoration: "none", marginBottom: 8 }}>
+            <a href={redes.wa} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#25D366", textDecoration: "none", marginBottom: 8 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d={svgP.wa}/></svg>
               WhatsApp
             </a>
@@ -57,9 +58,9 @@ export default function Footer({ nav, siteConfig = {} }) {
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 28, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 20 }}>
             {[
-              { type: "fb", url: socialUrls.fb, label: "Facebook" },
-              { type: "yt", url: socialUrls.yt, label: "YouTube" },
-              { type: "wa", url: WA_LINK, label: "WhatsApp" },
+              { type: "fb", url: redes.fb, label: "Facebook" },
+              { type: "yt", url: redes.yt, label: "YouTube" },
+              { type: "wa", url: redes.wa, label: "WhatsApp" },
             ].map(s => (
               <a key={s.type} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label}
                 style={{ width: 44, height: 44, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", transition: "box-shadow .2s, transform .2s" }}

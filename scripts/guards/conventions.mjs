@@ -68,6 +68,28 @@ export function checkConventions() {
     }
   }
 
+  // Los links de redes salen del admin, no de las constantes.
+  //
+  // Los campos Facebook URL / YouTube URL / WhatsApp URL existían en el panel y
+  // guardaban bien, pero ningún componente los leía: todo salía de WA_LINK y de
+  // socialUrls, hardcodeados. El cliente podía cambiar de cuenta, editar el campo,
+  // ver el toast, y el sitio seguía apuntando a la vieja sin avisarle. Lo peor del
+  // caso es que no fallaba: guardaba de verdad, sólo que nadie miraba el valor.
+  //
+  // Las constantes siguen existiendo como fallback, pero se leen desde
+  // getSocialUrls(siteConfig) en src/lib/constants.js, no directo.
+  for (const file of files) {
+    const rel = relative(root, file);
+    if (!rel.startsWith('src/components')) continue;
+    const code = readFileSync(file, 'utf8');
+    code.split('\n').forEach((line, i) => {
+      if (/\b(WA_LINK|socialUrls)\b/.test(line) && !/getSocialUrls|getYtPlaylistsUrl|getFbReviewsUrl/.test(line))
+        errors.push(
+          `${rel}:${i + 1}: usa ${line.match(/\b(WA_LINK|socialUrls)\b/)[0]} directo — los links de redes salen de getSocialUrls(siteConfig), si no lo que el cliente cargue en el admin no se ve`
+        );
+    });
+  }
+
   // Todo estilo configurable tiene que tener su control en el admin.
   //
   // Anibal no pide "cambiá el 4.8 a 26px", pide "no queda desproporcionada? es algo

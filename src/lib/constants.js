@@ -119,6 +119,36 @@ export const socialUrls = {
 // y en el pie. Los íconos siguen yendo a la portada del canal, que es lo correcto.
 export const YT_PLAYLISTS_URL = `${socialUrls.yt}/playlists`;
 
+/**
+ * Las URLs de redes, resueltas contra lo que el cliente cargó en el admin.
+ *
+ * "Contact & Business Info" tenía los campos Facebook URL, YouTube URL y
+ * WhatsApp URL desde siempre, y guardaban bien — pero ningún componente los
+ * leía: todo salía de las constantes de arriba. O sea que Anibal podía cambiar
+ * de cuenta de Facebook, editar el campo, ver el toast, y el sitio seguía
+ * apuntando a la vieja sin avisarle nada. Es la misma familia de problemas que
+ * el resto de la ronda del 02/09, con el agravante de que acá ni siquiera
+ * fallaba: guardaba de verdad, sólo que nadie miraba el valor.
+ *
+ * Lo hardcodeado queda como fallback, que es lo que se ve si Supabase no
+ * responde o si el campo está vacío.
+ */
+const limpia = (v) => (typeof v === "string" ? v.trim() : "");
+
+export const getSocialUrls = (siteConfig = {}) => ({
+  fb: limpia(siteConfig.facebook_url) || socialUrls.fb,
+  yt: limpia(siteConfig.youtube_url) || socialUrls.yt,
+  wa: limpia(siteConfig.whatsapp_url) || WA_LINK,
+});
+
+/** La solapa de playlists del canal que esté configurado. */
+export const getYtPlaylistsUrl = (siteConfig = {}) =>
+  `${getSocialUrls(siteConfig).yt.replace(/\/+$/, "")}/playlists`;
+
+/** El link para dejar una reseña en la página de Facebook configurada. */
+export const getFbReviewsUrl = (siteConfig = {}) =>
+  `${getSocialUrls(siteConfig).fb.replace(/\/+$/, "")}/reviews`;
+
 export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "");
 
 // ─── Stats bar ───
