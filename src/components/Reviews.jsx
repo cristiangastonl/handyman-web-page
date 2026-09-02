@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { R, REVIEWS, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, SECTION_PAD } from "../lib/constants";
+import { R, REVIEWS, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD } from "../lib/constants";
 import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
@@ -318,7 +318,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
             lo tienen acá: dejar la reseña en Google era la única opción visible. */}
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
           {[
-            { href: "https://www.google.com/maps/place/Handyman+Services+in+Zurich/", label: t("reviews.leaveReview"), icon: <GoogleG/> },
+            { href: getGoogleReviewUrl(siteConfig), label: t("reviews.leaveReview"), icon: <GoogleG/> },
             { href: getFbReviewsUrl(siteConfig), label: t("reviews.leaveReviewFb"), icon: <SocialIcon type="fb" size={16}/> },
           ].map(b => (
             <a key={b.href} href={b.href} target="_blank" rel="noopener noreferrer"

@@ -87,6 +87,23 @@ export function checkConventions() {
         errors.push(
           `${rel}:${i + 1}: usa ${line.match(/\b(WA_LINK|socialUrls)\b/)[0]} directo — los links de redes salen de getSocialUrls(siteConfig), si no lo que el cliente cargue en el admin no se ve`
         );
+      // Y ninguna CUENTA de red escrita a mano. Así estuvo el link para dejar
+      // reseña en Google: apuntaba a una búsqueda de Maps tipeada acá, que llevaba
+      // a la ficha en vez de al formulario, y no había forma de cambiarla sin
+      // deployar.
+      //
+      // No entran los endpoints de protocolo, que no son cuentas de nadie y no
+      // cambian nunca: los embeds de YouTube (/embed/<videoId>) y los intents de
+      // compartir (facebook.com/sharer, wa.me sin número). Esos sí van inline.
+      const esCuenta =
+        /["'`]https?:\/\/(www\.)?(facebook|youtube|google|g\.page|wa\.me|instagram)\b/.test(line) &&
+        !/\/embed\//.test(line) &&
+        !/sharer/.test(line) &&
+        !/wa\.me\/\?/.test(line);
+      if (esCuenta)
+        errors.push(
+          `${rel}:${i + 1}: cuenta de red escrita a mano — va en constants.js con su getter, para que el cliente pueda cambiarla desde el admin`
+        );
     });
   }
 

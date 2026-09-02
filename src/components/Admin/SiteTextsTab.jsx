@@ -28,6 +28,7 @@ const KNOWN_KEYS = new Set([
   "whatsapp_url",
   "facebook_url",
   "youtube_url",
+  "google_review_url",
   "brand_subtitle",
   "storage_limit_gb",
 ]);
@@ -516,6 +517,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <FooterField label="WhatsApp URL" configKey="whatsapp_url" defaultValue={siteConfig.whatsapp_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Full wa.me link" />
         <FooterField label="Facebook URL" configKey="facebook_url" defaultValue={siteConfig.facebook_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="YouTube URL" configKey="youtube_url" defaultValue={siteConfig.youtube_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Google Review URL" configKey="google_review_url" defaultValue={siteConfig.google_review_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="El link corto de Google que abre el formulario de reseña (g.page/r/.../review)" />
         <FooterField label="Brand Subtitle" configKey="brand_subtitle" defaultValue={siteConfig.brand_subtitle || "Specialist Technician At Domestic Matters"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Business Hours" configKey="site_hours" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Service Areas" configKey="site_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />

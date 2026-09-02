@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl } from "./constants";
 
 describe("itemThumb", () => {
   // Regression: this is the bug that white-screened /portfolio in production.
@@ -272,5 +272,27 @@ describe("URLs de redes configurables desde el admin", () => {
       .toBe("https://www.youtube.com/@Otro/playlists");
     expect(getFbReviewsUrl({ facebook_url: "https://www.facebook.com/Otra/" }))
       .toBe("https://www.facebook.com/Otra/reviews");
+  });
+});
+
+// El link para dejar reseña en Google. Anibal lo pasó el 02/09; hasta entonces
+// acá había una URL de búsqueda de Maps escrita a mano, que llevaba a la ficha y
+// dejaba al visitante buscando el botón. A diferencia del de Facebook, este no
+// se puede derivar de nada: es un short link con el ID del negocio adentro.
+describe("link para dejar reseña en Google", () => {
+  it("por defecto abre el formulario y no la ficha de Maps", () => {
+    const url = getGoogleReviewUrl({});
+    expect(url).toBe("https://g.page/r/CRyK6kT8aajZEBM/review");
+    expect(url).not.toContain("/maps/place/");
+  });
+
+  it("el cliente lo puede cambiar desde el admin", () => {
+    expect(getGoogleReviewUrl({ google_review_url: "https://g.page/r/OTRO/review" }))
+      .toBe("https://g.page/r/OTRO/review");
+  });
+
+  it("un campo vacío no lo rompe", () => {
+    expect(getGoogleReviewUrl({ google_review_url: "  " })).toBe(getGoogleReviewUrl({}));
+    expect(getGoogleReviewUrl()).toBe(getGoogleReviewUrl({}));
   });
 });

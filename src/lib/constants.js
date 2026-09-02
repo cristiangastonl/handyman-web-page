@@ -149,6 +149,18 @@ export const getYtPlaylistsUrl = (siteConfig = {}) =>
 export const getFbReviewsUrl = (siteConfig = {}) =>
   `${getSocialUrls(siteConfig).fb.replace(/\/+$/, "")}/reviews`;
 
+// El link para dejar una reseña en Google. Lo pasó Anibal el 02/09.
+//
+// No se puede derivar de ninguna otra URL como el de Facebook: es un short link
+// de Google con el ID del negocio adentro. Hasta ahora acá había una URL de
+// búsqueda de Maps ("/maps/place/Handyman+Services+in+Zurich/") escrita a mano,
+// que llevaba a la ficha y dejaba al visitante buscando el botón de reseñar;
+// este abre el formulario directo.
+const GOOGLE_REVIEW_URL = "https://g.page/r/CRyK6kT8aajZEBM/review";
+
+export const getGoogleReviewUrl = (siteConfig = {}) =>
+  limpia(siteConfig.google_review_url) || GOOGLE_REVIEW_URL;
+
 export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "");
 
 // ─── Stats bar ───
