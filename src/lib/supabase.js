@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { escribir, sinFilas } from "./dbWrite";
 
 // ─── Supabase client (nullable if not configured) ───
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -56,13 +57,11 @@ export async function addCategory(id, label, headerImage, playlistId) {
 }
 export async function updateCategory(id, updates) {
   if (!supabase) return;
-  const { error } = await supabase.from("categories").update(updates).eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("categories").update(updates).eq("id", id), "actualizar la categoría");
 }
 export async function deleteCategory(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("categories").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("categories").delete().eq("id", id), "borrar la categoría");
 }
 
 // ─── Work items ───
@@ -86,17 +85,13 @@ export async function updateWorkItem(id, updates) {
 }
 export async function deleteWorkItem(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("work_items").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("work_items").delete().eq("id", id), "borrar el trabajo");
 }
 export async function updateWorkItemsOrder(orderedIds) {
   if (!supabase) return;
-  const updates = orderedIds.map((id, i) =>
-    supabase.from("work_items").update({ sort_order: i }).eq("id", id)
-  );
-  const results = await Promise.all(updates);
-  const firstError = results.find(r => r.error);
-  if (firstError) throw firstError.error;
+  await Promise.all(orderedIds.map((id, i) =>
+    escribir(supabase.from("work_items").update({ sort_order: i }).eq("id", id), "reordenar los trabajos")
+  ));
 }
 
 // ─── FAQs ───
@@ -114,20 +109,17 @@ export async function addFaqRow(question, answer, translations = {}) {
 }
 export async function updateFaqRow(id, question, answer, translations = {}) {
   if (!supabase) return;
-  const { error } = await supabase.from("faqs").update({ question, answer, ...translations }).eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("faqs").update({ question, answer, ...translations }).eq("id", id), "actualizar la FAQ");
 }
 export async function deleteFaqRow(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("faqs").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("faqs").delete().eq("id", id), "borrar la FAQ");
 }
 export async function updateFaqOrder(orderedIds) {
   if (!supabase) return;
-  const updates = orderedIds.map((id, i) => supabase.from("faqs").update({ sort_order: i }).eq("id", id));
-  const results = await Promise.all(updates);
-  const err = results.find(r => r.error);
-  if (err?.error) throw err.error;
+  await Promise.all(orderedIds.map((id, i) =>
+    escribir(supabase.from("faqs").update({ sort_order: i }).eq("id", id), "reordenar las FAQs")
+  ));
 }
 
 // ─── Site config ───
@@ -139,8 +131,7 @@ export async function fetchSiteConfig() {
 }
 export async function upsertSiteConfig(key, value) {
   if (!supabase) return;
-  const { error } = await supabase.from("site_config").upsert({ key, value });
-  if (error) throw error;
+  await escribir(supabase.from("site_config").upsert({ key, value }), "guardar la configuración");
 }
 
 // ─── Subcategories ───
@@ -158,13 +149,11 @@ export async function addSubcategory(categoryId, name, headerImage, playlistId) 
 }
 export async function updateSubcategory(id, updates) {
   if (!supabase) return;
-  const { error } = await supabase.from("subcategories").update(updates).eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("subcategories").update(updates).eq("id", id), "actualizar la subcategoría");
 }
 export async function deleteSubcategory(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("subcategories").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("subcategories").delete().eq("id", id), "borrar la subcategoría");
 }
 
 // ─── Highlights ───
@@ -182,8 +171,7 @@ export async function addHighlight(title, imageUrl, description) {
 }
 export async function deleteHighlight(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("highlights").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("highlights").delete().eq("id", id), "borrar el highlight");
 }
 
 // ─── Returning customers ───
@@ -201,8 +189,7 @@ export async function addReturningCustomer(title, imageUrl, description) {
 }
 export async function deleteReturningCustomer(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("returning_customers").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("returning_customers").delete().eq("id", id), "borrar el returning customer");
 }
 
 // ─── Facebook reviews ───
@@ -220,13 +207,11 @@ export async function addFbReview(name, rating, text, reviewDate) {
 }
 export async function updateFbReview(id, fields) {
   if (!supabase) return;
-  const { error } = await supabase.from("facebook_reviews").update(fields).eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("facebook_reviews").update(fields).eq("id", id), "actualizar la reseña de Facebook");
 }
 export async function deleteFbReview(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("facebook_reviews").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("facebook_reviews").delete().eq("id", id), "borrar la reseña de Facebook");
 }
 
 // ─── Google reviews ───
@@ -260,20 +245,23 @@ export async function addGoogleReview(name, rating, text, timeLabel, reviewDate)
 /** Returns { dateSaved } so callers can tell the user the date did not persist. */
 export async function updateGoogleReview(id, fields) {
   if (!supabase) return { dateSaved: false };
-  const { error } = await supabase.from("google_reviews").update(fields).eq("id", id);
-  if (!error) return { dateSaved: true };
+  const { data, error } = await supabase.from("google_reviews").update(fields).eq("id", id).select();
+  if (!error) {
+    // No usa escribir() porque abajo necesita inspeccionar el error para el caso de
+    // la columna que falta, pero el chequeo de filas tiene que ser el mismo.
+    if (!data?.length) throw new Error(sinFilas("actualizar la reseña de Google"));
+    return { dateSaved: true };
+  }
   if (!isMissingColumn(error) || !("review_date" in fields)) throw error;
 
   console.warn("google_reviews.review_date missing — run client-feedback-migration.sql");
   const { review_date, ...rest } = fields;
-  const retry = await supabase.from("google_reviews").update(rest).eq("id", id);
-  if (retry.error) throw retry.error;
+  await escribir(supabase.from("google_reviews").update(rest).eq("id", id), "actualizar la reseña de Google");
   return { dateSaved: false };
 }
 export async function deleteGoogleReview(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("google_reviews").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("google_reviews").delete().eq("id", id), "borrar la reseña de Google");
 }
 
 // ─── Carousel items (curated views of work_items) ───
@@ -301,18 +289,14 @@ export async function addCarouselItem(carouselName, workItemId, sortOrder) {
 
 export async function removeCarouselItem(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("carousel_items").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("carousel_items").delete().eq("id", id), "borrar el item del carrusel");
 }
 
 export async function updateCarouselOrder(orderedIds) {
   if (!supabase) return;
-  const updates = orderedIds.map((id, i) =>
-    supabase.from("carousel_items").update({ sort_order: i }).eq("id", id)
-  );
-  const results = await Promise.all(updates);
-  const err = results.find(r => r.error);
-  if (err?.error) throw err.error;
+  await Promise.all(orderedIds.map((id, i) =>
+    escribir(supabase.from("carousel_items").update({ sort_order: i }).eq("id", id), "reordenar el carrusel")
+  ));
 }
 
 // ─── Happy Customers ───
@@ -343,22 +327,17 @@ export async function addHappyCustomer(src, altText, sortOrder) {
 
 export async function updateHappyCustomer(id, fields) {
   if (!supabase) return;
-  const { error } = await supabase.from("happy_customers").update(fields).eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("happy_customers").update(fields).eq("id", id), "actualizar el happy customer");
 }
 
 export async function removeHappyCustomer(id) {
   if (!supabase) return;
-  const { error } = await supabase.from("happy_customers").delete().eq("id", id);
-  if (error) throw error;
+  await escribir(supabase.from("happy_customers").delete().eq("id", id), "borrar el happy customer");
 }
 
 export async function updateHappyCustomerOrder(orderedIds) {
   if (!supabase) return;
-  const updates = orderedIds.map((id, i) =>
-    supabase.from("happy_customers").update({ sort_order: i }).eq("id", id)
-  );
-  const results = await Promise.all(updates);
-  const err = results.find(r => r.error);
-  if (err?.error) throw err.error;
+  await Promise.all(orderedIds.map((id, i) =>
+    escribir(supabase.from("happy_customers").update({ sort_order: i }).eq("id", id), "reordenar los happy customers")
+  ));
 }

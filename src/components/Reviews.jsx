@@ -141,7 +141,12 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
               </span>
             </div>
             <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+            {/* center y no baseline: al lado del número hay un bloque de DOS líneas
+                (estrellas + "158 reviews"), así que baseline lo pegaba a la línea de
+                las estrellas y el 4.8 quedaba 8.7px más arriba que el "Reviews" de la
+                izquierda — Anibal lo vio desalineado el 01/09. Centrado contra el
+                bloque, su centro cae exactamente en el de la fila. */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
               <div>
                 <Stars n={Math.round(parseFloat(avg))} sz={15}/>

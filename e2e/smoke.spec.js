@@ -527,6 +527,56 @@ test.describe('velocidad de los carruseles', () => {
   });
 });
 
+test.describe('cabecera de reseñas de la home', () => {
+  test('el promedio queda a la misma altura que el título "Reviews"', async ({ page }) => {
+    // Anibal: "el numero 4.8 lo veo desalineado, como mas arriba del resto" (01/09).
+    // Estaba alineado por baseline contra un bloque de DOS líneas (estrellas +
+    // "158 reviews"), así que se pegaba a la línea de las estrellas y su centro
+    // quedaba 8.7px por encima del de "Reviews". Lo que se cuida es que los dos
+    // extremos de la fila compartan centro, no un valor de CSS puntual: cambiar el
+    // tamaño del número o agregarle un renglón al bloque no debería descolgarlo.
+    await visit(page, '/');
+
+    // El grupo del promedio es un flex de dos hijos cuyo primero es el número. Se
+    // ancla ahí y no en el texto "Reviews", que también está en el pie de página.
+    const BUSCAR_GRUPO = `[...document.querySelectorAll('div')].find((d) => {
+      const cs = getComputedStyle(d);
+      return cs.display === 'flex' && d.children.length === 2
+        && /^\\d+\\.\\d$/.test(d.children[0].textContent.trim());
+    })`;
+
+    await page.waitForFunction(`!!(${BUSCAR_GRUPO})`, null, { timeout: 20_000 });
+    await page.evaluate(`(${BUSCAR_GRUPO}).scrollIntoView({ block: 'center' })`);
+    // El número entra con un contador animado que arranca en 0.0 y sólo corre
+    // cuando la sección está a la vista: recién scrolleada tiene sentido esperarlo.
+    await page.waitForFunction(
+      `parseFloat((${BUSCAR_GRUPO}).children[0].textContent) > 0`,
+      null, { timeout: 20_000 });
+
+    const centros = await page.evaluate(`(() => {
+      const grupo = ${BUSCAR_GRUPO};
+      const titulo = [...grupo.parentElement.querySelectorAll('span')]
+        .find((s) => s.textContent.trim() === 'Reviews');
+      if (!titulo) return null;
+      const centro = (el) => {
+        const r = el.getBoundingClientRect();
+        return (r.top + r.bottom) / 2;
+      };
+      return {
+        numero: centro(grupo.children[0]),
+        estrellas: centro(grupo.children[1]),
+        titulo: centro(titulo),
+      };
+    })()`);
+
+    expect(centros, 'no se encontró el título "Reviews" en la fila del promedio').not.toBeNull();
+    expect(Math.abs(centros.numero - centros.titulo),
+      'el promedio no está a la misma altura que "Reviews"').toBeLessThanOrEqual(1);
+    expect(Math.abs(centros.estrellas - centros.titulo),
+      'las estrellas y el conteo no están a la misma altura que "Reviews"').toBeLessThanOrEqual(1);
+  });
+});
+
 test.describe('orden de la home', () => {
   test('las marcas cierran la página: después del CTA y antes del footer', async ({ page }) => {
     // Pedido de Anibal: "lo de trusted brands tiene q ir al cierre, entre
