@@ -169,7 +169,7 @@ export const SITE_TEXTS = {
   // La línea de confianza del hero. Estuvo quemada en Hero.jsx hasta el 02/09, y
   // Anibal la fue a buscar al admin sin encontrarla: "no encuentro donde esta
   // 100% Recommended". El ✓ no es parte del texto, lo pone el componente.
-  hero_trust: { label: "Hero Trust Line", defaultText: "100% Recommended", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
+  hero_trust: { label: "Hero Trust Line", defaultText: "100% Recommended • Improving your home, and so your daily life • lifetime guarantee", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
   // Sólo aporta el TEXTO. El tamaño y la fuente salen de carousel_highlights_title_style,
   // como los otros dos carruseles: tenerlo acá dejaba un fontSize guardado (17) que le
   // ganaba al default y desalineaba el título respecto de sus hermanos.

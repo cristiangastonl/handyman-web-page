@@ -353,21 +353,9 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <strong>How it works:</strong> Each section below matches a part of the live site. Edit texts, adjust font sizes, and preview changes in real time.
       </div>
 
-      {/* ── 0. Contact & Business Info (used across the site) ── */}
-      <AdminCard title="Contact & Business Info" style={{ marginBottom: spacing.xl }}>
-        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>These values are used across the entire site — footer, CTAs, service areas, social links.</p>
-        <FooterField label="Phone Number" configKey="site_phone" defaultValue={siteConfig.phone || PHONE} siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="WhatsApp URL" configKey="whatsapp_url" defaultValue={siteConfig.whatsapp_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Full wa.me link" />
-        <FooterField label="Facebook URL" configKey="facebook_url" defaultValue={siteConfig.facebook_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="YouTube URL" configKey="youtube_url" defaultValue={siteConfig.youtube_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="Brand Subtitle" configKey="brand_subtitle" defaultValue={siteConfig.brand_subtitle || "Specialist Technician At Domestic Matters"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="Business Hours" configKey="site_hours" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="Service Areas" configKey="site_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />
-        <FooterField label="Storage Limit (GB)" configKey="storage_limit_gb" defaultValue={siteConfig.storage_limit_gb || "10"} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Max GB for this project (shown in header bar)" />
-      </AdminCard>
-
-      {/* ── 1. Hero Section ── */}
-      <AdminCard title="Hero Section" style={{ marginBottom: spacing.xl }}>
+      {/* ── 1. Hero — lo primero que se ve ── */}
+      <AdminCard title="1 · Hero" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>Lo primero que se ve: título, bajada y la línea de confianza.</p>
         {/* Hero image position — drag to reposition */}
         <p style={{ ...typography.label, marginBottom: spacing.sm }}>Image Position</p>
         <HeroPositionControl
@@ -411,8 +399,40 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         ))}
       </AdminCard>
 
-      {/* ── 2. About Section ── */}
-      <AdminCard title="About Section" style={{ marginBottom: spacing.xl }}>
+      {/* ── 2. Stats Bar — los números y las tarjetas de redes, debajo del hero ── */}
+      <AdminCard title="2 · Stats Bar" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>La franja de números y las tarjetas de redes, apenas debajo del hero.</p>
+        {/* Stats visual preview */}
+        <PreviewBox dark>
+          <div style={{ display: "flex", justifyContent: "space-around", padding: `${spacing.sm}px 0` }}>
+            {STATS.map(stat => {
+              const val = getStatValue(siteConfig, stat);
+              const numStyle = getStyleConfig(siteConfig, "stats_number_style");
+              const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
+              return (
+                <div key={stat.key} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 700, color: colors.brand }}>{val}{formatStatSuffix(getStatUnit(siteConfig, stat.key, stat.defaultUnit))}</div>
+                  <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </PreviewBox>
+
+        {STATS.map(stat => (
+          <StatRow key={stat.key} statKey={stat.key} label={stat.label} defaultVal={stat.defaultVal} decimals={stat.decimals}
+            currentValue={String(getStatValue(siteConfig, stat))} currentUnit={getStatUnit(siteConfig, stat.key, stat.defaultUnit)}
+            onSave={onSave} loading={loading} />
+        ))}
+
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Typography</p>
+        <StyleControl configKey="stats_number_style" label="Counter Numbers" hint="20+, 400+, 1.3M+, 1.4K+ — magnitude is set per stat above" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="stats_label_style" label="Counter Labels" hint="Years Experience, Video Shows, YouTube Views, Facebook Followers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+      </AdminCard>
+
+      {/* ── 3. About — "Meet your handyman", la bio, los tags y las 3 tarjetas ── */}
+      <AdminCard title="3 · About" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>Meet your handyman: la bio, los tags de categoría y las 3 tarjetas.</p>
         {/* Bio preview + controls */}
         <p style={{ ...typography.label, marginBottom: spacing.sm }}>Bio Text</p>
         <PreviewBox>
@@ -450,38 +470,9 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         ))}
       </AdminCard>
 
-      {/* ── 3. Stats Bar ── */}
-      <AdminCard title="Stats Bar" style={{ marginBottom: spacing.xl }}>
-        {/* Stats visual preview */}
-        <PreviewBox dark>
-          <div style={{ display: "flex", justifyContent: "space-around", padding: `${spacing.sm}px 0` }}>
-            {STATS.map(stat => {
-              const val = getStatValue(siteConfig, stat);
-              const numStyle = getStyleConfig(siteConfig, "stats_number_style");
-              const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
-              return (
-                <div key={stat.key} style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 700, color: colors.brand }}>{val}{formatStatSuffix(getStatUnit(siteConfig, stat.key, stat.defaultUnit))}</div>
-                  <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
-                </div>
-              );
-            })}
-          </div>
-        </PreviewBox>
-
-        {STATS.map(stat => (
-          <StatRow key={stat.key} statKey={stat.key} label={stat.label} defaultVal={stat.defaultVal} decimals={stat.decimals}
-            currentValue={String(getStatValue(siteConfig, stat))} currentUnit={getStatUnit(siteConfig, stat.key, stat.defaultUnit)}
-            onSave={onSave} loading={loading} />
-        ))}
-
-        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Typography</p>
-        <StyleControl configKey="stats_number_style" label="Counter Numbers" hint="20+, 400+, 1.3M+, 1.4K+ — magnitude is set per stat above" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="stats_label_style" label="Counter Labels" hint="Years Experience, Video Shows, YouTube Views, Facebook Followers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-      </AdminCard>
-
-      {/* ── 4. Carousels ── */}
-      <AdminCard title="Carousels" style={{ marginBottom: spacing.xl }}>
+      {/* ── 4. Carousels — Recent Work, Custom Projects y Highlights ── */}
+      <AdminCard title="4 · Carruseles" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>Recent Work, Custom Projects y Highlights, en ese orden en la página.</p>
         <SiteTextRow configKey="highlights_section_title" def={SITE_TEXTS.highlights_section_title} currentValue={siteConfig.highlights_section_title} onSave={onSave} loading={loading} />
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Carousel Title Typography</p>
         <StyleControl configKey="carousel_recent_work_title_style" label="Recent Work — Section Title" hint="Recent work" siteConfig={siteConfig} onSave={onSave} loading={loading} />
@@ -492,8 +483,8 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         </p>
       </AdminCard>
 
-      {/* ── 5. CTAs ── */}
-      <AdminCard title="Call to Action Sections" style={{ marginBottom: spacing.xl }}>
+      {/* ── 5. CTAs — el naranja del medio y el del cierre ── */}
+      <AdminCard title="5 · Llamados a la acción" style={{ marginBottom: spacing.xl }}>
         <p style={{ ...typography.label, marginBottom: spacing.sm }}>Tailoring CTA (mid-page)</p>
         <StyleControl configKey="cta_tailoring_title_style" label="Tailoring — Title" hint="Need something specific?" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="cta_tailoring_text_style" label="Tailoring — Description" hint="I also do tailored work — from unique installations to custom projects..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
@@ -502,17 +493,31 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <StyleControl configKey="cta_bottom_subtitle_style" label="Bottom CTA — Subtitle" hint="Reply within 24 hours · Lifetime guarantee" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
-      {/* ── 6. Reviews ── */}
-      <AdminCard title="Reviews Section" style={{ marginBottom: spacing.xl }}>
+      {/* ── 6. Reviews — la cabecera y las tarjetas de reseñas ── */}
+      <AdminCard title="6 · Reseñas" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>La cabecera con el promedio y el carrusel de reseñas.</p>
         <StyleControl configKey="reviews_title_style" label="Reviews — Section Title" hint="Reviews" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="reviews_score_style" label="Reviews — Average Score" hint="4.8" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
-      {/* ── 7. Footer ── */}
-      <AdminCard title="Footer" style={{ marginBottom: spacing.xl }}>
-        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>Phone, hours, and service areas are in "Contact & Business Info" above — shared across the site.</p>
+      {/* ── 7. Footer — el pie de página ── */}
+      <AdminCard title="7 · Footer" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>El teléfono, los horarios y las zonas están en "8 · Datos del negocio", más abajo: se usan en todo el sitio, no sólo acá.</p>
         <StyleControl configKey="footer_heading_style" label="Footer — Section Headings" hint="Contact, Hours, Quick Links" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="footer_hours_style" label="Footer — Hours Text" hint={siteConfig.site_hours || "Mon–Sat · 8:00–19:00"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+      </AdminCard>
+
+      {/* ── 8. Contact & Business Info — NO es una sección: se usa en todo el sitio ── */}
+      <AdminCard title="8 · Datos del negocio" style={{ marginBottom: spacing.xl }}>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>No es una sección de la página: estos datos se usan en varias a la vez — el pie, los CTA, la franja de zonas y los links de redes. Por eso va al final y no en el medio del recorrido.</p>
+        <FooterField label="Phone Number" configKey="site_phone" defaultValue={siteConfig.phone || PHONE} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="WhatsApp URL" configKey="whatsapp_url" defaultValue={siteConfig.whatsapp_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Full wa.me link" />
+        <FooterField label="Facebook URL" configKey="facebook_url" defaultValue={siteConfig.facebook_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="YouTube URL" configKey="youtube_url" defaultValue={siteConfig.youtube_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Brand Subtitle" configKey="brand_subtitle" defaultValue={siteConfig.brand_subtitle || "Specialist Technician At Domestic Matters"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Business Hours" configKey="site_hours" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <FooterField label="Service Areas" configKey="site_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />
+        <FooterField label="Storage Limit (GB)" configKey="storage_limit_gb" defaultValue={siteConfig.storage_limit_gb || "10"} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Max GB for this project (shown in header bar)" />
       </AdminCard>
 
       {/* ── Other Settings ── */}
