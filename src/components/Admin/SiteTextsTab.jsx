@@ -433,6 +433,8 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
       {/* ── 3. About — "Meet your handyman", la bio, los tags y las 3 tarjetas ── */}
       <AdminCard title="3 · About" style={{ marginBottom: spacing.xl }}>
         <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>Meet your handyman: la bio, los tags de categoría y las 3 tarjetas.</p>
+        <SiteTextRow configKey="about_title" def={SITE_TEXTS.about_title} currentValue={siteConfig.about_title} onSave={onSave} loading={loading} />
+
         {/* Bio preview + controls */}
         <p style={{ ...typography.label, marginBottom: spacing.sm }}>Bio Text</p>
         <PreviewBox>

@@ -212,6 +212,11 @@ export const SITE_TEXTS = {
   // como los otros dos carruseles: tenerlo acá dejaba un fontSize guardado (17) que le
   // ganaba al default y desalineaba el título respecto de sus hermanos.
   highlights_section_title: { label: "Highlights Section Title", defaultText: "Highlights", defaultFontSize: CAROUSEL_TITLE.fontSize, defaultFontFamily: CAROUSEL_TITLE.fontFamily },
+  // El título de la presentación. Estuvo sin salida al admin hasta el 02/09:
+  // "Ese titulo no lo puedo editar". Va en DM Sans explícito y no heredado, que
+  // es lo que pidió — "tiene q ser la misma letrografia q los subtítulos estos,
+  // todo en DM Sans"— para que se vea igual que los títulos de las 3 tarjetas.
+  about_title: { label: "About — Title", defaultText: "Meet your handyman", defaultFontSize: 20, defaultFontFamily: "DM Sans" },
   bio_text: { label: "About / Bio Text", defaultText: "", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
   // About highlight boxes — editable copy (defaults mirror the English translations)
   about_highlight1_title: { label: "Highlight 1 — Title", defaultText: "What to expect", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
