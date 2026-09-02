@@ -1,10 +1,11 @@
 // Guard: consistencia de traducciones entre los 5 idiomas.
 import { readFileSync, readdirSync } from 'fs';
-import { join, dirname } from 'path';
+import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const localesDir = join(root, 'src', 'locales');
+const srcDir = join(root, 'src');
 
 // Palabras de marca: nunca se traducen, deben aparecer igual en todos los idiomas.
 const BRAND_WORDS = [
@@ -92,6 +93,33 @@ export function checkI18n() {
           );
       }
     }
+  }
+
+
+  // Toda clave que el código le pide a t() tiene que existir en en.json.
+  //
+  // t("k", "Fallback") no falla cuando la clave no existe: devuelve el fallback en
+  // inglés y el texto queda sin traducir en los otros 4 idiomas para siempre, sin
+  // que nada avise. Así estuvo el badge "Playlist" del portfolio, y con él otras 6.
+  // El resto del guard compara los locales entre sí, así que una clave que no está
+  // en ninguno le resulta invisible: hay que mirar el código.
+  const walkSrc = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const p = join(dir, e.name);
+      return e.isDirectory() ? walkSrc(p) : [p];
+    });
+
+  const usadas = new Map();
+  for (const file of walkSrc(srcDir).filter((f) => /\.jsx$/.test(f))) {
+    const code = readFileSync(file, 'utf8');
+    for (const m of code.matchAll(/\bt\(\s*"([^"]+)"/g)) {
+      const linea = code.slice(0, m.index).split('\n').length;
+      if (!usadas.has(m[1])) usadas.set(m[1], `${relative(root, file)}:${linea}`);
+    }
+  }
+  for (const [key, donde] of usadas) {
+    if (!locales[base][key])
+      errors.push(`${donde}: t("${key}") no existe en en.json — queda en inglés en los otros idiomas`);
   }
 
   return { errors, warnings };

@@ -175,7 +175,7 @@ export const SITE_TEXTS = {
   about_highlight1_title: { label: "Highlight 1 — Title", defaultText: "What to expect", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
   about_highlight1_text: { label: "Highlight 1 — Text", defaultText: "Fresh ideas that save you time and stress, aiming to your overall satisfaction, my top commitment.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
   about_highlight2_title: { label: "Highlight 2 — Title", defaultText: "What you truly get", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
-  about_highlight2_text: { label: "Highlight 2 — Text", defaultText: "Professional-quality work at affordable prices + excellent results + flawless finish + peace of mind with the guarantee that everyone looks for", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
+  about_highlight2_text: { label: "Highlight 2 — Text", defaultText: "Professional-quality work at affordable prices + excellent results + flawless finish + peace of mind with the guarantee that everyone looks for.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
   about_highlight3_title: { label: "Highlight 3 — Title", defaultText: "Who I do assist", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
   about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always happy to help both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
 };
@@ -311,8 +311,20 @@ export const SECTION_TITLE_MB = 14;
 export const playlistUrl = (raw) => {
   const v = String(raw || "").trim();
   if (!v) return null;
-  const fromUrl = v.match(/[?&]list=([^&#\s]+)/);
-  return `https://www.youtube.com/playlist?list=${fromUrl ? fromUrl[1] : v}`;
+  // 1) ?list=ID — una URL normal de playlist.
+  const query = v.match(/[?&]list=([^&#\s]+)/);
+  if (query) return `https://www.youtube.com/playlist?list=${query[1]}`;
+  // 2) .../playlist/ID/... — lo que copia YouTube Studio desde la barra del navegador.
+  // No lleva ?list=, así que antes se concatenaba entera contra el prefijo y el link
+  // moría igual que con la URL duplicada. "Wicker Shades" estaba así en producción.
+  const path = v.match(/\/playlist\/([A-Za-z0-9_-]+)/);
+  if (path) return `https://www.youtube.com/playlist?list=${path[1]}`;
+  // 3) el ID pelado, que es lo que el campo del admin pide.
+  if (/^[A-Za-z0-9_-]+$/.test(v)) return `https://www.youtube.com/playlist?list=${v}`;
+  // 4) cualquier otra cosa con un ID adentro. Si no hay ninguno no se arma un link:
+  // mejor que la tarjeta no aparezca a que aparezca y lleve a un 404.
+  const suelto = v.match(/(PL[A-Za-z0-9_-]{10,})/);
+  return suelto ? `https://www.youtube.com/playlist?list=${suelto[1]}` : null;
 };
 
 export const fbEmbedUrl = (url) => `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;

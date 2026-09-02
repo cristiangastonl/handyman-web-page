@@ -119,6 +119,20 @@ describe("playlistUrl", () => {
     expect(playlistUrl(null)).toBeNull();
     expect(playlistUrl(undefined)).toBeNull();
   });
+
+  // Anibal pega lo que tiene a mano. Desde YouTube Studio la barra del navegador da
+  // .../playlist/ID/videos, que no lleva ?list= y antes se concatenaba entera: la
+  // subcategoría "Wicker Shades" tenía ese link roto en producción.
+  it("acepta la URL de YouTube Studio, que no tiene ?list=", () => {
+    expect(playlistUrl("https://studio.youtube.com/playlist/PLO8avQ6ndCk-hkG2ZTcHvcKD4xmJhb_us/videos"))
+      .toBe("https://www.youtube.com/playlist?list=PLO8avQ6ndCk-hkG2ZTcHvcKD4xmJhb_us");
+  });
+
+  it("no arma un link cuando no hay ningún ID adentro", () => {
+    // Antes devolvía .../playlist?list=<basura> y la tarjeta llevaba a un 404.
+    // Sin ID no se renderiza nada, que es más honesto que un link muerto.
+    expect(playlistUrl("mañana la cargo")).toBeNull();
+  });
 });
 
 // Los tres carruseles de la home muestran el mismo título visual pero se
