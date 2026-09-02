@@ -68,6 +68,48 @@ export function checkConventions() {
     }
   }
 
+  // Todo estilo configurable tiene que tener su control en el admin.
+  //
+  // Anibal no pide "cambiá el 4.8 a 26px", pide "no queda desproporcionada? es algo
+  // q puedo cambiar yo y probar?". Una clave en STYLE_KEYS que no esté cableada a un
+  // StyleControl es una perilla que existe en el código y no en su pantalla: él la
+  // pide de vuelta por WhatsApp y hay que tocar el JSX otra vez.
+  const constantes = readFileSync(join(srcDir, 'lib', 'constants.js'), 'utf8');
+  const bloque = constantes.match(/export const STYLE_KEYS = \{([\s\S]*?)\n\};/);
+  if (!bloque) {
+    errors.push('src/lib/constants.js: no se encontró el bloque STYLE_KEYS');
+  } else {
+    // Las que a propósito no tienen control. Están en STYLE_KEYS igual porque
+    // KNOWN_KEYS sale de ahí: sacarlas haría aparecer los valores viejos que el
+    // cliente ya tenga guardados en la lista "Other Settings" del admin.
+    const SIN_CONTROL = new Map([
+      // Legacy: el estilo de los highlights del About ahora viaja adentro del JSON
+      // de about_highlightN_title/_text (ver getHighlightField). Estas claves sólo
+      // sobreviven como fallback de lo que el cliente guardó antes del cambio.
+      ['about_highlight1_title_style', 'legacy, reemplazada por about_highlight1_title'],
+      ['about_highlight1_text_style', 'legacy, reemplazada por about_highlight1_text'],
+      ['about_highlight2_title_style', 'legacy, reemplazada por about_highlight2_title'],
+      ['about_highlight2_text_style', 'legacy, reemplazada por about_highlight2_text'],
+      ['about_highlight3_title_style', 'legacy, reemplazada por about_highlight3_title'],
+      ['about_highlight3_text_style', 'legacy, reemplazada por about_highlight3_text'],
+      // El carrusel Returning Customers salió del sitio y del admin (App.jsx:107).
+      ['carousel_returning_customers_title_style', 'el carrusel está retirado'],
+    ]);
+    const claves = [...bloque[1].matchAll(/^\s{2}([a-z0-9_]+):/gm)]
+      .map((m) => m[1])
+      .filter((k) => !SIN_CONTROL.has(k));
+    const tab = readFileSync(join(srcDir, 'components', 'Admin', 'SiteTextsTab.jsx'), 'utf8');
+    const expuestas = new Set(
+      [...tab.matchAll(/configKey="([a-z0-9_]+)"/g)].map((m) => m[1])
+    );
+    for (const k of claves) {
+      if (!expuestas.has(k))
+        errors.push(
+          `src/lib/constants.js: STYLE_KEYS.${k} no tiene <StyleControl configKey="${k}"> en SiteTextsTab.jsx — el cliente no puede editarlo`
+        );
+    }
+  }
+
   // Variables de entorno: las de Supabase son obligatorias, el resto opcionales.
   const REQUIRED_ENV = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'];
   const examplePath = join(root, '.env.example');

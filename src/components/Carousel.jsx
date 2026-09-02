@@ -12,16 +12,21 @@ const CARD_GAP = 12;
 const CARD_WIDTH = CARD_W + CARD_GAP; // lo que avanza el carrusel por tarjeta
 
 // Anibal pidió que las tarjetas no se estiren según el texto más largo: todas
-// miden igual y lo que sobra se corta con puntos suspensivos. Son 3 renglones de
-// título y 3 de texto, pero como TECHO, no como altura fija: con la altura quemada
-// una tarjeta de título corto igual reservaba el lugar de tres renglones y quedaban
-// ~65px de aire adentro ("los espacios", 31/08). Con max-height el texto ocupa lo
-// que necesita, el tope de 3 renglones evita que un título largo agrande la fila, y
-// las tarjetas terminan todas a la misma altura porque el track las estira.
-const TITLE_FONT = 13, TITLE_LH = 1.3, TITLE_LINES = 3;
-const DESC_FONT = 11, DESC_LH = 1.4, DESC_LINES = 3;
-const TITLE_BLOCK = Math.round(TITLE_FONT * TITLE_LH * TITLE_LINES); // 51
-const DESC_BLOCK = Math.round(DESC_FONT * DESC_LH * DESC_LINES);     // 46
+// miden igual y lo que sobra se corta con puntos suspensivos. Son 2 renglones de
+// título y 2 de texto, pero como TECHO, no como altura fija: con la altura quemada
+// una tarjeta de título corto igual reservaba el lugar de todos los renglones y
+// quedaban ~65px de aire adentro ("los espacios", 31/08). Con max-height el texto
+// ocupa lo que necesita, el tope evita que un título largo agrande la fila, y las
+// tarjetas terminan todas a la misma altura porque el track las estira.
+//
+// Eran 3 y 3 hasta el 01/09. Bajaron a 2 y 2 porque el carrusel avanza solo: "no
+// hay tiempo fisico de leer tanto, si quieren leer q pinchen". El texto acá es un
+// rótulo para reconocer la foto, no la descripción del trabajo — esa está en el
+// detalle. Si vuelve a pedir menos, el piso que dejó dicho es 1 de título y 2 de texto.
+const TITLE_FONT = 13, TITLE_LH = 1.3, TITLE_LINES = 2;
+const DESC_FONT = 11, DESC_LH = 1.4, DESC_LINES = 2;
+const TITLE_BLOCK = Math.round(TITLE_FONT * TITLE_LH * TITLE_LINES); // 34
+const DESC_BLOCK = Math.round(DESC_FONT * DESC_LH * DESC_LINES);     // 31
 
 // Un arrastre no debería abrir el detalle, pero un click sí. 6px separa las dos
 // intenciones sin que un temblor de mano cuente como arrastre.

@@ -150,3 +150,24 @@ describe("título de los carruseles de la home", () => {
       "carousel_highlights_title_style").fontSize).toBe(CAROUSEL_TITLE.fontSize);
   });
 });
+
+// El promedio de reseñas de la home ("4.8"). Estaba quemado en 36px al lado de un
+// título de 14 y Anibal lo marcó como desproporcionado el 01/09, pero lo que pidió
+// no fue un número: fue "es algo q puedo cambiar yo y probar?". Lo que se cuida acá
+// es que siga saliendo de la configuración y no vuelva al JSX.
+describe("promedio de reseñas de la home", () => {
+  it("tiene default propio y más chico que el titular de /reviews (56)", () => {
+    expect(STYLE_KEYS.reviews_score_style).toBeDefined();
+    expect(STYLE_KEYS.reviews_score_style.fontSize).toBeLessThan(56);
+  });
+
+  it("lo que el cliente guarda en el admin le gana al default", () => {
+    expect(getStyleConfig({ reviews_score_style: '{"fontSize":32}' }, "reviews_score_style"))
+      .toEqual({ fontSize: 32, fontFamily: STYLE_KEYS.reviews_score_style.fontFamily });
+  });
+
+  it("un valor roto en la base no rompe la home, cae al default", () => {
+    expect(getStyleConfig({ reviews_score_style: "no-json" }, "reviews_score_style"))
+      .toEqual(STYLE_KEYS.reviews_score_style);
+  });
+});

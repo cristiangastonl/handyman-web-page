@@ -75,6 +75,7 @@ const starAverage = (reviews) => {
 export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], siteConfig = {} }) {
   const { t, i18n } = useTranslation();
   const revTitleStyle = getStyleConfig(siteConfig, "reviews_title_style");
+  const revScoreStyle = getStyleConfig(siteConfig, "reviews_score_style");
   const revRef = useRef(null);
   const [expanded, setExpanded] = useState(new Set());
   const [paused, setPaused] = useState(false);
@@ -141,7 +142,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
             </div>
             <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
+              <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
               <div>
                 <Stars n={Math.round(parseFloat(avg))} sz={15}/>
                 <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>

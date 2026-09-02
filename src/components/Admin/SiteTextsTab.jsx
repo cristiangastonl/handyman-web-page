@@ -485,6 +485,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
       {/* ── 6. Reviews ── */}
       <AdminCard title="Reviews Section" style={{ marginBottom: spacing.xl }}>
         <StyleControl configKey="reviews_title_style" label="Reviews — Section Title" hint="Reviews" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="reviews_score_style" label="Reviews — Average Score" hint="4.8" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 7. Footer ── */}

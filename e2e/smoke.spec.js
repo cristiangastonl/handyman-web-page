@@ -398,15 +398,19 @@ test.describe('velocidad de los carruseles', () => {
     }
   });
 
-  test('título y cuerpo se cortan a 3 renglones con puntos suspensivos', async ({ page }) => {
-    // "como mucho 3 renglones, si no llega se termina con ...".
+  test('título y cuerpo se cortan a 2 renglones con puntos suspensivos', async ({ page }) => {
+    // "como mucho N renglones, si no llega se termina con ...".
     //
-    // Este check pedía que la caja midiera EXACTAMENTE 3 renglones. Estaba mal
+    // Este check pedía que la caja midiera EXACTAMENTE N renglones. Estaba mal
     // planteado: con la altura fija, una tarjeta de título corto igual reservaba el
-    // lugar de tres y quedaban ~65px de aire adentro, que es lo que Anibal marcó
+    // lugar de todos y quedaban ~65px de aire adentro, que es lo que Anibal marcó
     // como "los espacios". El requisito real siempre fue un TECHO. Ahora se verifica
-    // eso: que el recorte esté activo, que nada desborde, y que ninguna caja pase de
-    // 3 renglones — que es lo que impide que un título largo agrande la fila.
+    // eso: que el recorte esté activo, que nada desborde, y que ninguna caja pase del
+    // tope — que es lo que impide que un título largo agrande la fila.
+    //
+    // El tope bajó de 3 a 2 el 01/09: el carrusel se mueve solo y "no hay tiempo
+    // fisico de leer tanto". Va acá quemado a propósito, es la decisión que se cuida.
+    const RENGLONES = 2;
     await visit(page, '/');
     await page.waitForFunction(
       () => [...document.querySelectorAll('div')].some(
@@ -415,7 +419,7 @@ test.describe('velocidad de los carruseles', () => {
       { timeout: 20_000 },
     );
 
-    const cajas = await page.evaluate(() => {
+    const cajas = await page.evaluate((RENGLONES) => {
       const track = [...document.querySelectorAll('div')]
         .filter((d) => d.style.willChange === 'transform')
         .sort((a, b) => b.children.length - a.children.length)[0];
@@ -425,20 +429,19 @@ test.describe('velocidad de los carruseles', () => {
         return {
           clamp: cs.webkitLineClamp,
           alto: Math.round(el.getBoundingClientRect().height),
-          // Alto de 3 renglones según su propia tipografía: la caja tiene que
-          // medir eso, ni un renglón más ni uno menos.
-          tresRenglones: Math.round(parseFloat(cs.lineHeight) * 3),
+          // Alto del tope según su propia tipografía: la caja no puede pasarlo.
+          tope: Math.round(parseFloat(cs.lineHeight) * RENGLONES),
           desborda: el.scrollHeight > el.clientHeight + 1,
         };
       });
-    });
+    }, RENGLONES);
 
     expect(cajas.length, 'la tarjeta debería tener al menos el título').toBeGreaterThanOrEqual(1);
     for (const [i, c] of cajas.entries()) {
       const cual = i === 0 ? 'el título' : 'el cuerpo';
-      expect(c.clamp, `${cual} no está recortado a 3 renglones`).toBe('3');
-      expect(c.alto, `${cual} pasa de 3 renglones: el tope no se está aplicando`)
-        .toBeLessThanOrEqual(c.tresRenglones + 1);
+      expect(c.clamp, `${cual} no está recortado a ${RENGLONES} renglones`).toBe(String(RENGLONES));
+      expect(c.alto, `${cual} pasa de ${RENGLONES} renglones: el tope no se está aplicando`)
+        .toBeLessThanOrEqual(c.tope + 1);
       expect(c.desborda, `${cual} se está desbordando de su caja`).toBe(false);
     }
   });

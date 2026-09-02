@@ -175,9 +175,9 @@ export const SITE_TEXTS = {
   about_highlight1_title: { label: "Highlight 1 — Title", defaultText: "What to expect", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
   about_highlight1_text: { label: "Highlight 1 — Text", defaultText: "Fresh ideas that save you time and stress, aiming to your overall satisfaction, my top commitment.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
   about_highlight2_title: { label: "Highlight 2 — Title", defaultText: "What you truly get", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
-  about_highlight2_text: { label: "Highlight 2 — Text", defaultText: "Professional-quality work at affordable prices — excellent results, a flawless finish, and the peace of mind + guarantee everyone looks for.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
-  about_highlight3_title: { label: "Highlight 3 — Title", defaultText: "Who I serve", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
-  about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always happy to assist both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
+  about_highlight2_text: { label: "Highlight 2 — Text", defaultText: "Professional-quality work at affordable prices + excellent results + flawless finish + peace of mind with the guarantee that everyone looks for", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
+  about_highlight3_title: { label: "Highlight 3 — Title", defaultText: "Who I do assist", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
+  about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always happy to help both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
 };
 
 // Parse a site config value — supports both plain text (legacy) and JSON {text, fontSize, fontFamily}
@@ -217,6 +217,11 @@ export const STYLE_KEYS = {
   footer_hours_style: { fontSize: 12, fontFamily: "DM Sans" },
   // Reviews (TYPO-07)
   reviews_title_style: { fontSize: 14, fontFamily: "DM Sans" },
+  // El promedio grande de la home. Estaba quemado en 36 contra un título de 14 y
+  // Anibal lo vio desproporcionado (01/09); además pidió poder probarlo él, así que
+  // vive acá y no en el JSX. El de la página /reviews es otro: ahí el número ES la
+  // portada de la sección y 56 está bien.
+  reviews_score_style: { fontSize: 26, fontFamily: "DM Sans" },
 };
 
 // Read a style-only config value (no text content). Returns {fontSize, fontFamily} with defaults.
