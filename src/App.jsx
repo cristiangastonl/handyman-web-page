@@ -11,6 +11,7 @@ import {
   fetchSubcategories, fetchHighlights, fetchFbReviews, fetchSiteConfig,
   fetchGoogleReviews, fetchCarouselItems,
 } from "./lib/supabase";
+import { withAllCategory } from "./lib/categories";
 
 // Components (eager — needed on home page)
 import Nav from "./components/Nav";
@@ -141,7 +142,7 @@ export default function App() {
         safe(() => fetchCarouselItems('returning_customers')),
         safe(() => fetchCarouselItems('tailor_jobs')),
       ]);
-      if (dbCats?.length > 0) setCats([{ id: "all", label: "All" }, ...dbCats.map(c => ({ id: c.id, label: c.label, header_image: c.header_image }))]);
+      if (dbCats?.length > 0) setCats(withAllCategory(dbCats));
       if (dbItems?.length > 0) setItems(dbItems.map(w => ({ id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb, title: w.title, desc: w.description, videoId: w.video_id, subcategory_id: w.subcategory_id || null, sort_order: w.sort_order ?? 0 })));
       if (dbFaqs?.length > 0) setFaqs(dbFaqs.map(f => ({
         id: f.id, q: f.question, a: f.answer,

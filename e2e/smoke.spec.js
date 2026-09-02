@@ -117,6 +117,32 @@ test.describe('portfolio', () => {
     console_.assertClean();
   });
 
+  test('una categoría con playlist la muestra en la tarjeta y adentro', async ({ page }) => {
+    // Recorrido completo: la columna categories.playlist_id existe desde el 31/08,
+    // el admin la escribe y Portfolio.jsx la lee — pero App.jsx armaba el estado
+    // con .map(c => ({ id, label, header_image })) y la tiraba en el medio. Se
+    // guardaba en la base y no se veía en ningún lado. Nada lo detectaba porque
+    // los dos extremos estaban bien por separado; lo que faltaba era este test.
+    //
+    // Depende de que haya al menos una categoría con playlist cargada. Si no hay
+    // ninguna, no falla: no habría nada que mostrar y eso es correcto.
+    await visit(page, '/portfolio');
+
+    const conPlaylist = page.getByTestId('category-card')
+      .filter({ has: page.getByTestId('category-playlist-badge') });
+    const cuantas = await conPlaylist.count();
+    test.skip(cuantas === 0, 'ninguna categoría tiene playlist cargada');
+
+    await conPlaylist.first().click();
+
+    // Adentro tiene que estar el link a YouTube, y tiene que ser una URL de
+    // playlist de verdad: playlistUrl() ya devolvió links rotos antes.
+    const link = page.getByTestId('playlist-link');
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute(
+      'href', /^https:\/\/www\.youtube\.com\/playlist\?list=[A-Za-z0-9_-]+$/);
+  });
+
   test('las imágenes tienen alt (SEO + accesibilidad)', async ({ page }) => {
     await visit(page, '/portfolio');
     const imgs = contentImages(page);

@@ -12,7 +12,7 @@ function PlaylistLink({ playlistId, t }) {
   const href = playlistUrl(playlistId);
   if (!href) return null;
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer"
+    <a href={href} target="_blank" rel="noopener noreferrer" data-testid="playlist-link"
       style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 10, border: "1px solid #eee", background: "#fafafa", textDecoration: "none", color: "#333", marginBottom: 20, transition: "border-color .2s, box-shadow .2s" }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF0000"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,0,0,0.08)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "none"; }}>
@@ -157,11 +157,11 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                         {catItems.length > 0 && <>{catItems.length} {catItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
                         {catItems.length > 0 && catSubcats.length > 0 && " · "}
                         {catSubcats.length > 0 && <>{catSubcats.length} {t("portfolio.subcategories", "subcategories")}</>}
-                        {c.playlist_id && <>
+                        {c.playlist_id && <span data-testid="category-playlist-badge">
                           {(catItems.length > 0 || catSubcats.length > 0) && " · "}
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" style={{ verticalAlign: "middle", marginRight: 3 }}><path d="M23 12l-10.5-7v14L23 12zM1 5h2v14H1V5zm4 0h2v14H5V5zm4 0h2v14H9V5z"/></svg>
                           {t("portfolio.playlist", "Playlist")}
-                        </>}
+                        </span>}
                       </div>
                     </div>
                   </div>
