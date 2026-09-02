@@ -166,6 +166,10 @@ export const SITE_TEXTS = {
   hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zurich", defaultFontSize: 36, defaultFontFamily: "DM Sans" },
   hero_subtitle: { label: "Hero Subtitle", defaultText: "Your satisfaction, my commitment", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
   hero_brand_subtitle: { label: "Hero Brand Subtitle", defaultText: "Specialist Technician At Domestic Matters", defaultFontSize: 15, defaultFontFamily: "Dancing Script" },
+  // La línea de confianza del hero. Estuvo quemada en Hero.jsx hasta el 02/09, y
+  // Anibal la fue a buscar al admin sin encontrarla: "no encuentro donde esta
+  // 100% Recommended". El ✓ no es parte del texto, lo pone el componente.
+  hero_trust: { label: "Hero Trust Line", defaultText: "100% Recommended", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
   // Sólo aporta el TEXTO. El tamaño y la fuente salen de carousel_highlights_title_style,
   // como los otros dos carruseles: tenerlo acá dejaba un fontSize guardado (17) que le
   // ganaba al default y desalineaba el título respecto de sus hermanos.
@@ -177,16 +181,23 @@ export const SITE_TEXTS = {
   about_highlight2_title: { label: "Highlight 2 — Title", defaultText: "What you truly get", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
   about_highlight2_text: { label: "Highlight 2 — Text", defaultText: "Professional-quality work at affordable prices + excellent results + flawless finish + peace of mind with the guarantee that everyone looks for.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
   about_highlight3_title: { label: "Highlight 3 — Title", defaultText: "Who I do assist", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
-  about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always happy to help both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
+  about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always pleased to help both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
 };
 
 // Parse a site config value — supports both plain text (legacy) and JSON {text, fontSize, fontFamily}
+const CLAVES_SITE_TEXT = ["text", "fontSize", "fontFamily"];
+
 export const parseSiteText = (value) => {
   if (!value) return null;
   if (typeof value === "object") return value;
   try {
     const parsed = JSON.parse(value);
-    if (parsed && typeof parsed === "object" && "text" in parsed) return parsed;
+    // Alcanza con CUALQUIERA de las claves, no con "text" obligatoriamente. Pedir
+    // "text" dejaba afuera a {"fontSize":13} —una fila a la que sólo se le tocó la
+    // tipografía— y ese JSON caía en el return de abajo: la página terminaba
+    // mostrando {"fontSize":13} como si fuera el texto. Estaba tapado porque el
+    // admin siempre guardaba text:"" aunque estuviera vacío.
+    if (parsed && typeof parsed === "object" && CLAVES_SITE_TEXT.some(k => k in parsed)) return parsed;
   } catch {}
   return { text: value }; // legacy plain text
 };
@@ -473,20 +484,33 @@ export const css = `
        cuándo decodifica la foto— los empujaba abajo del fold, y el test los veía entrar o
        no entrar según el run.
 
-       Era 574, después 528, 483, 509, y ahora 528 otra vez. Cada vez que la presentación se achica hay
-       que devolverle esos píxeles al hero, o si no las tarjetas de "What to expect"
-       suben y asoman arriba del pliegue. Primero fue pegar el título a su bio, y
-       después pasar la foto a flotar dentro del texto (~45 px menos), y por último
-       darle columna propia a la foto, que volvió a alargar la presentación ~26 px
-       —eso es deliberado: es lo que empuja las tarjetas abajo del pliegue—, y por
-       último agrandar la foto de 88 a 112, que sumó el renglón de bio que faltaba. El síntoma era exacto: las tarjetas
-       de "What to expect" asomaban 29 px arriba del fold. Si mañana vuelve a cambiar el
-       alto de la presentación, este número se recalcula —no se toca el test, que es el
+       Era 574, después 528, 483, 509, 528, y ahora 564. Cada vez que la presentación cambia
+       de alto hay que recalcular: si se achica, devolverle esos píxeles al hero o las
+       tarjetas de "What to expect" suben y asoman arriba del pliegue; si se agranda,
+       quitárselos o los tags se caen abajo del fold. Primero fue pegar el título a su bio,
+       después pasar la foto a flotar dentro del texto (~45 px menos), después darle
+       columna propia a la foto (~26 px más, deliberado: es lo que empuja las tarjetas
+       abajo del pliegue) y agrandarla de 88 a 112.
+
+       El salto de 528 a 564 (02/09/2026) NO lo causó un cambio de código: lo causó
+       Anibal editando su propia bio desde el admin. Le agregó "so, what if impress
+       yourself, and get beyond expectations ...?" y el bloque creció 25.4 px, con lo que
+       los tags se cayeron abajo del fold en un teléfono de 727. Es la contracara de
+       haberle dado el texto editable: este número depende de contenido que él controla,
+       así que va a volver a pasar. Lo que lo hace manejable es que el test de mobile lo
+       agarra siempre y el arreglo es recalcular acá.
+
+       Cómo se recalcula, sin adivinar: los dos límites del test se tironean —subir el
+       número sube los tags (bien) y sube las tarjetas (mal)—, y como el hero absorbe todo
+       el sobrante, las dos medidas dan igual en las tres alturas. Se miden holguraTags y
+       margenCard una vez, y el delta válido es la ventana entre las dos. El 02/09 medía
+       holguraTags=-25.4 y margenCard=53.4: la ventana era (27.4, 45.4) y se tomó 36, el
+       centro, que deja ~10 px de un lado y ~17 del otro. No se toca el test, que es el
        que lo detecta. */
     .hero-section {
       aspect-ratio: auto !important;
-      height: calc(100vh - 528px) !important;
-      height: calc(100dvh - 528px) !important;
+      height: calc(100vh - 564px) !important;
+      height: calc(100dvh - 564px) !important;
       /* El max-height topaba al hero en 460 y en pantallas altas (956) le quedaban
          13 px sin absorber, justo los que hacían asomar las tarjetas de "What to
          expect". 500 le deja llegar a los 473 que pide esa altura sin clamp. */

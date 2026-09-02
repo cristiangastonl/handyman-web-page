@@ -20,19 +20,34 @@ export const CAROUSEL_SPEED = BASE_SPEED * SPEED_MULTIPLIER;
 // lento, quizá la mitad" / "la velocidad del carrousel de reviews a la mitad"),
 // así que el multiplicador global pasa a ser el default y cada carrusel puede
 // correrse de ahí con un factor propio.
+/**
+ * Traduce "equis" a factor.
+ *
+ * El cliente habla en múltiplos de la velocidad original: "el triple", "la
+ * mitad", "2x". El código, en cambio, guarda un factor relativo al multiplicador
+ * global, así que 2x se escribe 0.667 y de ahí a un año nadie se acuerda de
+ * dónde salió ese número. Con enX(2) el archivo dice lo mismo que el WhatsApp.
+ *
+ *   enX(3) === 1        (la velocidad global, sin correrse)
+ *   enX(2) ≈ 0.667      (60 px/s)
+ *   enX(1.5) === 0.5    (45 px/s)
+ */
+export const enX = (x) => x / SPEED_MULTIPLIER;
+
 export const SPEED_FACTORS = {
   default: 1,
-  // "9 Cambiar la velocidad de Custom Project, mas lento -> quizá la mitad."
-  tailorJobs: 0.5,
-  // "Cambiar la velocidad del carrousel de reviews a la mitad, mas despacio."
-  // Son los rieles de Happy Customers de /reviews: es lo único de reseñas que
-  // se mueve solo (el carrusel de tarjetas de la home se scrollea a mano).
-  happyRails: 0.5,
-  // El carrusel de reseñas de la home. Hasta el 31/08 era el único de la home que
-  // no se movía solo: scroll manual con flechas. Va más lento que los rieles de
-  // fotos a propósito —son tarjetas de texto y la gente las está leyendo mientras
-  // se mueven—, cerca de la velocidad base original de 30 px/s.
-  homeReviews: 0.35,
+  // Arrancó en la mitad (1.5x) el 31/08 —"Custom Project mas lento, quizá la
+  // mitad"— y subió a 2x el 02/09, ya viéndolo andar.
+  tailorJobs: enX(2),
+  // Estuvo en 1.5x desde el 31/08 —"la velocidad del carrousel de reviews a la
+  // mitad, mas despacio"— y subió a 2x el 02/09 con el resto: "los de 1.5, custom
+  // y reviews mandale 2". Son los rieles de Happy Customers de /reviews.
+  happyRails: enX(2),
+  // El carrusel de tarjetas de reseñas de la home. Hasta el 31/08 era el único de
+  // la home que no se movía solo: scroll manual con flechas. Estuvo en 1.05x, lo
+  // más lento de todo, porque son tarjetas de texto que se leen mientras se
+  // mueven; el 02/09 Anibal lo subió a 2x junto con Custom Projects.
+  homeReviews: enX(2),
 };
 
 export function useCarouselSpeed(factor = SPEED_FACTORS.default) {

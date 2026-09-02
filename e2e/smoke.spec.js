@@ -298,14 +298,29 @@ test.describe('velocidad de los carruseles', () => {
     const pxPorFrame = await medir();
     // La velocidad se verifica en módulo y el sentido aparte: son dos decisiones
     // distintas y el sentido lo cambia una constante (REVIEWS_DIR en Reviews.jsx).
-    // 0.5 (base) x 3 (velocidad global) x 0.35 (su factor) = 0.525 px/frame.
-    expect(Math.abs(pxPorFrame), 'el carrusel de reseñas no se está moviendo').toBeGreaterThan(0.2);
-    expect(Math.abs(pxPorFrame), 'va más rápido de lo pedido: tiene que ser lento').toBeLessThan(0.9);
+    // 0.5 (base) x 3 (velocidad global) x enX(2) = 1.0 px/frame ≈ 60 px/s.
+    // Venía de 0.525 y Anibal lo subió a 2x el 02/09. La banda cubre el ruido de
+    // medición, no un rango de velocidades: 1.5 sería la global sin correrse.
+    expect(Math.abs(pxPorFrame), 'el carrusel de reseñas no se está moviendo').toBeGreaterThan(0.7);
+    expect(Math.abs(pxPorFrame), 'va a la velocidad global en vez de a 2x').toBeLessThan(1.3);
     // Hoy corre de izquierda a derecha (REVIEWS_DIR = -1), o sea que scrollLeft baja.
     expect(pxPorFrame, 'cambió el sentido de marcha del carrusel').toBeLessThan(0);
 
     // Con el mouse encima tiene que quedarse quieto para poder leer la reseña.
-    await page.locator('.review-card').first().hover();
+    //
+    // Se apunta al CONTENEDOR del riel, que es el que escucha el mouseenter, y no
+    // a una tarjeta. Dos razones, las dos aprendidas a los golpes el 02/09:
+    //  - locator.hover() espera a que el elemento esté "estable" y un carrusel
+    //    continuo nunca lo está. Con 0.525 px/frame el redondeo lo hacía parecer
+    //    quieto de a ratos y pasaba; a 1.0 px/frame se colgaba hasta el timeout.
+    //  - la primera .review-card del DOM está scrolleada fuera de pantalla (el
+    //    riel arranca con scrollLeft alto), así que su boundingBox daba x negativo
+    //    y el mouse aterrizaba afuera de la página, sin disparar nada.
+    const contenedor = page.locator('.review-card').first()
+      .locator('xpath=../..');
+    await contenedor.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    const caja = await contenedor.boundingBox();
+    await page.mouse.move(caja.x + caja.width / 2, caja.y + caja.height / 2, { steps: 8 });
     const conMouse = await medir();
     expect(Math.abs(conMouse), 'no se frena con el mouse encima').toBeLessThan(0.05);
   });
@@ -527,12 +542,13 @@ test.describe('velocidad de los carruseles', () => {
     expect(pxPorFrame).toBeLessThan(1.8);
   });
 
-  test('los rieles de /reviews corren a la mitad de la velocidad global', async ({ page }) => {
+  test('los rieles de /reviews corren a 2x, más lento que la velocidad global', async ({ page }) => {
     // Este check verificaba "un tercio de la duración base", que era la velocidad
-    // global aplicada a todo por igual. En la ronda del 31/08 Anibal pidió estos
-    // rieles más lentos ("la velocidad del carrousel de reviews a la mitad, mas
-    // despacio"), así que ahora llevan factor propio y lo que se verifica es que
-    // ese factor llegue: mitad de velocidad = doble de duración.
+    // global aplicada a todo por igual. Desde el 31/08 estos rieles llevan factor
+    // propio ("la velocidad del carrousel de reviews a la mitad, mas despacio") y
+    // lo que se verifica es que ese factor llegue: más lento = más duración.
+    // El 02/09 pasaron de 1.5x a 2x — "los de 1.5, custom y reviews mandale 2"—,
+    // así que siguen por debajo de la global (3x) pero menos que antes.
     await visit(page, '/reviews');
 
     const rieles = page.locator('.hc-marquee-track');
@@ -544,11 +560,13 @@ test.describe('velocidad de los carruseles', () => {
     }
 
     // 40s es la duración base del riel (RAIL_SECONDS en HappyCustomers.jsx),
-    // dividida por la velocidad global (3) y por el factor propio (0.5).
+    // dividida por la velocidad global (3) y por su factor propio, enX(2) = 2/3:
+    // 40 / (3 * 2/3) = 20s.
     const duracion = await rieles.first().evaluate(
       (el) => parseFloat(getComputedStyle(el).animationDuration));
-    expect(duracion).toBeCloseTo(40 / (3 * 0.5), 1);
-    // Y que sea efectivamente más lento que el resto, no sólo un número distinto.
+    expect(duracion).toBeCloseTo(40 / (3 * (2 / 3)), 1);
+    // Y que siga siendo más lento que la velocidad global, no sólo un número
+    // distinto: a 3x la duración sería 40/3 ≈ 13.3s.
     expect(duracion).toBeGreaterThan(40 / 3);
   });
 });

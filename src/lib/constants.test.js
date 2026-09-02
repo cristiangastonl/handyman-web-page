@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField } from "./constants";
 
 describe("itemThumb", () => {
   // Regression: this is the bug that white-screened /portfolio in production.
@@ -183,5 +183,29 @@ describe("promedio de reseñas de la home", () => {
   it("un valor roto en la base no rompe la home, cae al default", () => {
     expect(getStyleConfig({ reviews_score_style: "no-json" }, "reviews_score_style"))
       .toEqual(STYLE_KEYS.reviews_score_style);
+  });
+});
+
+// Guardar sólo la tipografía de un texto del sitio produce {"fontSize":13}, sin
+// clave "text". parseSiteText pedía "text" para reconocerlo como configuración,
+// así que ese JSON caía en la rama de "texto plano heredado" y la página
+// mostraba {"fontSize":13} en pantalla. Estaba tapado porque el admin siempre
+// guardaba text:"" aunque el campo estuviera vacío; dejó de estarlo cuando el
+// campo pasó a omitir el texto que no se cambió (ver siteText.js).
+describe("parseSiteText con configuración sin texto", () => {
+  it("reconoce el JSON aunque sólo traiga estilo", () => {
+    expect(parseSiteText('{"fontSize":13}')).toEqual({ fontSize: 13 });
+    expect(parseSiteText('{"fontFamily":"Inter"}')).toEqual({ fontFamily: "Inter" });
+  });
+
+  it("sin texto guardado, el sitio cae a la traducción y no al JSON crudo", () => {
+    const campo = getHighlightField({ about_highlight3_text: '{"fontSize":13}' },
+      "about_highlight3_text", "Always pleased to help.");
+    expect(campo.text).toBe("Always pleased to help.");
+    expect(campo.fontSize).toBe(13);
+  });
+
+  it("el texto plano heredado sigue funcionando", () => {
+    expect(parseSiteText("un texto viejo sin JSON")).toEqual({ text: "un texto viejo sin JSON" });
   });
 });

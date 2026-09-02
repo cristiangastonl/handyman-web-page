@@ -29,6 +29,7 @@ export default function Hero({ siteConfig = {} }) {
   const title = parseSiteText(siteConfig.hero_title);
   const brandSubtitle = parseSiteText(siteConfig.hero_brand_subtitle);
   const subtitle = parseSiteText(siteConfig.hero_subtitle);
+  const trust = parseSiteText(siteConfig.hero_trust);
 
   const posX = Number(siteConfig.hero_img_x) || 50;
   const posY = Number(siteConfig.hero_img_y) || 50;
@@ -81,9 +82,16 @@ export default function Hero({ siteConfig = {} }) {
             }}>
               {subtitle?.text || t("hero.subtitle")}
             </p>
-            {/* Trust strip */}
+            {/* Línea de confianza. El texto sale del admin o de la traducción; el ✓
+                lo pone el componente para que no haya que escribirlo a mano en cada
+                idioma ni pegarlo dentro del campo. */}
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-              <span style={{ color: R, fontSize: 13, fontWeight: 700 }}>✓ 100% Recommended</span>
+              <span style={{
+                color: R,
+                fontSize: trust?.fontSize ? `${trust.fontSize}px` : 13,
+                fontFamily: trust?.fontFamily ? `'${trust.fontFamily}', sans-serif` : undefined,
+                fontWeight: 700,
+              }}>✓ {trust?.text || t("hero.trust")}</span>
             </div>
         </div>
       </div>

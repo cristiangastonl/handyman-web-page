@@ -5,6 +5,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_AREAS,
   STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix } from "../../lib/constants";
+import { textoVigente, payloadSiteText } from "../../lib/siteText";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminCard } from "./adminUI";
 
@@ -232,24 +233,38 @@ function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
 }
 
 // ── Site text row with text + fontSize + fontFamily ──
+/**
+ * Una fila de texto editable del sitio.
+ *
+ * El campo arranca con el texto que hoy se ve en la página, no vacío. Antes el
+ * texto actual iba de `placeholder`: se leía igual pero no se podía tocar, sólo
+ * reemplazar entero escribiendo de cero. Anibal lo reportó como "este no me deja
+ * editarlo" (02/09) mandando una captura del campo con el texto adentro — porque
+ * eso es exactamente lo que parece.
+ *
+ * La contracara de precargarlo es que guardar cualquier otra cosa —el tamaño de
+ * letra, por ejemplo— dejaría el texto en inglés grabado en site_config, y lo
+ * guardado le gana a la traducción: los otros 4 idiomas perderían la suya. Por
+ * eso, si el texto quedó idéntico al default, no se manda: se guarda sólo lo que
+ * él efectivamente cambió y la traducción sigue viva.
+ */
 function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
   const parsed = parseSiteText(currentValue) || {};
-  const [text, setText] = useState(parsed.text || "");
+  const [text, setText] = useState(() => textoVigente(currentValue, def));
   const [fontSize, setFontSize] = useState(parsed.fontSize || "");
   const [fontFamily, setFontFamily] = useState(parsed.fontFamily || "");
 
   useEffect(() => {
     const p = parseSiteText(currentValue) || {};
-    setText(p.text || "");
+    setText(textoVigente(currentValue, def));
     setFontSize(p.fontSize || "");
     setFontFamily(p.fontFamily || "");
   }, [currentValue]);
 
-  const handleSave = () => {
-    const val = { text: text || "", fontSize: fontSize ? Number(fontSize) : undefined, fontFamily: fontFamily || undefined };
-    Object.keys(val).forEach(k => val[k] === undefined && delete val[k]);
-    onSave(configKey, JSON.stringify(val));
-  };
+  const sinTocar = !payloadSiteText({ text }, def).text;
+
+  const handleSave = () =>
+    onSave(configKey, JSON.stringify(payloadSiteText({ text, fontSize, fontFamily }, def)));
 
   return (
     <div style={{ ...A.card, marginBottom: spacing.md }}>
@@ -260,7 +275,12 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
       <textarea value={text} onChange={e => setText(e.target.value)}
         placeholder={def.defaultText || "(uses translation default)"}
         rows={configKey === "bio_text" ? 4 : 2}
-        className="admin-input" style={{ ...A.textarea, marginBottom: spacing.sm }}/>
+        className="admin-input" style={{ ...A.textarea, marginBottom: spacing.xs }}/>
+      <p style={{ ...typography.caption, color: colors.gray400, marginBottom: spacing.sm }}>
+        {sinTocar
+          ? "Sin cambios: cada idioma sigue mostrando su propia traducción."
+          : "Editado: este texto se va a ver igual en los 5 idiomas."}
+      </p>
       <div style={{ display: "flex", gap: spacing.sm }}>
         <div style={{ flex: 1 }}>
           <label style={typography.caption}>Font size (px)</label>
@@ -386,7 +406,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
             </div>
           </div>
         </PreviewBox>
-        {["hero_title", "hero_brand_subtitle", "hero_subtitle"].map(key => (
+        {["hero_title", "hero_brand_subtitle", "hero_subtitle", "hero_trust"].map(key => (
           <SiteTextRow key={key} configKey={key} def={SITE_TEXTS[key]} currentValue={siteConfig[key]} onSave={onSave} loading={loading} />
         ))}
       </AdminCard>
