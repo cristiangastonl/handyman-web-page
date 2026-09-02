@@ -148,7 +148,11 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
                 bloque, su centro cae exactamente en el de la fila. */}
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
-              <div>
+              {/* textAlign center: el conteo es más angosto que la fila de estrellas,
+                  así que sin esto arrancaba pegado al borde izquierdo de ellas y se
+                  leía descolgado. Anibal: "lo de 158 reviews deberia centrarse"
+                  (02/09). Las estrellas, que son lo más ancho, no se mueven. */}
+              <div style={{ textAlign: "center" }}>
                 <Stars n={Math.round(parseFloat(avg))} sz={15}/>
                 <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>
               </div>

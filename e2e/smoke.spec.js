@@ -588,10 +588,22 @@ test.describe('cabecera de reseñas de la home', () => {
         const r = el.getBoundingClientRect();
         return (r.top + r.bottom) / 2;
       };
+      // Centro del CONTENIDO y no de la caja: el conteo es un bloque que ocupa
+      // todo el ancho del stack, así que su bounding box no dice dónde está el
+      // texto. Un Range mide lo que realmente se dibuja.
+      const centroX = (el) => {
+        const r = document.createRange();
+        r.selectNodeContents(el);
+        const b = r.getBoundingClientRect();
+        return (b.left + b.right) / 2;
+      };
+      const stack = grupo.children[1];
       return {
         numero: centro(grupo.children[0]),
-        estrellas: centro(grupo.children[1]),
+        estrellas: centro(stack),
         titulo: centro(titulo),
+        xEstrellas: centroX(stack.children[0]),
+        xConteo: centroX(stack.children[1]),
       };
     })()`);
 
@@ -600,6 +612,12 @@ test.describe('cabecera de reseñas de la home', () => {
       'el promedio no está a la misma altura que "Reviews"').toBeLessThanOrEqual(1);
     expect(Math.abs(centros.estrellas - centros.titulo),
       'las estrellas y el conteo no están a la misma altura que "Reviews"').toBeLessThanOrEqual(1);
+
+    // Y el conteo va centrado bajo las estrellas, no pegado a su borde izquierdo.
+    // Anibal: "lo de 158 reviews deberia centrarse" (02/09). Es más angosto que la
+    // fila de estrellas, así que sin textAlign se leía descolgado hacia la izquierda.
+    expect(Math.abs(centros.xConteo - centros.xEstrellas),
+      'el conteo de reseñas no está centrado bajo las estrellas').toBeLessThanOrEqual(1);
   });
 });
 
