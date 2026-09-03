@@ -165,6 +165,28 @@ export function checkConventions() {
     if (origen.endsWith('/'))
       errors.push(`src/lib/constants.js: SITE_ORIGIN termina en barra ("${origen}") — el canonical la agrega, quedaría duplicada`);
 
+    // vercel.json es el quinto lugar donde puede aparecer el dominio: el redirect
+    // que manda el .vercel.app al dominio propio lleva la URL entera en su
+    // destination. Si el dominio cambia y ese destino se queda viejo, el redirect
+    // sigue existiendo y manda a los visitantes a una dirección que ya no es la
+    // del sitio — peor que no tener redirect.
+    const rutaVercel = join(root, 'vercel.json');
+    if (existsSync(rutaVercel)) {
+      let cfg;
+      try {
+        cfg = JSON.parse(readFileSync(rutaVercel, 'utf8'));
+      } catch (e) {
+        errors.push(`vercel.json: JSON inválido — ${e.message}`);
+      }
+      for (const r of cfg?.redirects || []) {
+        const destino = String(r.destination || '');
+        if (/^https?:\/\//.test(destino) && !destino.startsWith(origen))
+          errors.push(
+            `vercel.json: un redirect manda a ${destino} pero SITE_ORIGIN es ${origen} — el destino tiene que ser el dominio del sitio`
+          );
+      }
+    }
+
     // Sólo las URLs que son del sitio: las <loc> del sitemap y la línea Sitemap:
     // de robots. El xmlns del sitemap (http://www.sitemaps.org/...) es el
     // namespace del formato, no una dirección nuestra, y no se toca nunca.
