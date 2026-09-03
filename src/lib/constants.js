@@ -20,7 +20,7 @@ export function ytId(raw) {
 //
 // Cuando el dominio propio (handymanservicesinzurich.ch, en Infomaniak) apunte a
 // Vercel, se cambia acá y el guard obliga a cambiar los otros dos.
-export const SITE_ORIGIN = "https://handyman-web-page.vercel.app";
+export const SITE_ORIGIN = "https://www.handymanservicesinzurich.ch";
 
 export const R = "#D4781F";
 export const G = "#4A4A4A";
