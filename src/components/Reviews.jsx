@@ -153,13 +153,13 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
                 <SocialIcon type="fb" size={16}/>
               </span>
             </div>
-            {avg && <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>}
+            <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
             {/* center y no baseline: al lado del número hay un bloque de DOS líneas
                 (estrellas + "158 reviews"), así que baseline lo pegaba a la línea de
                 las estrellas y el 4.8 quedaba 8.7px más arriba que el "Reviews" de la
                 izquierda — Anibal lo vio desalineado el 01/09. Centrado contra el
                 bloque, su centro cae exactamente en el de la fila. */}
-            {avg && <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {avg ? <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
               {/* textAlign center: el conteo es más angosto que la fila de estrellas,
                   así que sin esto arrancaba pegado al borde izquierdo de ellas y se
@@ -169,7 +169,17 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
                 <Stars n={Math.round(parseFloat(avg))} sz={15}/>
                 <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>
               </div>
-            </div>}
+            </div> : (
+              /* Sin puntajes, el mismo lugar muestra cuánta gente lo recomienda:
+                 la fila conserva su peso visual y el dato sigue siendo cierto. */
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d={svgP.thumbsUp}/></svg>
+                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                  <AnimatedCounter target={allReviews.length} duration={1400} decimals={0}/>
+                </span>
+                <span style={{ fontSize: 12, color: "#777" }}>{t("reviews.recommendShort")}</span>
+              </div>
+            )}
           </div>
           <button onClick={() => nav("reviews")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("reviews.seeAll")}</button>
         </div>
@@ -293,14 +303,36 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
           <SocialIcon type="fb" size={20}/>
           </span>
         </div>
-        {avg && <>
-          <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
-          <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
-        </>}
-        <div style={{ fontSize: 14, color: "#777" }}>{t("reviews.based", { count: allReviews.length })}</div>
+        {/* Con puntajes se muestra el promedio en estrellas. Sin puntajes —hoy, que
+            todas las reseñas son recomendaciones de Facebook— se muestra cuánta
+            gente lo recomienda, que es la misma prueba social sin inventar un
+            número. Es el modelo que usa Facebook para negocios desde que dejó las
+            estrellas: no puntaje, sino cuánta gente te recomienda. */}
+        {avg ? (
+          <>
+            <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
+            <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
+            <div style={{ fontSize: 14, color: "#777" }}>{t("reviews.based", { count: allReviews.length })}</div>
+          </>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d={svgP.thumbsUp}/></svg>
+              <span style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                <AnimatedCounter target={allReviews.length} duration={1600} decimals={0}/>
+              </span>
+            </div>
+            <div style={{ fontSize: 14, color: "#777", marginTop: 10 }}>
+              {t("reviews.recommendCount", { count: allReviews.length })}
+            </div>
+          </>
+        )}
 
-        {/* Rating distribution bars (Google only) */}
-        <div style={{ maxWidth: 280, margin: "20px auto 0" }}>
+        {/* Las barras de distribución sólo tienen sentido si hay algo que
+            distribuir. Sin reseñas puntuadas dibujaban cinco renglones en cero
+            —5★ 4★ 3★ 2★ 1★, todos vacíos—, que se lee como "nadie lo puntuó
+            bien" en vez de "todavía no hay puntajes". */}
+        {googleOnly.length > 0 && <div style={{ maxWidth: 280, margin: "20px auto 0" }}>
           {[5,4,3,2,1].map(star => {
             const count = googleOnly.filter(r => r.r === star).length;
             const pct = googleOnly.length ? (count / googleOnly.length) * 100 : 0;
@@ -315,7 +347,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
               </div>
             );
           })}
-        </div>
+        </div>}
 
         {/* Chronological order toggle */}
         <div style={{ marginTop: 20 }}>

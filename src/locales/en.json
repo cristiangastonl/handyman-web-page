@@ -43,6 +43,8 @@
   "reviews.title": "Reviews",
   "reviews.based": "Based on {{count}} reviews",
   "reviews.count": "{{count}} reviews",
+  "reviews.recommendCount": "{{count}} people recommend Anibal",
+  "reviews.recommendShort": "recommend",
   "reviews.seeAll": "See all reviews →",
   "reviews.leaveReview": "Leave a review on Google",
   "reviews.leaveReviewFb": "Leave a review on Facebook",

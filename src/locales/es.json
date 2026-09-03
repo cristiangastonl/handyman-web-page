@@ -43,6 +43,8 @@
   "reviews.title": "Reseñas",
   "reviews.based": "Basado en {{count}} reseñas",
   "reviews.count": "{{count}} reseñas",
+  "reviews.recommendCount": "{{count}} personas recomiendan a Anibal",
+  "reviews.recommendShort": "recomiendan",
   "reviews.seeAll": "Todas las reseñas →",
   "reviews.leaveReview": "Dejar una reseña en Google",
   "reviews.leaveReviewFb": "Dejar una reseña en Facebook",
