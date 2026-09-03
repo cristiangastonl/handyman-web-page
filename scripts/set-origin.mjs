@@ -1,12 +1,18 @@
-// Cambia el origen del sitio en los tres lugares donde vive, de una.
+// Cambia el origen del sitio en los cinco lugares donde vive, de una.
 //
 //   npm run set-origin -- https://handymanservicesinzurich.ch
 //
-// Los tres son: SITE_ORIGIN en src/lib/constants.js (de donde salen el canonical
-// y el og:url), la línea Sitemap: de public/robots.txt, y las <loc> de
-// public/sitemap.xml. Tienen que decir exactamente lo mismo: si el canonical
-// declara un origen y el sitemap otro, el buscador recibe dos respuestas para la
-// misma página y reparte la autoridad entre las dos.
+// Son cinco archivos: SITE_ORIGIN en src/lib/constants.js (de donde salen el
+// canonical y el og:url en runtime), la línea Sitemap: de public/robots.txt, las
+// <loc> de public/sitemap.xml, el destino del redirect en vercel.json, y las 11
+// apariciones de index.html — canonical estático, los 6 hreflang, og:url,
+// og:image, twitter:image y el url del JSON-LD.
+//
+// Tienen que decir exactamente lo mismo. Si el canonical declara un origen y el
+// sitemap otro, el buscador recibe dos respuestas para la misma página. Y el
+// og:image es peor todavía: es la imagen que se ve al compartir el link por
+// WhatsApp, que es como Anibal reparte su sitio — apuntando al dominio viejo, la
+// previsualización se rompe el día que ese deploy deje de existir.
 //
 // Existe para que el día del cambio de dominio no sea un editar-tres-archivos-y-
 // ojalá-no-me-olvide-de-uno. El guard de conventions.mjs lo verifica igual, así
@@ -49,7 +55,7 @@ if (viejo === nuevo) {
 }
 
 const cambios = [];
-for (const rel of [CONSTANTS, 'public/robots.txt', 'public/sitemap.xml']) {
+for (const rel of [CONSTANTS, 'public/robots.txt', 'public/sitemap.xml', 'vercel.json', 'index.html']) {
   const antes = readFileSync(archivo(rel), 'utf8');
   const despues = antes.split(viejo).join(nuevo);
   const n = antes.split(viejo).length - 1;

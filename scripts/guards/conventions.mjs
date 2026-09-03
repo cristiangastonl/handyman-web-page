@@ -187,6 +187,24 @@ export function checkConventions() {
       }
     }
 
+    // index.html es el sexto lugar, y el más cargado: 11 apariciones entre el
+    // canonical estático, los 6 hreflang, og:url, og:image, twitter:image y el url
+    // del JSON-LD. El guard no lo cubría y por eso sobrevivió al cambio de dominio
+    // del 03/09: Seo.jsx reescribe el canonical y el og:url en runtime, así que
+    // esos dos se veían bien, pero el og:image no lo toca nadie y quedó apuntando
+    // al .vercel.app. Es la imagen que se ve al compartir el link por WhatsApp, que
+    // es justo como Anibal reparte su sitio.
+    //
+    // Se miran sólo los atributos que declaran una URL del sitio; las externas
+    // (fuentes de Google, schema.org, las redes) no se tocan.
+    const indexHtml = readFileSync(join(root, 'index.html'), 'utf8');
+    const propias = [
+      ...indexHtml.matchAll(/(?:href|content)="(https?:\/\/[^"]+)"/g),
+    ].map((m) => m[1]);
+    const EXTERNAS = /^https?:\/\/(fonts\.(googleapis|gstatic)\.com|schema\.org|wa\.me|www\.(facebook|youtube)\.com)/;
+    for (const u of new Set(propias.filter((u) => !EXTERNAS.test(u) && !u.startsWith(origen))))
+      errors.push(`index.html: declara ${u} pero SITE_ORIGIN es ${origen} — tienen que decir lo mismo`);
+
     // Sólo las URLs que son del sitio: las <loc> del sitemap y la línea Sitemap:
     // de robots. El xmlns del sitemap (http://www.sitemaps.org/...) es el
     // namespace del formato, no una dirección nuestra, y no se toca nunca.
