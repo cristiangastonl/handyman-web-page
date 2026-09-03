@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
-import { starAverage } from "../components/Reviews";
+import { starAverage, fuentesDeReseñas } from "../components/Reviews";
 
 // El 03/09/2026 el sitio de un negocio real publicó reseñas inventadas.
 //
@@ -64,5 +64,39 @@ describe("no hay reseñas de relleno en el código", () => {
   it("Reviews.jsx no tiene un fallback cuando no hay reseñas de Google", () => {
     // La forma exacta del bug: googleReviews.length > 0 ? (las reales) : (las falsas).
     expect(reviews).not.toMatch(/googleReviews\.length\s*>\s*0\s*\n?\s*\?/);
+  });
+});
+
+// La pastilla de fuentes anunciaba "Google + Facebook" siempre, aunque no
+// hubiera ni una reseña de Google. Quedaba incoherente con el bloque de al lado,
+// que ya mostraba recomendaciones justamente porque sabía que no había puntajes.
+// Ahora las dos cosas salen de la misma función.
+describe("qué fuentes de reseñas hay", () => {
+  const g = { source: "google", r: 5 };
+  const fb = { source: "facebook", r: null };
+
+  it("sin reseñas no hay ninguna fuente, y la pastilla no se dibuja", () => {
+    expect(fuentesDeReseñas([])).toEqual({ google: false, facebook: false });
+    expect(fuentesDeReseñas()).toEqual({ google: false, facebook: false });
+  });
+
+  it("sólo Facebook: no anuncia Google", () => {
+    expect(fuentesDeReseñas([fb, fb])).toEqual({ google: false, facebook: true });
+  });
+
+  it("sólo Google: no anuncia Facebook", () => {
+    expect(fuentesDeReseñas([g])).toEqual({ google: true, facebook: false });
+  });
+
+  it("las dos, que es cuando el + tiene sentido", () => {
+    expect(fuentesDeReseñas([g, fb])).toEqual({ google: true, facebook: true });
+  });
+
+  it("una reseña de Google sin puntaje igual cuenta como fuente", () => {
+    // La pastilla dice de dónde salen las reseñas; las estrellas dependen de que
+    // además tengan puntaje. Son dos preguntas distintas sobre el mismo dato.
+    const sinPuntaje = { source: "google", r: null };
+    expect(fuentesDeReseñas([sinPuntaje]).google).toBe(true);
+    expect(starAverage([sinPuntaje])).toBeNull();
   });
 });

@@ -17,6 +17,39 @@ const sourcePill = {
   background: "#fff", border: "1px solid #e8e8e8",
 };
 
+/**
+ * Qué fuentes de reseñas hay realmente cargadas.
+ *
+ * Una sola decisión para todo lo que depende de eso: la pastilla de fuentes, las
+ * estrellas y el promedio. Antes cada uno resolvía por su cuenta y quedaban
+ * incoherencias — la pastilla anunciaba "Google + Facebook" con cero reseñas de
+ * Google, mientras el bloque de al lado ya mostraba recomendaciones porque sabía
+ * que no había puntajes.
+ *
+ * Se mira lo que hay, no lo que debería haber: el día que Anibal cargue una
+ * reseña de Google, la G aparece sola y con ella vuelven las estrellas.
+ */
+export const fuentesDeReseñas = (reviews = []) => ({
+  google: reviews.some(r => r.source === "google"),
+  facebook: reviews.some(r => r.source === "facebook"),
+});
+
+/**
+ * La pastilla que dice de dónde salen las reseñas. Muestra sólo las fuentes que
+ * tienen algo, y el "+" únicamente cuando hay dos que separar.
+ */
+function SourcePill({ fuentes, sz = 16 }) {
+  const { google, facebook } = fuentes;
+  if (!google && !facebook) return null;
+  return (
+    <span style={sourcePill}>
+      {google && <GoogleG size={sz + 6}/>}
+      {google && facebook && <span style={{ fontSize: 11, color: "#ccc" }}>+</span>}
+      {facebook && <SocialIcon type="fb" size={sz}/>}
+    </span>
+  );
+}
+
 // Sentido de marcha del carrusel de reseñas de la home.
 //   -1 → de izquierda a derecha: las tarjetas entran por el borde izquierdo.
 //    1 → de derecha a izquierda, que es como corren los carruseles de fotos.
@@ -102,6 +135,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
   };
   // Home always leads with the newest reviews — the asc/desc control lives on /reviews.
   const allReviews = useAllReviews(googleReviews, fbReviews, i18n.language, "desc");
+  const fuentes = fuentesDeReseñas(allReviews);
   const avg = starAverage(allReviews);
 
   // La lista se duplica para que el loop no muestre la costura al reiniciar, igual
@@ -147,11 +181,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: revTitleStyle.fontSize, fontFamily: `'${revTitleStyle.fontFamily}', sans-serif`, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
-              <span style={sourcePill}>
-                <GoogleG/>
-                <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
-                <SocialIcon type="fb" size={16}/>
-              </span>
+              <SourcePill fuentes={fuentes} sz={16}/>
             </div>
             <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
             {/* center y no baseline: al lado del número hay un bloque de DOS líneas
@@ -284,6 +314,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
   const reviews = useAllReviews(googleReviews, fbReviews, i18n.language, direction);
   const allReviews = reviews;
   const googleOnly = reviews.filter(r => r.source === "google" && r.r);
+  const fuentes = fuentesDeReseñas(reviews);
   const avg = starAverage(reviews);
 
   return (
@@ -292,16 +323,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
       <div style={{ textAlign: "center", padding: "24px 0 36px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
           <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
-          <span style={sourcePill}>
-          <svg width="22" height="22" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          <span style={{ fontSize: 11, color: "#ccc" }}>+</span>
-          <SocialIcon type="fb" size={20}/>
-          </span>
+          <SourcePill fuentes={fuentes} sz={20}/>
         </div>
         {/* Con puntajes se muestra el promedio en estrellas. Sin puntajes —hoy, que
             todas las reseñas son recomendaciones de Facebook— se muestra cuánta
