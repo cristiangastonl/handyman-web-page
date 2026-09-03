@@ -4,7 +4,7 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   S, css,
   DEFAULT_CATS, DEFAULT_WORK, DEFAULT_FAQS, DEFAULT_SUBCATS,
-  DEFAULT_HIGHLIGHTS, DEFAULT_FB_REVIEWS,
+  DEFAULT_HIGHLIGHTS,
 } from "./lib/constants";
 import {
   supabase, fetchCategories, fetchWorkItems, fetchFaqs,
@@ -101,7 +101,9 @@ export default function App() {
   const [faqs, setFaqs] = useState(DEFAULT_FAQS);
   const [subcats, setSubcats] = useState(DEFAULT_SUBCATS);
   const [highlights, setHighlights] = useState(DEFAULT_HIGHLIGHTS);
-  const [fbReviews, setFbReviews] = useState(DEFAULT_FB_REVIEWS);
+  // Arranca vacío: mostrar reseñas que viven en el código mientras Supabase
+  // responde es publicar contenido que no es del cliente, aunque sea un segundo.
+  const [fbReviews, setFbReviews] = useState([]);
   const [siteConfig, setSiteConfig] = useState({});
   const [googleReviews, setGoogleReviews] = useState([]);
   const [adminTab, setAdminTab] = useState("categories");

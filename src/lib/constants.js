@@ -50,19 +50,18 @@ export const DEFAULT_SUBCATS = [];
 
 export const DEFAULT_HIGHLIGHTS = [];
 
-export const DEFAULT_FB_REVIEWS = [
-  { id: "fb1", name: "Lidia Profir", rating: 5, text: "I totally recommend Anibal. He is very polite, he immediately responded to my request of installing lights in a new appartment, I was really happy with the work he did. He's very friendly and I appreciated his communication skills very much. For me it was a real plus he speaks English very well as I don't speak German too much. Don't hesitate to contact him, you'll be surprised by his work and the interaction with him. Thanks Anibal!", review_date: "2025" },
-  { id: "fb2", name: "Lu Mo", rating: 5, text: "Anibal fitted our Samsung frame, some lights, mounted several pictures. He was pleasant, professional and very thorough.", review_date: "2025" },
-  { id: "fb3", name: "Diana Ursachi", rating: 5, text: "Anibal installed a Tesla charging station in the garage and it worked perfectly ever since. I wholeheartedly recommend his services!", review_date: "2025" },
-  { id: "fb4", name: "Vanessa Kitić", rating: 5, text: "Anibal was such a pro in installing the Philips smart lighting fixtures in my living and dining spaces. He was able to advise on the height and created a seamless solution for a once off center wiring issue that now looks perfectly centered over my dining table. The whole service was flawless, and not a speck of dust was left behind. I recommend Anibal for truly anything you may need done in your home. He is so precise, professional, and friendly.", review_date: "2025" },
-  { id: "fb5", name: "Kamel Ghosn", rating: 5, text: "Great communication, service and price. Anibal did a great job hanging a TV and moving a light. Thank you", review_date: "2025" },
-  { id: "fb6", name: "Heather Halsey", rating: 5, text: "Aníbal did a great job. He has good attention to detail and checks with me that I was happy with the position of a hanging light. The clean up was immaculate as well. We are very happy with the work and will definitely contact him when we have more jobs around the house.", review_date: "2025" },
-  { id: "fb7", name: "Catherine Grau", rating: 5, text: "Ausgezeichnete Arbeit, ich empfehle Euch allen Herrr Handyman. Excelente trabajo 10+, recomiendo ampliamente los servicios del Sr. Handyman.", review_date: "2025" },
-  { id: "fb8", name: "Paco Olivares", rating: 5, text: "Excelente Servicio 5 estrellas y 3 diamantes! Fueron instalaciones de lámparas con problemas de conexión. Todo quedó al 100%", review_date: "2025" },
-  { id: "fb9", name: "Sissi Schulz", rating: 5, text: "I can definitely recommend the \"Handyman Services\" aka Aníbal. I needed some lights installed in my new flat, with ceiling drilling and all. He did an amazing job! Every light was precisely placed with some Laser technology which helped putting them exactly in one line as they were three lights in a row. They are also placed exactly in the centre of the ceiling as I wanted. He worked cleanly but at the same time was very efficient, it couldn't have been done better. Booking was very easy and he was very punctual. The price given was fair and he shared his knowledge of some other stuff that could help improve my flat, which I really appreciated. All in all I am super happy with the service he provided and would definitively book him again for anything else that needs doing in the flat.", review_date: "2025" },
-  { id: "fb10", name: "Natalia Lucas", rating: 5, text: "Just wanted to recommend Handyman Services in Zurich, for his truly amazing work! Today he installed two lamps (one he suggested, and I LOVE it!), fixed a poorly done wall, and mounted a super tricky wall hanger perfectly. Thank you so much! What really stands out is his precision, honesty, and great advice. He knows his craft, works with top-quality tools, and makes everything easy and stress-free. His service is his passion! He knows about the new products and technologies in the market. If you need someone, you can fully trust for electrical work or home repairs, Handyman's the one to call!", review_date: "2025" },
-  { id: "fb11", name: "Karen Orozco", rating: 5, text: "Hace unas semanas, Aníbal vino a casa e instaló los rieles para cortinas en cuatro ventanales, además de la iluminación de nuestra sala. ¡Queremos destacar su profesionalismo y la excelente calidad de su trabajo! Estamos súper contentos con el resultado! Súper recomendado 🙌🏽", review_date: "2025" },
-];
+// Acá vivían REVIEWS (reseñas de relleno con nombres inventados) y
+// DEFAULT_FB_REVIEWS (11 hardcodeadas). Se borraron el 03/09/2026.
+//
+// No eran inofensivas: las primeras se mostraban cuando la tabla google_reviews
+// quedaba vacía, y eso pasó en producción el día que Anibal borró las suyas desde
+// el admin. El sitio publicó "Anna M.", "Thomas K." y compañía como testimonios
+// propios, con un promedio de 4.3 calculado sobre ellas. Las segundas se veían en
+// cada carga hasta que Supabase respondía.
+//
+// Las reseñas de un negocio real salen de su base o no salen. Si no hay, la
+// sección queda vacía y el promedio no aparece — que es la verdad.
+
 
 // Fallback: la lista de verdad vive en site_config.site_service_areas y se
 // edita desde el admin. Esto es lo que se ve si Supabase no responde, así que
@@ -94,20 +93,6 @@ export const LANGS = [
   { code: "es", flag: "\u{1F1EA}\u{1F1F8}", label: "Espa\u00f1ol" },
 ];
 
-export const REVIEWS = [
-  { name: "Anna M.", r: 5, text: "Outstanding service! Our bathroom looks brand new. Very professional and punctual. Will definitely call again for future projects.", time: "2 weeks ago" },
-  { name: "Thomas K.", r: 5, text: "Assembled our entire IKEA kitchen in one day. Perfect work. Highly recommended!", time: "1 month ago" },
-  { name: "Sarah L.", r: 4, text: "Quick response and great electrical work. Fair prices for the Zurich area. Very clean and tidy.", time: "1 month ago" },
-  { name: "Marco R.", r: 5, text: "Third time hiring \u2014 always top quality. Best handyman in Zurich! Friendly, on time, and does excellent work.", time: "2 months ago" },
-  { name: "Lisa W.", r: 5, text: "Our new parquet floor is beautiful. Impressive attention to detail and very reasonable pricing.", time: "3 months ago" },
-  { name: "Peter H.", r: 5, text: "Reliable and honest. Fixed multiple things in one visit. Great value for money.", time: "3 months ago" },
-  { name: "Julia B.", r: 5, text: "Mounted our TV and installed floating shelves perfectly. Very careful with the walls. Cleaned everything after. Top!", time: "4 months ago" },
-  { name: "Daniel F.", r: 5, text: "Emergency plumbing fix on a Saturday. Arrived within 2 hours. Lifesaver! Fair price even for weekend work.", time: "4 months ago" },
-  { name: "Nina S.", r: 4, text: "Painted our entire apartment in 3 days. Neat work, protected all furniture. Good communication throughout.", time: "5 months ago" },
-  { name: "Robert M.", r: 5, text: "Built custom shelving in our office. Measured everything perfectly, looks like it was always there. Highly professional.", time: "5 months ago" },
-  { name: "Elena K.", r: 5, text: "Garden maintenance and new lighting installation. Transformed our outdoor space completely. So happy with the result!", time: "6 months ago" },
-  { name: "Stefan W.", r: 5, text: "Fixed a leaking faucet and installed a new bathroom mirror. Quick, efficient, and very friendly. Recommended to all my neighbors.", time: "6 months ago" },
-];
 
 // Legacy image paths (kept for reference)
 // fb: "/anibal/facebook_icon.jpeg", yt: "/anibal/youtube_icon.jpeg", wa: "/anibal/whatsapp_icon.jpeg"

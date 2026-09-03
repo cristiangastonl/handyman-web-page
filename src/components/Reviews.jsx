@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { R, REVIEWS, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD } from "../lib/constants";
+import { R, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD } from "../lib/constants";
 import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
@@ -41,13 +41,17 @@ const FbBadge = () => (
  */
 function useAllReviews(googleReviews, fbReviews, lang, direction = "desc") {
   return useMemo(() => {
-    const gReviews = googleReviews.length > 0
-      ? googleReviews.map(r => ({
-          name: r.name, r: r.rating, text: r.text, source: "google",
-          time: r.time_label || formatReviewDate(r.review_date, lang),
-          sortedAt: parseReviewDate(r.review_date) ?? parseReviewDate(r.created_at),
-        }))
-      : REVIEWS.map(r => ({ ...r, source: "google", sortedAt: null }));
+    // Sin fallback a datos de ejemplo. Había uno —si google_reviews venía vacía se
+    // mostraban las 27 reseñas inventadas de constants.js— y el 03/09 se disparó
+    // en producción: Anibal borró las de Google desde el admin y el sitio siguió
+    // publicando "Anna M.", "Thomas K." y compañía como si fueran suyas, con un
+    // promedio de 4.3 calculado sobre ellas. Un negocio real mostrando testimonios
+    // y una calificación fabricados. Si no hay reseñas, no hay reseñas.
+    const gReviews = googleReviews.map(r => ({
+      name: r.name, r: r.rating, text: r.text, source: "google",
+      time: r.time_label || formatReviewDate(r.review_date, lang),
+      sortedAt: parseReviewDate(r.review_date) ?? parseReviewDate(r.created_at),
+    }));
     const fReviews = fbReviews.map(r => ({
       name: r.name, r: null, text: r.text, source: "facebook", recommends: true,
       time: formatReviewDate(r.review_date, lang),
@@ -65,10 +69,19 @@ function useAllReviews(googleReviews, fbReviews, lang, direction = "desc") {
   }, [googleReviews, fbReviews, lang, direction]);
 }
 
-/** Star average — Facebook reviews are thumbs-up only, so they never count here. */
-const starAverage = (reviews) => {
+/**
+ * Promedio de estrellas. Las de Facebook son pulgar arriba y no puntaje, así que
+ * nunca cuentan acá.
+ *
+ * Devuelve null cuando no hay ninguna reseña puntuada, y quien lo muestra tiene
+ * que ocultar el bloque. Antes devolvía "0.0", que en una página de reseñas se
+ * lee como "este tipo tiene cero estrellas" — lo contrario de la verdad, que es
+ * que todavía no hay ninguna cargada.
+ */
+export const starAverage = (reviews) => {
   const rated = reviews.filter(r => r.source === "google" && r.r);
-  return rated.length > 0 ? (rated.reduce((a, r) => a + r.r, 0) / rated.length).toFixed(1) : "0.0";
+  if (rated.length === 0) return null;
+  return (rated.reduce((a, r) => a + r.r, 0) / rated.length).toFixed(1);
 };
 
 // Unified reviews carousel for the home page (Google + Facebook)
@@ -140,13 +153,13 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
                 <SocialIcon type="fb" size={16}/>
               </span>
             </div>
-            <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
+            {avg && <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>}
             {/* center y no baseline: al lado del número hay un bloque de DOS líneas
                 (estrellas + "158 reviews"), así que baseline lo pegaba a la línea de
                 las estrellas y el 4.8 quedaba 8.7px más arriba que el "Reviews" de la
                 izquierda — Anibal lo vio desalineado el 01/09. Centrado contra el
                 bloque, su centro cae exactamente en el de la fila. */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {avg && <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
               {/* textAlign center: el conteo es más angosto que la fila de estrellas,
                   así que sin esto arrancaba pegado al borde izquierdo de ellas y se
@@ -156,7 +169,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
                 <Stars n={Math.round(parseFloat(avg))} sz={15}/>
                 <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>
               </div>
-            </div>
+            </div>}
           </div>
           <button onClick={() => nav("reviews")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("reviews.seeAll")}</button>
         </div>
@@ -280,8 +293,10 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
           <SocialIcon type="fb" size={20}/>
           </span>
         </div>
-        <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
-        <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
+        {avg && <>
+          <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
+          <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
+        </>}
         <div style={{ fontSize: 14, color: "#777" }}>{t("reviews.based", { count: allReviews.length })}</div>
 
         {/* Rating distribution bars (Google only) */}
