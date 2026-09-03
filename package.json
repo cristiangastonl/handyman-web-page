@@ -18,7 +18,8 @@
     "verify:fast": "node scripts/verify.mjs --fast",
     "verify:scope": "node scripts/verify.mjs --scope",
     "verify:prod": "node scripts/check-prod-seo.mjs",
-    "set-origin": "node scripts/set-origin.mjs"
+    "set-origin": "node scripts/set-origin.mjs",
+    "backup": "node scripts/backup.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

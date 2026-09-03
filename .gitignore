@@ -20,3 +20,7 @@ blob-report
 
 # fotos que trae el cliente para subir a Supabase — nunca al repo
 _incoming/
+
+# Copia local de Supabase (1.6 GB de fotos): nunca al repo.
+# Se regenera con: npm run backup
+backup/

@@ -80,26 +80,59 @@ function rutaEnBucket(url) {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
-async function bajar(url, destino) {
-  if (existsSync(destino)) {
-    // Ya está: se compara el peso contra el servidor para detectar una descarga
-    // que quedó cortada por la mitad en una corrida anterior.
-    const head = await fetch(url, { method: 'HEAD' });
-    const esperado = Number(head.headers.get('content-length') || 0);
-    if (esperado > 0 && statSync(destino).size === esperado) return { estado: 'ya-estaba', bytes: 0 };
+/**
+ * Qué se bajó y cuánto pesaba, para saber qué saltear sin volver a preguntarle
+ * al servidor.
+ *
+ * La primera versión hacía un HEAD por archivo para comparar el content-length.
+ * Dos problemas: duplicaba los pedidos (638 HEAD + 638 GET) y, sobre todo, un
+ * HEAD que falla tiraba abajo la corrida entera. Con el índice, una segunda
+ * corrida no toca la red para nada.
+ */
+const RUTA_INDICE = join(DESTINO, 'media', '.indice.json');
+const indice = existsSync(RUTA_INDICE)
+  ? JSON.parse(readFileSync(RUTA_INDICE, 'utf8'))
+  : {};
+
+async function bajar(url, rel) {
+  const destino = join(DESTINO, 'media', rel);
+  // Ya está y coincide con lo que se anotó al bajarlo: no se toca la red.
+  if (existsSync(destino) && indice[rel] && statSync(destino).size === indice[rel]) {
+    return { estado: 'ya-estaba', bytes: 0 };
   }
-  const res = await fetch(url);
-  if (!res.ok) return { estado: 'falló', error: `HTTP ${res.status}` };
-  mkdirSync(dirname(destino), { recursive: true });
-  await pipeline(Readable.fromWeb(res.body), createWriteStream(destino));
-  return { estado: 'bajado', bytes: statSync(destino).size };
+  // Tres intentos con espera creciente. Una copia de seguridad que se rinde en
+  // el primer hipo de red no es una copia de seguridad: el 03/09 un ECONNRESET
+  // suelto abortó las 638 descargas de una.
+  let ultimo;
+  for (let intento = 1; intento <= 3; intento++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      mkdirSync(dirname(destino), { recursive: true });
+      await pipeline(Readable.fromWeb(res.body), createWriteStream(destino));
+      const bytes = statSync(destino).size;
+      if (bytes === 0) throw new Error('bajó 0 bytes');
+      indice[rel] = bytes;
+      return { estado: 'bajado', bytes };
+    } catch (e) {
+      ultimo = e.message || String(e);
+      if (intento < 3) await new Promise((r) => setTimeout(r, intento * 1500));
+    }
+  }
+  return { estado: 'falló', error: ultimo };
 }
 
-/** De a 6 en paralelo: alcanza para que sea rápido sin castigar al servidor. */
+/**
+ * De a 6 en paralelo. Con Promise.all una sola descarga rota rechazaba la tanda
+ * entera y cortaba el proceso; allSettled deja que las demás terminen y los
+ * errores se reportan al final, que es lo que uno quiere de un backup.
+ */
 async function enTandas(items, n, fn) {
   const salida = [];
   for (let i = 0; i < items.length; i += n) {
-    salida.push(...(await Promise.all(items.slice(i, i + n).map(fn))));
+    const tanda = await Promise.allSettled(items.slice(i, i + n).map(fn));
+    salida.push(...tanda.map((r) =>
+      r.status === 'fulfilled' ? r.value : { estado: 'falló', error: String(r.reason) }));
   }
   return salida;
 }
@@ -147,7 +180,7 @@ const listado = [...urls];
 const resultados = await enTandas(listado, 6, async (url) => {
   const rel = rutaEnBucket(url);
   if (!rel) return { estado: 'falló', url, error: 'no pude leer la ruta del bucket' };
-  const r = await bajar(url, join(DESTINO, 'media', rel));
+  const r = await bajar(url, rel);
   return { ...r, url };
 });
 
@@ -159,7 +192,8 @@ for (const r of resultados) {
   if (hechos % 50 === 0) process.stdout.write(`  ${hechos}/${listado.length}\r`);
 }
 
-// ── 3. El manifiesto ──
+// ── 3. El índice y el manifiesto ──
+writeFileSync(RUTA_INDICE, JSON.stringify(indice, null, 2));
 const manifiesto = {
   fecha: new Date().toISOString(),
   origen: URL_BASE,
