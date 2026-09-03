@@ -10,7 +10,7 @@
         }
       ],
       "destination": "https://www.handymanservicesinzurich.ch/$1",
-      "permanent": false
+      "permanent": true
     }
   ],
   "rewrites": [
