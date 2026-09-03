@@ -149,6 +149,39 @@ export function checkConventions() {
     }
   }
 
+  // El origen del sitio dice lo mismo en los tres lugares donde aparece.
+  //
+  // SITE_ORIGIN en constants.js alimenta el canonical y el og:url, pero
+  // robots.txt y sitemap.xml son archivos estáticos que no pueden importarlo. Si
+  // se separan, el buscador recibe dos respuestas distintas para la misma página
+  // y reparte la autoridad entre las dos. El día que se cambie el dominio, esto
+  // obliga a cambiar los tres o el harness no deja commitear.
+  const cts = readFileSync(join(srcDir, 'lib', 'constants.js'), 'utf8');
+  const mOrigen = cts.match(/export const SITE_ORIGIN = "([^"]+)"/);
+  if (!mOrigen) {
+    errors.push('src/lib/constants.js: no se encontró SITE_ORIGIN');
+  } else {
+    const origen = mOrigen[1];
+    if (origen.endsWith('/'))
+      errors.push(`src/lib/constants.js: SITE_ORIGIN termina en barra ("${origen}") — el canonical la agrega, quedaría duplicada`);
+
+    // Sólo las URLs que son del sitio: las <loc> del sitemap y la línea Sitemap:
+    // de robots. El xmlns del sitemap (http://www.sitemaps.org/...) es el
+    // namespace del formato, no una dirección nuestra, y no se toca nunca.
+    const declaradas = [
+      ['public/robots.txt', /^Sitemap:\s*(\S+)/gim],
+      ['public/sitemap.xml', /<loc>([^<]+)<\/loc>/gi],
+    ];
+    for (const [rel, patron] of declaradas) {
+      const ruta = join(root, rel);
+      if (!existsSync(ruta)) { errors.push(`falta ${rel}`); continue; }
+      const urls = [...readFileSync(ruta, 'utf8').matchAll(patron)].map((m) => m[1]);
+      if (urls.length === 0) { errors.push(`${rel}: no declara ninguna URL del sitio`); continue; }
+      for (const u of new Set(urls.filter((u) => !u.startsWith(origen))))
+        errors.push(`${rel}: declara ${u} pero SITE_ORIGIN es ${origen} — tienen que decir lo mismo`);
+    }
+  }
+
   // Variables de entorno: las de Supabase son obligatorias, el resto opcionales.
   const REQUIRED_ENV = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'];
   const examplePath = join(root, '.env.example');

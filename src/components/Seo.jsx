@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { SITE_ORIGIN } from "../lib/constants";
 
 /**
  * Canonical y og:url por ruta.
@@ -19,8 +20,9 @@ import { useLocation } from "react-router-dom";
  * el copy con el cliente. Cuando esté, va acá.
  */
 
-// Sin barra final. Cuando haya dominio propio se cambia acá y en sitemap.xml.
-const ORIGEN = "https://handyman-web-page.vercel.app";
+// El origen vive en constants.js y lo cuida un guard: acá, robots.txt y
+// sitemap.xml tienen que decir lo mismo.
+const ORIGEN = SITE_ORIGIN;
 
 // Las mismas rutas que lista sitemap.xml, con el mismo formato: la home con
 // barra final y el resto sin ella. Si el canonical y el sitemap no coinciden

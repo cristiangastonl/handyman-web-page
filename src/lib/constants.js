@@ -6,6 +6,22 @@ export function ytId(raw) {
   return m ? m[1] : s;
 }
 
+// De dónde se sirve el sitio. Sin barra final.
+//
+// Este valor aparece en tres lugares que tienen que decir exactamente lo mismo:
+// acá (de donde salen el canonical y el og:url), public/robots.txt y
+// public/sitemap.xml. Los dos últimos son archivos estáticos y no pueden
+// importarlo, así que la sincronización la cuida un guard —ver
+// scripts/guards/conventions.mjs— en vez de la confianza.
+//
+// Importa que no se separen: si el canonical dice un origen y el sitemap dice
+// otro, el buscador recibe dos respuestas distintas para la misma página y
+// reparte la autoridad entre las dos.
+//
+// Cuando el dominio propio (handymanservicesinzurich.ch, en Infomaniak) apunte a
+// Vercel, se cambia acá y el guard obliga a cambiar los otros dos.
+export const SITE_ORIGIN = "https://handyman-web-page.vercel.app";
+
 export const R = "#D4781F";
 export const G = "#4A4A4A";
 export const PHONE = "+41 76 594 95 81";
