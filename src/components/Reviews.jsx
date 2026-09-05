@@ -401,7 +401,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
       </div>
 
       {/* All reviews grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+      <div className="reviews-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
         {interleaveHappy(reviews, happy).map((rev, i) => rev.__photo ? (
           <HappyCustomerTile key={`hc${i}`} item={rev.__photo} setLb={setLb} context={happy}/>
         ) : (

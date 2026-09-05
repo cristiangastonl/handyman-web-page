@@ -182,17 +182,20 @@ test.describe('happy customers', () => {
     await visit(page, '/reviews');
 
     const photos = desktop ? page.locator('.hc-edges img') : page.locator('.hc-inline-tile img');
-    const n = await photos.count();
     // Sin fotos cargadas en la base no hay nada que mostrar, y eso es válido:
     // la sección desaparece entera en vez de dejar un hueco.
-    if (n === 0) {
-      await expect(page.locator('.hc-edges')).toHaveCount(0);
+    //
+    // Se pregunta por los rieles y no por los tiles: HappyCustomerRails devuelve
+    // null con la lista vacía, así que .hc-edges existe exactamente cuando hay
+    // fotos, en los dos viewports (en mobile el CSS los oculta, pero están en el
+    // DOM). Los tiles no sirven para esto — ver el comentario de abajo.
+    if (await page.locator('.hc-edges').count() === 0) {
+      await expect(page.locator('.hc-inline-tile')).toHaveCount(0);
       return;
     }
 
-    await expect(photos.first()).toHaveAttribute('alt', /.+/);
-
     if (desktop) {
+      await expect(photos.first()).toHaveAttribute('alt', /.+/);
       await page.evaluate(() => window.scrollTo(0, 2000));
       // Son fixed: después de scrollear tiene que seguir habiendo fotos en
       // pantalla. Se cuentan las visibles en vez de mirar una en particular —
@@ -213,17 +216,42 @@ test.describe('happy customers', () => {
       // contrario —"cada diez es bocha, nadie scrolea 130 reviews"— así que
       // ahora van adelante, con paso fijo, y se agotan cerca de la review 40.
       // Medir la posición de la última ya no dice nada; lo que importa es el paso.
+      //
+      // Los tiles se intercalan DENTRO de la grilla de reviews, y las reviews y
+      // las fotos llegan de Supabase por caminos distintos: las fotos con el
+      // fetch propio de useHappyCustomers, las reviews por props desde App. Con
+      // las fotos ya cargadas y la grilla todavía vacía no hay ningún tile, y eso
+      // no es un defecto: no hay dónde intercalarlos. Antes el test leía ese "0
+      // tiles" como "0 fotos en la base" y exigía que no hubiera rieles, así que
+      // fallaba cada vez que las reviews tardaban más que las fotos.
+      //
+      // El prerender trae la grilla llena, pero al hidratar React la vacía hasta
+      // que vuelve Supabase: medir en esa ventana da 0 tiles sobre 0 reviews. Se
+      // espera a que la grilla se rellene, con margen para la máquina cargada —
+      // los 8s por defecto se quedaban cortos con los 8 workers corriendo.
+      await expect(page.locator('.reviews-grid > *').first())
+        .toBeVisible({ timeout: 20_000 });
+
       const pasos = await page.evaluate(() => {
-        const tile = document.querySelector('.hc-inline-tile');
-        const hijos = [...tile.parentElement.children];
+        const hijos = [...document.querySelector('.reviews-grid').children];
         const idx = hijos.flatMap((el, i) => el.classList.contains('hc-inline-tile') ? [i] : []);
         return {
           primera: idx[0],
           // Con una foto cada 3 reviews, entre foto y foto hay 4 posiciones.
           saltos: idx.slice(1).map((v, i) => v - idx[i]),
           cuantas: idx.length,
+          reviews: hijos.length - idx.length,
         };
       });
+
+      // La primera foto va después de 3 reviews: con menos de 3 no entra
+      // ninguna, y que la grilla no tenga tiles es lo correcto.
+      if (pasos.reviews < 3) {
+        expect(pasos.cuantas, 'sin 3 reviews no hay dónde meter una foto').toBe(0);
+        return;
+      }
+
+      await expect(photos.first()).toHaveAttribute('alt', /.+/);
       expect(pasos.primera, 'la primera foto va después de 3 reviews').toBe(3);
       if (pasos.cuantas > 1) {
         expect([...new Set(pasos.saltos)], 'el paso tiene que ser parejo: 3 reviews y una foto')
