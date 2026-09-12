@@ -117,8 +117,16 @@ export function checkI18n() {
       if (!usadas.has(m[1])) usadas.set(m[1], `${relative(root, file)}:${linea}`);
     }
   }
+  // Una clave con plural no existe pelada: i18next la guarda como `k_one` y
+  // `k_other` y elige según el `count` que se le pase. Pedirle la forma pelada
+  // marcaba como faltante a una clave que está bien puesta, y empujaba a dejar
+  // una tercera copia sin sufijo sólo para callar al guard.
+  const existe = (key) => {
+    const l = locales[base];
+    return Boolean(l[key] || (l[`${key}_one`] && l[`${key}_other`]));
+  };
   for (const [key, donde] of usadas) {
-    if (!locales[base][key])
+    if (!existe(key))
       errors.push(`${donde}: t("${key}") no existe en en.json — queda en inglés en los otros idiomas`);
   }
 

@@ -137,6 +137,8 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
   const allReviews = useAllReviews(googleReviews, fbReviews, i18n.language, "desc");
   const fuentes = fuentesDeReseñas(allReviews);
   const avg = starAverage(allReviews);
+  const googleOnly = allReviews.filter(r => r.source === "google" && r.r);
+  const fbOnly = allReviews.filter(r => r.source === "facebook");
 
   // La lista se duplica para que el loop no muestre la costura al reiniciar, igual
   // que en Carousel.jsx. El clon comparte el índice de su original, así que "Read
@@ -178,38 +180,62 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
     <section style={{ padding: SECTION_PAD, background: "#fafafa" }}>
       <div style={{ maxWidth: 940, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {/* flexWrap acá también, no sólo en la fila de afuera: con las dos fuentes
+              la tirada "Reviews · G 5.0 ★★★★★ · 👍 145 100% recommended" no entra en
+              393 px. Sin wrap no se desbordaba visiblemente —Chromium achica la
+              página entera al 76% para que entre— y el sitio se veía chico en el
+              celular sin que nada pareciera roto. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: revTitleStyle.fontSize, fontFamily: `'${revTitleStyle.fontFamily}', sans-serif`, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
               <SourcePill fuentes={fuentes} sz={16}/>
             </div>
-            <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
-            {/* center y no baseline: al lado del número hay un bloque de DOS líneas
+            {/* Las dos fuentes, una al lado de la otra, igual que en /reviews: antes
+                era un if/else y apenas entró la primera reseña de Google la fila
+                dejó de mostrar las 145 recomendaciones de Facebook, que son la
+                prueba social más fuerte que hay. Cada bloque aparece sólo si su
+                fuente tiene algo, y el separador sólo cuando están los dos.
+
+                center y no baseline: al lado del número hay un bloque de DOS líneas
                 (estrellas + "158 reviews"), así que baseline lo pegaba a la línea de
                 las estrellas y el 4.8 quedaba 8.7px más arriba que el "Reviews" de la
                 izquierda — Anibal lo vio desalineado el 01/09. Centrado contra el
                 bloque, su centro cae exactamente en el de la fila. */}
-            {avg ? <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
-              {/* textAlign center: el conteo es más angosto que la fila de estrellas,
-                  así que sin esto arrancaba pegado al borde izquierdo de ellas y se
-                  leía descolgado. Anibal: "lo de 158 reviews deberia centrarse"
-                  (02/09). Las estrellas, que son lo más ancho, no se mueven. */}
-              <div style={{ textAlign: "center" }}>
-                <Stars n={Math.round(parseFloat(avg))} sz={15}/>
-                <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{t("reviews.count", { count: allReviews.length })}</div>
+            {googleOnly.length > 0 && <>
+              <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
+              <div data-testid="home-google" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <GoogleG size={18}/>
+                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
+                {/* textAlign center: el conteo es más angosto que la fila de estrellas,
+                    así que sin esto arrancaba pegado al borde izquierdo de ellas y se
+                    leía descolgado. Anibal: "lo de 158 reviews deberia centrarse"
+                    (02/09). Las estrellas, que son lo más ancho, no se mueven. */}
+                <div style={{ textAlign: "center" }}>
+                  <Stars n={Math.round(parseFloat(avg))} sz={15}/>
+                  {/* El conteo va sobre las reseñas de Google, que son las únicas que
+                      entran en el promedio de al lado. Contaba allReviews, así que con
+                      una sola reseña de Google mostraba "5.0" sobre el total sumándole
+                      las recomendaciones de Facebook, que no tienen puntaje. */}
+                  <div style={{ fontSize: 11, color: "#777", marginTop: 1 }}>{t("reviews.count", { count: googleOnly.length })}</div>
+                </div>
               </div>
-            </div> : (
-              /* Sin puntajes, el mismo lugar muestra cuánta gente lo recomienda:
-                 la fila conserva su peso visual y el dato sigue siendo cierto. */
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            </>}
+            {fbOnly.length > 0 && <>
+              <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
+              <div data-testid="home-facebook" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d={svgP.thumbsUp}/></svg>
                 <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
-                  <AnimatedCounter target={allReviews.length} duration={1400} decimals={0}/>
+                  <AnimatedCounter target={fbOnly.length} duration={1400} decimals={0}/>
                 </span>
-                <span style={{ fontSize: 12, color: "#777" }}>{t("reviews.recommendShort")}</span>
+                {/* El azul de Facebook es lo que distingue de qué fuente habla este
+                    100%: al lado del bloque de Google, en gris se leía como si fuera
+                    del promedio de estrellas. */}
+                {/* Sólo la línea azul: arriba decía "recommend" y debajo
+                    "100% recommended", que es la misma palabra dos veces. La del
+                    100% es la que aporta el dato, así que se queda esa. */}
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#1877F2", whiteSpace: "nowrap" }}>{t("reviews.recommendPct")}</div>
               </div>
-            )}
+            </>}
           </div>
           <button onClick={() => nav("reviews")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("reviews.seeAll")}</button>
         </div>
@@ -307,6 +333,28 @@ function interleaveHappy(reviews, photos) {
 }
 
 // Full reviews page
+/**
+ * Botón "dejá tu reseña" de una fuente. Vive dentro de la columna de esa fuente:
+ * antes las dos opciones iban juntas en una fila más abajo, lejos de los números,
+ * y no se leía cuál correspondía a cuál.
+ */
+function BotonDejarResena({ href, label, icon, fuente }) {
+  // El marginTop auto va en el envoltorio, no en el link: pega el botón al piso de
+  // su columna para que los dos queden a la misma altura aunque la de Google sea
+  // mucho más alta (lleva las cinco barras de distribución). El paddingTop es el
+  // aire mínimo, porque en la columna más alta el auto no sobra nada.
+  return (
+    <div style={{ marginTop: "auto", paddingTop: 18 }}>
+      <a href={href} target="_blank" rel="noopener noreferrer" data-boton-resena={fuente}
+        style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 18px", border: "1px solid #ddd", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none", transition: "border-color .2s, color .2s" }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "#ddd"; e.currentTarget.style.color = "#555"; }}>
+        {icon}{label}
+      </a>
+    </div>
+  );
+}
+
 export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [], setLb, siteConfig = {} }) {
   const { t, i18n } = useTranslation();
   const [direction, setDirection] = useState("desc");
@@ -314,6 +362,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
   const reviews = useAllReviews(googleReviews, fbReviews, i18n.language, direction);
   const allReviews = reviews;
   const googleOnly = reviews.filter(r => r.source === "google" && r.r);
+  const fbOnly = reviews.filter(r => r.source === "facebook");
   const fuentes = fuentesDeReseñas(reviews);
   const avg = starAverage(reviews);
 
@@ -325,51 +374,84 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
           <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
           <SourcePill fuentes={fuentes} sz={20}/>
         </div>
-        {/* Con puntajes se muestra el promedio en estrellas. Sin puntajes —hoy, que
-            todas las reseñas son recomendaciones de Facebook— se muestra cuánta
-            gente lo recomienda, que es la misma prueba social sin inventar un
-            número. Es el modelo que usa Facebook para negocios desde que dejó las
-            estrellas: no puntaje, sino cuánta gente te recomienda. */}
-        {avg ? (
-          <>
-            <div style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/></div>
-            <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
-            <div style={{ fontSize: 14, color: "#777" }}>{t("reviews.based", { count: allReviews.length })}</div>
-          </>
-        ) : (
-          <>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d={svgP.thumbsUp}/></svg>
-              <span style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
-                <AnimatedCounter target={allReviews.length} duration={1600} decimals={0}/>
-              </span>
-            </div>
-            <div style={{ fontSize: 14, color: "#777", marginTop: 10 }}>
-              {t("reviews.recommendCount", { count: allReviews.length })}
-            </div>
-          </>
-        )}
+        {/* Una columna por fuente, y cada número contado sobre su propia fuente.
+            Antes era un if/else sobre el promedio: apenas entró la primera reseña
+            de Google el bloque saltó a la rama de estrellas y mostró "5.0" —el
+            promedio de esa única reseña— arriba de "basado en N reseñas", con N
+            contando también las recomendaciones de Facebook, que no tienen puntaje
+            y nunca entraron en ese promedio. El número era mentira y además hacía
+            desaparecer las recomendaciones de Facebook, que son la prueba social
+            más fuerte que hay hoy. Anibal lo vio el 12/09.
 
-        {/* Las barras de distribución sólo tienen sentido si hay algo que
-            distribuir. Sin reseñas puntuadas dibujaban cinco renglones en cero
-            —5★ 4★ 3★ 2★ 1★, todos vacíos—, que se lee como "nadie lo puntuó
-            bien" en vez de "todavía no hay puntajes". */}
-        {googleOnly.length > 0 && <div style={{ maxWidth: 280, margin: "20px auto 0" }}>
-          {[5,4,3,2,1].map(star => {
-            const count = googleOnly.filter(r => r.r === star).length;
-            const pct = googleOnly.length ? (count / googleOnly.length) * 100 : 0;
-            return (
-              <div key={star} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 12, color: "#666", width: 12, textAlign: "right" }}>{star}</span>
-                <span style={{ fontSize: 11, color: "#F59E0B" }}>★</span>
-                <div style={{ flex: 1, height: 6, background: "#f0f0f0", borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ width: `${pct}%`, height: "100%", background: "#F59E0B", borderRadius: 3 }}/>
-                </div>
-                <span style={{ fontSize: 11, color: "#ccc", width: 20 }}>{count}</span>
+            Las tarjetas de abajo siguen mezcladas y ordenadas por fecha: lo que se
+            separa es sólo el resumen, que es donde conviven dos escalas que no se
+            pueden promediar entre sí (estrellas de Google, pulgar de Facebook). */}
+        <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", gap: 36, flexWrap: "wrap" }}>
+          {googleOnly.length > 0 && (
+            <div data-testid="resumen-google" style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 140 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                <GoogleG size={28}/>
+                <span style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                  <AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/>
+                </span>
               </div>
-            );
-          })}
-        </div>}
+              <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
+              <div data-testid="conteo-google" style={{ fontSize: 14, color: "#777" }}>{t("reviews.basedGoogle", { count: googleOnly.length })}</div>
+              {/* La distribución por estrellas es de Google y de nadie más: estaba
+                  centrada debajo de las dos columnas y se leía como si también
+                  resumiera las recomendaciones de Facebook, que no tienen puntaje. */}
+              <div style={{ width: "100%", maxWidth: 280, marginTop: 16 }}>
+                {[5,4,3,2,1].map(star => {
+                  const count = googleOnly.filter(r => r.r === star).length;
+                  const pct = googleOnly.length ? (count / googleOnly.length) * 100 : 0;
+                  return (
+                    <div key={star} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, color: "#666", width: 12, textAlign: "right" }}>{star}</span>
+                      <span style={{ fontSize: 11, color: "#F59E0B" }}>★</span>
+                      <div style={{ flex: 1, height: 6, background: "#f0f0f0", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ width: `${pct}%`, height: "100%", background: "#F59E0B", borderRadius: 3 }}/>
+                      </div>
+                      <span style={{ fontSize: 11, color: "#ccc", width: 20 }}>{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* marginTop auto en el botón: las dos columnas tienen alturas muy
+                  distintas (las barras son cinco renglones), así que los botones se
+                  alinean por abajo en vez de colgar cada uno a su altura. */}
+              <BotonDejarResena fuente="google" href={getGoogleReviewUrl(siteConfig)} label={t("reviews.leaveReview")} icon={<GoogleG/>}/>
+            </div>
+          )}
+          {fbOnly.length > 0 && (
+            <div data-testid="resumen-facebook" style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 140 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d={svgP.thumbsUp}/></svg>
+                <span style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                  <AnimatedCounter target={fbOnly.length} duration={1600} decimals={0}/>
+                </span>
+              </div>
+              <div data-testid="conteo-facebook" style={{ fontSize: 14, color: "#777", paddingTop: 10 }}>
+                {t("reviews.recommendCount", { count: fbOnly.length })}
+              </div>
+              {/* Facebook no da puntaje, da recomendación, y todas las que guarda la
+                  base son positivas: el 100% no es un redondeo, es lo que hay. Es el
+                  equivalente de las barras de distribución de la otra columna, así que
+                  ocupa su lugar: el flex:1 lo centra verticalmente contra ellas en vez
+                  de dejarlo colgado arriba compitiendo con el 5.0.
+
+                  Y va en pastilla, no en texto grande: en azul suelto y a ese cuerpo
+                  le peleaba el protagonismo al promedio de al lado. En pastilla se lee
+                  como una etiqueta —"esto es un dato de Facebook"— y no como un
+                  segundo titular. */}
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0, padding: "14px 0" }}>
+                <span style={{ display: "inline-block", background: "#E7F0FE", color: "#1877F2", fontSize: 15, fontWeight: 800, padding: "8px 16px", borderRadius: 999, whiteSpace: "nowrap" }}>
+                  {t("reviews.recommendPct")}
+                </span>
+              </div>
+              <BotonDejarResena fuente="facebook" href={getFbReviewsUrl(siteConfig)} label={t("reviews.leaveReviewFb")} icon={<SocialIcon type="fb" size={16}/>}/>
+            </div>
+          )}
+        </div>
 
         {/* Chronological order toggle */}
         <div style={{ marginTop: 20 }}>
@@ -382,22 +464,6 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
             {direction === "desc" ? t("reviews.newestFirst", "Newest first") : t("reviews.oldestFirst", "Oldest first")}
           </button>
         </div>
-
-        {/* Las dos fuentes tienen el mismo peso en las tarjetas, así que también
-            lo tienen acá: dejar la reseña en Google era la única opción visible. */}
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
-          {[
-            { href: getGoogleReviewUrl(siteConfig), label: t("reviews.leaveReview"), icon: <GoogleG/> },
-            { href: getFbReviewsUrl(siteConfig), label: t("reviews.leaveReviewFb"), icon: <SocialIcon type="fb" size={16}/> },
-          ].map(b => (
-            <a key={b.href} href={b.href} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 20px", border: "1px solid #ddd", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none", transition: "border-color .2s, color .2s" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "#ddd"; e.currentTarget.style.color = "#555"; }}>
-              {b.icon}{b.label}
-            </a>
-          ))}
-        </div>
       </div>
 
       {/* All reviews grid */}
@@ -405,7 +471,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
         {interleaveHappy(reviews, happy).map((rev, i) => rev.__photo ? (
           <HappyCustomerTile key={`hc${i}`} item={rev.__photo} setLb={setLb} context={happy}/>
         ) : (
-          <div key={i} style={{ padding: "20px", borderRadius: 12, border: "1px solid #eee", background: "#fff" }}>
+          <div key={i} data-fuente={rev.source} style={{ padding: "20px", borderRadius: 12, border: "1px solid #eee", background: "#fff" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <div style={{ width: 40, height: 40, borderRadius: "50%", background: `hsl(${i * 47}, 45%, 65%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16, color: "#fff" }}>{rev.name[0]}</div>
               <div style={{ flex: 1 }}>

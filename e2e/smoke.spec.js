@@ -828,3 +828,60 @@ test.describe('presentación en mobile', () => {
     }
   });
 });
+
+test.describe('resumen de /reviews', () => {
+  // El conteo al pie de una columna del resumen ("Based on 1 Google reviews",
+  // "145 people recommend Anibal"), como entero. Va contra el renglón puntual y no
+  // contra el texto de toda la columna: la de Google termina con las cinco barras
+  // de distribución, así que "el último número" pasó a ser el 0 de 1★.
+  const conteoDe = async (page, fuente) => {
+    const txt = await page.getByTestId(`conteo-${fuente}`).textContent();
+    const m = (txt || '').match(/\d+/);
+    return m ? parseInt(m[0], 10) : NaN;
+  };
+
+  test('el resumen de /reviews no mezcla el promedio de Google con el conteo de Facebook', async ({ page }) => {
+    // El 12/09 Anibal vio "5.0 ★★★★★ / basado en N reseñas" con una sola reseña
+    // de Google cargada: el promedio salía de esa única reseña y el conteo sumaba
+    // además las recomendaciones de Facebook, que no tienen puntaje y nunca
+    // entraron en ese promedio. Eran dos escalas distintas debajo del mismo
+    // número. Ahora cada fuente tiene su columna y cuenta lo suyo.
+    await visit(page, '/reviews');
+
+    const google = page.locator('[data-testid="resumen-google"]');
+    const facebook = page.locator('[data-testid="resumen-facebook"]');
+
+    // Sin reseñas cargadas no hay resumen, y eso es válido: cada columna aparece
+    // sólo cuando su fuente tiene algo. Lo que no puede pasar es que no haya
+    // ninguna de las dos habiendo tarjetas.
+    const hayGoogle = await google.count() > 0;
+    const hayFacebook = await facebook.count() > 0;
+    if (!hayGoogle && !hayFacebook) {
+      await expect(page.locator('.reviews-grid > *')).toHaveCount(0);
+      return;
+    }
+
+    // Cada columna lleva su propio botón de dejar reseña, y sólo el suyo.
+    if (hayGoogle) {
+      // Cada columna cuenta las tarjetas de SU fuente, no el total. Ese era el
+      // síntoma: debajo del promedio de Google aparecía el total, Facebook
+      // incluido.
+      expect(await conteoDe(page, 'google'), 'la columna de Google no cuenta las reseñas de Google')
+        .toBe(await page.locator('.reviews-grid [data-fuente="google"]').count());
+      // Por fuente y no por la URL: el link de Google es un g.page/r/... y
+      // además Anibal lo puede cambiar desde el admin.
+      await expect(google.locator('[data-boton-resena="google"]')).toHaveCount(1);
+      await expect(google.locator('[data-boton-resena="facebook"]')).toHaveCount(0);
+    }
+    if (hayFacebook) {
+      expect(await conteoDe(page, 'facebook'), 'la columna de Facebook no cuenta las recomendaciones de Facebook')
+        .toBe(await page.locator('.reviews-grid [data-fuente="facebook"]').count());
+      await expect(facebook.locator('[data-boton-resena="facebook"]')).toHaveCount(1);
+      await expect(facebook.locator('[data-boton-resena="google"]')).toHaveCount(0);
+    }
+
+    // Y que no quede texto crudo de i18n: la clave nueva tiene que existir en el
+    // idioma activo.
+    await expect(page.getByText(/reviews\.basedGoogle/)).toHaveCount(0);
+  });
+});
