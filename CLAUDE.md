@@ -52,6 +52,7 @@ run, read the failure, fix the cause, run again. Converge, then report.
 | `npm run verify -- --stage=e2e` | one stage only | — | Debugging a specific failure |
 | `npm run e2e:ui` | Playwright UI mode | — | Writing or fixing E2E tests |
 | `npm run verify:prod` | prerender del sitio publicado | ~2s | Después de cada deploy |
+| `npm run verify:db` | filas por tabla contra la base real | ~3s | Cuando algo cargado no aparece |
 
 `verify:scope` runs the full cycle when the diff touches anything that reaches
 the browser (`src/components`, `src/lib`, `src/hooks`, `App.jsx`, `i18n.js`,
@@ -88,6 +89,16 @@ with the reason in the commit message.
   Existe porque el resto del harness mira el build local, y eso no alcanzaba:
   Vercel estuvo buildeando con `build:fast` (sin prerender) y sirviendo 8 KB de
   cáscara vacía mientras los tests de SEO daban verde contra el build de acá.
+- **`scripts/check-db-rows.mjs`** — cuenta las filas de cada tabla contra la base
+  real y falla cuando una que todavía se lee de un saque pasa las 900. Tampoco
+  corre dentro de `verify`: necesita red y las credenciales.
+  Existe porque PostgREST recorta en `db-max-rows` (1000) **sin devolver error**.
+  El 01/10/2026 `work_items` llegó a 1018 y las fotos que el cliente subía a
+  "IKEA Lights" dejaron de aparecer: subían bien, se guardaban bien, y la app
+  recibía una lista de 1000 que creía completa. Ninguna regla estática puede
+  detectar eso, porque depende de cuánto creció la tabla. `work_items` ya se lee
+  paginada (`src/lib/dbRead.js`) y un guard lo impone; este check es el que va a
+  avisar cuando le toque a otra tabla.
 - **`e2e/smoke.spec.js`** (Playwright, desktop + mobile) — the 4 public routes
   render with no console errors and no raw i18n keys, nav works, language
   switching persists across pages, portfolio images have `alt`, `/admin` shows
