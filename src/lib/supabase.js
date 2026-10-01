@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { escribir, sinFilas } from "./dbWrite";
+import { traerTodas } from "./dbRead";
 
 // ─── Supabase client (nullable if not configured) ───
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -65,11 +66,16 @@ export async function deleteCategory(id) {
 }
 
 // ─── Work items ───
+// Paginada a propósito: es la única tabla que pasó las 1000 filas, y por encima
+// de ese techo PostgREST recorta la respuesta sin devolver error (ver dbRead.js).
+// El `.order("id")` no es cosmético: desempata el sort_order, que tiene repetidos,
+// para que el orden sea estable entre páginas y ninguna fila salga dos veces ni
+// falte.
 export async function fetchWorkItems() {
   if (!supabase) return null;
-  const { data, error } = await supabase.from("work_items").select("*").order("sort_order");
-  if (error) throw error;
-  return data;
+  return traerTodas((desde, hasta) =>
+    supabase.from("work_items").select("*").order("sort_order").order("id").range(desde, hasta)
+  );
 }
 export async function addWorkItem(item) {
   if (!supabase) return;

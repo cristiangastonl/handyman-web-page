@@ -107,6 +107,28 @@ export function checkConventions() {
     });
   }
 
+  // Las tablas que pasaron las 1000 filas se leen paginadas, siempre.
+  //
+  // PostgREST recorta en `db-max-rows` (1000) sin devolver error: contesta 200
+  // con las primeras 1000 filas y la app cree que las tiene todas. El 01/10/2026
+  // work_items llegó a 1018 y las fotos que Anibal subía a "IKEA Lights" —las de
+  // sort_order más alto, o sea las últimas del orden— dejaron de aparecer.
+  // Subían bien, se guardaban bien, y no existían para el sitio.
+  //
+  // `npm run verify:db` avisa cuando OTRA tabla se está acercando al techo.
+  // Este guard sólo impide volver a leer de una sola vez las que ya lo pasaron.
+  const PAGINADAS = ['work_items'];
+  const lib = readFileSync(join(srcDir, 'lib', 'supabase.js'), 'utf8');
+  lib.split('\n').forEach((line, i) => {
+    for (const tabla of PAGINADAS) {
+      const lee = new RegExp(`\\.from\\(["']${tabla}["']\\)\\s*\\.select\\(`).test(line);
+      if (lee && !/\.range\(/.test(line))
+        errors.push(
+          `src/lib/supabase.js:${i + 1}: lee ${tabla} sin .range() — esa tabla pasó las 1000 filas y PostgREST la recorta sin avisar. Usá traerTodas() de lib/dbRead.js`
+        );
+    }
+  });
+
   // Todo estilo configurable tiene que tener su control en el admin.
   //
   // Anibal no pide "cambiá el 4.8 a 26px", pide "no queda desproporcionada? es algo
