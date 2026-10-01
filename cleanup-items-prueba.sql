@@ -1,26 +1,46 @@
--- Limpieza de los ítems de prueba que quedaron del 01/10/2026.
+-- Limpieza de la tanda de prueba del 01/10/2026. YA EJECUTADA.
 --
--- Anibal estuvo subiendo fotos a "All About Lighting → IKEA Lights" entre las
--- 08:01 y las 08:46 y no aparecían (ver src/lib/dbRead.js: work_items pasó las
--- 1000 filas y PostgREST recortaba la lectura sin avisar). Mientras probaba si
--- era el archivo, la extensión o qué, dejó estos 5 ítems con título de una letra.
--- Ahora que la lectura está paginada, se ven.
+-- Queda acá como registro de qué se borró y por qué. No hace falta volver a
+-- correrla: los ids ya no existen.
 --
--- Las 5 filas están respaldadas antes de correr esto. Las imágenes quedan en el
--- bucket `images` (borrar la fila no borra el archivo): son 5 archivos huérfanos
--- de unos pocos MB, se pueden limpiar aparte desde Storage.
+-- Contexto: Anibal estuvo subiendo fotos a "All About Lighting → IKEA Lights"
+-- entre las 08:01 y las 08:46 y no aparecían (work_items pasó las 1000 filas y
+-- PostgREST recortaba la lectura sin avisar — ver src/lib/dbRead.js). Como creía
+-- que no se guardaban, subió la misma tanda tres veces y dejó ítems de prueba
+-- con título de una letra. Al arreglar la lectura, todo eso salió a la luz en el
+-- sitio público.
 --
--- NO incluye el ítem id=81 ("ddd", 19/03/2026), que es un reel de Facebook y
--- puede ser un trabajo real con el título mal cargado. Ese decidilo vos.
+-- Se verificó que las fotos eran duplicados REALES comparando el sha256 del
+-- archivo, no el título: byte por byte idénticas.
+--
+--   borradas, basura de prueba:
+--     1126 'b'  (misma foto que SINNERLIG)
+--     1127 'c'  (misma foto que SINNERLIG)
+--     1128 'c'  (era la tarjeta de presentación con el teléfono)
+--     1129 'r'  (era el logo)
+--     1130 'g'  (foto real de spotlights, única — ver nota abajo)
+--
+--   borradas, copias sobrantes (se dejó una de cada modelo):
+--     1121  'Model SINNERLIG'   → quedó 1111
+--     1118  'Model Hektar'      → quedó 1113 ('Model HEKTAR', mayúsculas como el resto)
+--     1123  'Model HEKTAR'      → quedó 1113
+--     1124  'Model TRUBBRUFSE'  → quedó 1115
+--     1125  'Model VINDKAST'    → quedó 1117 (la borrada decía 'Bedrooom')
+--
+-- NOTA sobre 1130: era una foto real de spotlights en un techo, con título 'g'.
+-- Es la única copia. El archivo sigue en el bucket, así que se puede volver a
+-- cargar con un título decente:
+--   https://hjviylxrqgplcrpjodsa.supabase.co/storage/v1/object/public/images/work/1790844400269_x0igwp.JPG
+--
+-- PENDIENTE, a decidir con Anibal:
+--   - ids 1110, 1112, 1114, 1116, 1119, 1120: las MISMAS 4 fotos, cargadas esa
+--     mañana en Pendant Lamps, Spotlights, Simple Lights, Wicker Shades y Above
+--     the dinner table. Pueden ser más pruebas o catalogación a propósito.
+--   - id 81 'ddd' (19/03/2026): un reel de Facebook, puede ser un trabajo real
+--     con el título mal cargado.
+--
+-- Las imágenes borradas siguen en el bucket `images` (borrar la fila no borra el
+-- archivo): son 10 archivos huérfanos, ~8 MB, limpiables desde Storage.
 
-begin;
-
--- Mirá qué vas a borrar antes de confirmar:
-select id, title, description, cat, created_at
-from work_items
-where id in (1126, 1127, 1128, 1129, 1130);
-
-delete from work_items
-where id in (1126, 1127, 1128, 1129, 1130);
-
-commit;
+-- delete from work_items
+-- where id in (1118, 1121, 1123, 1124, 1125, 1126, 1127, 1128, 1129, 1130);
