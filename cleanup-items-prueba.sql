@@ -32,15 +32,23 @@
 -- cargar con un título decente:
 --   https://hjviylxrqgplcrpjodsa.supabase.co/storage/v1/object/public/images/work/1790844400269_x0igwp.JPG
 --
+--   borrado aparte, el último contenido de Facebook:
+--     81  'ddd'  (19/03/2026, type='facebook', reel incrustado)
+--     Se va porque no se sube más nada de Facebook al portfolio. Era el ÚNICO
+--     ítem de toda la tabla que apuntaba a facebook.com. El type 'facebook'
+--     sigue soportado en Portfolio.jsx y constants.js pero ya no lo usa ninguna
+--     fila, y el formulario del admin sólo ofrece Image y YouTube: no se pueden
+--     crear nuevos. Es código muerto, inofensivo, por si algún día vuelve.
+--
 -- PENDIENTE, a decidir con Anibal:
 --   - ids 1110, 1112, 1114, 1116, 1119, 1120: las MISMAS 4 fotos, cargadas esa
 --     mañana en Pendant Lamps, Spotlights, Simple Lights, Wicker Shades y Above
 --     the dinner table. Pueden ser más pruebas o catalogación a propósito.
---   - id 81 'ddd' (19/03/2026): un reel de Facebook, puede ser un trabajo real
---     con el título mal cargado.
 --
 -- Las imágenes borradas siguen en el bucket `images` (borrar la fila no borra el
 -- archivo): son 10 archivos huérfanos, ~8 MB, limpiables desde Storage.
 
 -- delete from work_items
 -- where id in (1118, 1121, 1123, 1124, 1125, 1126, 1127, 1128, 1129, 1130);
+--
+-- delete from work_items where id = 81;
