@@ -7,11 +7,19 @@
  * check que mira el build local no puede detectar eso: hay que preguntarle al
  * sitio publicado.
  *
- * Uso:  npm run verify:prod            (usa la URL de producción)
+ * Apunta al dominio propio, que es el que ven los visitantes y el que indexa
+ * Google. Antes apuntaba a handyman-web-page.vercel.app: funcionaba, pero de
+ * rebote — ese host redirige a www y el check seguía el salto sin decirlo. Si
+ * algún día se rompe algo a nivel dominio (certificado, DNS, el alias apuntando
+ * a otro deploy), mirar el .vercel.app no se entera.
+ *
+ * Hoy www sirve directo, y tanto el apex como el .vercel.app redirigen ahí.
+ *
+ * Uso:  npm run verify:prod            (usa el dominio de producción)
  *       SITE_URL=https://... npm run verify:prod
  */
 
-const SITE = (process.env.SITE_URL || 'https://handyman-web-page.vercel.app').replace(/\/$/, '');
+const SITE = (process.env.SITE_URL || 'https://www.handymanservicesinzurich.ch').replace(/\/$/, '');
 const ROUTES = ['/', '/portfolio', '/reviews', '/faq'];
 
 const verde = (s) => `\x1b[32m${s}\x1b[0m`;
@@ -30,6 +38,7 @@ const texto = (html, re) => (re.exec(html)?.[1] || '').trim();
 async function main() {
   console.log(`\nVerificando el prerender en ${SITE}\n`);
   const fallas = [];
+  const redirects = new Set();
 
   for (const route of ROUTES) {
     const url = `${SITE}${route}`;
@@ -37,6 +46,10 @@ async function main() {
     try {
       const res = await fetch(url, { headers: { 'Cache-Control': 'no-cache' } });
       if (!res.ok) { fallas.push(`${route}: HTTP ${res.status}`); continue; }
+      // Un redirect a otro host no es un error, pero tampoco puede pasar
+      // callado: significa que lo verificado no es lo que se pidió verificar.
+      if (new URL(res.url).host !== new URL(url).host)
+        redirects.add(`${new URL(url).host} → ${new URL(res.url).host}`);
       html = await res.text();
     } catch (err) {
       fallas.push(`${route}: no respondió (${err.message})`);
@@ -61,6 +74,8 @@ async function main() {
       console.log(`${verde('✓')} ${route.padEnd(11)} ${gris(`${kb} KB · "${title.slice(0, 45)}"`)}`);
     }
   }
+
+  for (const r of redirects) console.log(gris(`\n  nota: ${r} (se verificó el destino, no el host pedido)`));
 
   if (fallas.length) {
     console.log(rojo(`\n✗ ${fallas.length} problema(s). Producción no está sirviendo el HTML prerenderizado.`));
