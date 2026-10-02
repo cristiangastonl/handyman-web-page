@@ -1,6 +1,21 @@
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { R, G, getSocialUrls, itemThumb, svgP, playlistUrl } from "../lib/constants";
+import { fetchPortfolioSummary, fetchPortfolioItems, normalizeWorkItem } from "../lib/supabase";
+import { normalizeSummaryRow, buildPortfolioSummary, countsOf } from "../lib/portfolioSummary";
 import { SocialIcon } from "./ui";
+
+function Spinner() {
+  return (
+    <div data-testid="portfolio-loading" style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}>
+      <div style={{ width: 32, height: 32, border: "3px solid #f0f0f0", borderTop: `3px solid ${R}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/>
+    </div>
+  );
+}
+
+// Miniatura de una tarjeta: la imagen de cabecera, o si no hay, el primer ítem.
+const cardThumb = (header, first) =>
+  header || (first?.type === "image" ? first.src : itemThumb(first)) || "";
 
 /**
  * Link a la playlist de YouTube. Vive acá y no inline porque ahora lo usan los
@@ -51,7 +66,7 @@ function ItemCard({ item, setLb, contextItems }) {
 }
 
 // Tabs for photos/videos + grid
-function ItemsGrid({ items, activeTab, onTabChange, setLb, t }) {
+function ItemsGrid({ items, activeTab, onTabChange, setLb, t, siteConfig = {} }) {
   const photos = items.filter(w => w.type === "image");
   const videos = items.filter(w => w.type === "video" || w.type === "facebook");
   const displayItems = activeTab === "photos" ? photos : videos;
@@ -109,11 +124,63 @@ function DetailHeader({ title, subtitle, thumb, onBack, backLabel }) {
   );
 }
 
-export default function Portfolio({ cats, items, subcats, portfolioView, setPortfolioView, setLb, siteConfig = {} }) {
+export default function Portfolio({ cats, subcats, portfolioView, setPortfolioView, setLb, siteConfig = {} }) {
   const { t } = useTranslation();
-  const activeCats = cats.filter(c => c.id !== "all" && (items.some(w => w.cat === c.id) || (subcats || []).some(s => s.category_id === c.id)));
-  const totalPhotos = items.filter(w => w.type === "image").length;
-  const totalVideos = items.filter(w => w.type === "video" || w.type === "facebook").length;
+
+  // Conteos y miniaturas de todas las tarjetas, sin bajar las fotos: una fila
+  // por (categoría, subcategoría) de la vista work_items_summary. Se pide al
+  // montar y no en App, así está fresco al volver del admin.
+  const [summary, setSummary] = useState(null); // null = cargando
+  useEffect(() => {
+    let vivo = true;
+    fetchPortfolioSummary()
+      .then(rows => { if (vivo) setSummary(buildPortfolioSummary((rows || []).map(normalizeSummaryRow))); })
+      .catch(err => {
+        console.warn("Fetch error:", err.message);
+        if (vivo) setSummary(buildPortfolioSummary([]));
+      });
+    return () => { vivo = false; };
+  }, []);
+
+  // Las fotos del nivel que se está mirando: los sueltos de una categoría, o una
+  // subcategoría. Se piden al entrar y quedan en memoria mientras se navega
+  // dentro del portfolio, para que ir y volver no las pida de nuevo.
+  const nivel = typeof portfolioView === "object" && portfolioView.cat
+    ? { cat: portfolioView.cat, subcat: portfolioView.subcat || null } : null;
+  const nivelKey = nivel ? `${nivel.cat}/${nivel.subcat ?? ""}` : null;
+  const cache = useRef(new Map());
+  const [levelItems, setLevelItems] = useState({ key: null, items: [] });
+  useEffect(() => {
+    if (!nivelKey) return;
+    if (cache.current.has(nivelKey)) { setLevelItems({ key: nivelKey, items: cache.current.get(nivelKey) }); return; }
+    let vivo = true;
+    fetchPortfolioItems(nivel)
+      .then(rows => {
+        const lista = (rows || []).map(normalizeWorkItem);
+        cache.current.set(nivelKey, lista);
+        if (vivo) setLevelItems({ key: nivelKey, items: lista });
+      })
+      .catch(err => {
+        console.warn("Fetch error:", err.message);
+        if (vivo) setLevelItems({ key: nivelKey, items: [] });
+      });
+    return () => { vivo = false; };
+  }, [nivelKey]);
+  const itemsReady = levelItems.key === nivelKey;
+  const currentItems = itemsReady ? levelItems.items : [];
+
+  if (!summary) {
+    return (
+      <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
+        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("portfolio.title")}</h1>
+        <Spinner/>
+      </div>
+    );
+  }
+
+  const activeCats = cats.filter(c => c.id !== "all" && (countsOf(summary.byCat, c.id).total > 0 || (subcats || []).some(s => s.category_id === c.id)));
+  const totalPhotos = summary.totals.photos;
+  const totalVideos = summary.totals.videos;
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
@@ -131,9 +198,9 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))", gap: 14 }}>
             {activeCats.map(c => {
-              const catItems = items.filter(w => w.cat === c.id);
+              const catCount = countsOf(summary.byCat, c.id);
               const catSubcats = (subcats || []).filter(s => s.category_id === c.id);
-              const thumb = c.header_image || (catItems[0]?.type === "image" ? catItems[0]?.src : itemThumb(catItems[0])) || "";
+              const thumb = cardThumb(c.header_image, catCount.first);
               return (
                 <div key={c.id} data-testid="category-card"
                   onClick={() => { setPortfolioView({ cat: c.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
@@ -154,11 +221,11 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                     <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{c.label}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
-                        {catItems.length > 0 && <>{catItems.length} {catItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
-                        {catItems.length > 0 && catSubcats.length > 0 && " · "}
+                        {catCount.total > 0 && <>{catCount.total} {catCount.total === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
+                        {catCount.total > 0 && catSubcats.length > 0 && " · "}
                         {catSubcats.length > 0 && <>{catSubcats.length} {t("portfolio.subcategories", "subcategories")}</>}
                         {c.playlist_id && <span data-testid="category-playlist-badge">
-                          {(catItems.length > 0 || catSubcats.length > 0) && " · "}
+                          {(catCount.total > 0 || catSubcats.length > 0) && " · "}
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" style={{ verticalAlign: "middle", marginRight: 3 }}><path d="M23 12l-10.5-7v14L23 12zM1 5h2v14H1V5zm4 0h2v14H5V5zm4 0h2v14H9V5z"/></svg>
                           {t("portfolio.playlist", "Playlist")}
                         </span>}
@@ -176,13 +243,12 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
       {/* Level 2: Category Detail — subcategory cards + loose items */}
       {typeof portfolioView === "object" && portfolioView.cat && !portfolioView.subcat && (() => {
         const currentCat = cats.find(c => c.id === portfolioView.cat);
-        const catItems = items.filter(w => w.cat === portfolioView.cat);
         const catSubcats = (subcats || []).filter(s => s.category_id === portfolioView.cat);
-        const looseItems = catItems.filter(w => !w.subcategory_id);
-        const catThumb = currentCat?.header_image || (catItems[0]?.type === "image" ? catItems[0]?.src : itemThumb(catItems[0])) || "";
+        const catThumb = cardThumb(currentCat?.header_image, countsOf(summary.byCat, portfolioView.cat).first);
         const activeTab = portfolioView.tab || "photos";
-        const loosePhotos = looseItems.filter(w => w.type === "image").length;
-        const looseVideos = looseItems.filter(w => w.type === "video" || w.type === "facebook").length;
+        // Del resumen y no de las fotos: así "hay sueltos o no" se sabe antes de
+        // que lleguen, y no aparece "No items yet" mientras cargan.
+        const { photos: loosePhotos, videos: looseVideos } = countsOf(summary.loose, portfolioView.cat);
 
         return (
           <>
@@ -212,8 +278,8 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))", gap: 14 }}>
                   {catSubcats.map(sc => {
-                    const scItems = catItems.filter(w => w.subcategory_id === sc.id);
-                    const scThumb = sc.header_image || (scItems[0]?.type === "image" ? scItems[0]?.src : itemThumb(scItems[0])) || "";
+                    const scCount = countsOf(summary.bySubcat, sc.id);
+                    const scThumb = cardThumb(sc.header_image, scCount.first);
                     return (
                       <div key={sc.id}
                         onClick={() => { setPortfolioView({ cat: portfolioView.cat, subcat: sc.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
@@ -235,11 +301,11 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                             <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{sc.name}</div>
                             {/* Counts belong on the cards you can click into, never on the
                                 banner of the level you are already looking at. */}
-                            {(scItems.length > 0 || sc.playlist_id) && (
+                            {(scCount.total > 0 || sc.playlist_id) && (
                               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
-                                {scItems.length > 0 && <>{scItems.length} {scItems.length === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
+                                {scCount.total > 0 && <>{scCount.total} {scCount.total === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
                                 {sc.playlist_id && <>
-                                  {scItems.length > 0 && " · "}
+                                  {scCount.total > 0 && " · "}
                                   <svg width="10" height="10" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)" style={{ verticalAlign: "middle", marginRight: 3 }}><path d="M23 12l-10.5-7v14L23 12zM1 5h2v14H1V5zm4 0h2v14H5V5zm4 0h2v14H9V5z"/></svg>
                                   {t("portfolio.playlist", "Playlist")}
                                 </>}
@@ -262,13 +328,16 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
                     {t("portfolio.general", "General")}
                   </div>
                 )}
-                <ItemsGrid
-                  items={looseItems}
-                  activeTab={activeTab}
-                  onTabChange={tab => setPortfolioView({ ...portfolioView, tab })}
-                  setLb={setLb}
-                  t={t}
-                />
+                {itemsReady ? (
+                  <ItemsGrid
+                    items={currentItems}
+                    activeTab={activeTab}
+                    onTabChange={tab => setPortfolioView({ ...portfolioView, tab })}
+                    setLb={setLb}
+                    t={t}
+                    siteConfig={siteConfig}
+                  />
+                ) : <Spinner/>}
               </>
             )}
 
@@ -291,9 +360,8 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
       {typeof portfolioView === "object" && portfolioView.subcat && (() => {
         const currentCat = cats.find(c => c.id === portfolioView.cat);
         const currentSubcat = (subcats || []).find(s => s.id === portfolioView.subcat);
-        const scItems = items.filter(w => w.cat === portfolioView.cat && w.subcategory_id === portfolioView.subcat);
         const activeTab = portfolioView.tab || "photos";
-        const scThumb = currentSubcat?.header_image || (scItems[0]?.type === "image" ? scItems[0]?.src : itemThumb(scItems[0])) || "";
+        const scThumb = cardThumb(currentSubcat?.header_image, countsOf(summary.bySubcat, portfolioView.subcat).first);
 
         return (
           <>
@@ -321,13 +389,16 @@ export default function Portfolio({ cats, items, subcats, portfolioView, setPort
 
             <PlaylistLink playlistId={currentSubcat?.playlist_id} t={t}/>
 
-            <ItemsGrid
-              items={scItems}
-              activeTab={activeTab}
-              onTabChange={tab => setPortfolioView({ ...portfolioView, tab })}
-              setLb={setLb}
-              t={t}
-            />
+            {itemsReady ? (
+              <ItemsGrid
+                items={currentItems}
+                activeTab={activeTab}
+                onTabChange={tab => setPortfolioView({ ...portfolioView, tab })}
+                setLb={setLb}
+                t={t}
+                siteConfig={siteConfig}
+              />
+            ) : <Spinner/>}
           </>
         );
       })()}

@@ -7,7 +7,7 @@ import DragList from "./DragList";
 import {
   supabase, uploadImage, fetchStorageUsage,
   fetchCategories, addCategory, updateCategory, deleteCategory,
-  fetchWorkItems, addWorkItem, updateWorkItem, deleteWorkItem, updateWorkItemsOrder,
+  fetchWorkItems, normalizeWorkItem, addWorkItem, updateWorkItem, deleteWorkItem, updateWorkItemsOrder,
   fetchFaqs, addFaqRow, updateFaqRow, deleteFaqRow, updateFaqOrder,
   upsertSiteConfig,
   fetchSubcategories, addSubcategory, updateSubcategory, deleteSubcategory,
@@ -167,6 +167,18 @@ export default function AdminPanel({ onBack, cats, setCats, items, setItems, faq
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // El portfolio entero. App ya no lo lee al montar —el sitio público pide por
+  // categoría—, así que lo trae el admin, y sólo con sesión: sin login no hay
+  // panel que lo muestre. Paginado con traerTodas, que pasa las 1000 filas.
+  useEffect(() => {
+    if (!supabase || !session) return;
+    let vivo = true;
+    fetchWorkItems()
+      .then(rows => { if (vivo && rows) setItems(rows.map(normalizeWorkItem)); })
+      .catch(err => console.warn("Work items load failed:", err.message));
+    return () => { vivo = false; };
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (!supabase) return;

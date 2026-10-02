@@ -77,6 +77,45 @@ export async function fetchWorkItems() {
     supabase.from("work_items").select("*").order("sort_order").order("id").range(desde, hasta)
   );
 }
+
+// Fila de la base → la forma que usan los componentes (desc, videoId, ...).
+export const normalizeWorkItem = (w) => ({
+  id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb, title: w.title,
+  desc: w.description, videoId: w.video_id, subcategory_id: w.subcategory_id || null,
+  sort_order: w.sort_order ?? 0,
+});
+
+// El sitio público ya no lee work_items entero: el listado sale de la vista
+// work_items_summary y las fotos se piden por nivel, al entrar.
+//   { cat, subcat }        → los ítems de esa subcategoría
+//   { cat, subcat: null }  → los sueltos de la categoría (sin subcategoría)
+// Sigue paginada: una sola subcategoría también puede pasar las 1000 algún día.
+export async function fetchPortfolioItems({ cat, subcat = null }) {
+  if (!supabase) return null;
+  const delNivel = (q) => subcat ? q.eq("subcategory_id", subcat) : q.is("subcategory_id", null);
+  return traerTodas((desde, hasta) =>
+    delNivel(supabase.from("work_items").select("*").eq("cat", cat)).order("sort_order").order("id").range(desde, hasta)
+  );
+}
+
+// Los primeros `limit` del portfolio, para el fallback de Recent Work cuando el
+// carrusel no está curado. Antes se recortaban de la lista entera.
+export async function fetchFirstWorkItems(limit) {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("work_items").select("*").order("sort_order").order("id").range(0, limit - 1);
+  if (error) throw error;
+  return data;
+}
+
+// Una fila por (categoría, subcategoría): conteos y primer ítem. Son ~50 filas
+// —tantas como subcategorías— así que no necesita paginar.
+export async function fetchPortfolioSummary() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("work_items_summary").select("*");
+  if (error) throw error;
+  return data;
+}
+
 export async function addWorkItem(item) {
   if (!supabase) return;
   const { data, error } = await supabase.from("work_items").insert(item).select().single();

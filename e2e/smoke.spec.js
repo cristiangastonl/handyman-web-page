@@ -143,6 +143,39 @@ test.describe('portfolio', () => {
       'href', /^https:\/\/www\.youtube\.com\/playlist\?list=[A-Za-z0-9_-]+$/);
   });
 
+  test('el sitio no lee work_items entero: el listado sale del resumen y las fotos por nivel', async ({ page }) => {
+    // Hasta el 02/10/2026 App.jsx leía las ~1000 filas de work_items al abrir
+    // cualquier ruta, la home incluida, para contar y elegir miniaturas. Ahora
+    // las tarjetas salen de la vista work_items_summary y las fotos se piden al
+    // entrar a una categoría o subcategoría, filtradas por ella.
+    //
+    // Toda lectura de work_items del sitio público tiene que estar acotada:
+    // por categoría (cat=eq.) o con tope (limit=, el fallback de Recent Work).
+    const lecturas = [];
+    page.on('request', (req) => {
+      if (/\/rest\/v1\/work_items\?/.test(req.url())) lecturas.push(req.url());
+    });
+    const resumen = page.waitForResponse((r) => /\/rest\/v1\/work_items_summary\?/.test(r.url()));
+
+    await visit(page, '/');
+    await visit(page, '/portfolio');
+
+    // El resumen tiene que responder bien: si la vista no existiera en la base,
+    // el portfolio quedaría vacío sin un solo error en pantalla.
+    expect((await resumen).ok(), 'work_items_summary no respondió 200 — ¿se corrió portfolio-summary-migration.sql?').toBe(true);
+
+    const cards = page.getByTestId('category-card');
+    await expect(cards.first()).toBeVisible();
+
+    const fotosDeCategoria = page.waitForRequest((r) => /\/rest\/v1\/work_items\?.*cat=eq\./.test(r.url()));
+    await cards.first().click();
+    await fotosDeCategoria;
+    await expect(page.getByTestId('portfolio-loading')).toHaveCount(0);
+
+    const sinAcotar = lecturas.filter((u) => !/cat=eq\.|limit=/.test(u));
+    expect(sinAcotar, `lecturas de work_items sin filtro ni tope:\n${sinAcotar.join('\n')}`).toEqual([]);
+  });
+
   test('las imágenes tienen alt (SEO + accesibilidad)', async ({ page }) => {
     await visit(page, '/portfolio');
     const imgs = contentImages(page);

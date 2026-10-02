@@ -7,10 +7,11 @@ import {
   DEFAULT_HIGHLIGHTS,
 } from "./lib/constants";
 import {
-  supabase, fetchCategories, fetchWorkItems, fetchFaqs,
+  supabase, fetchCategories, fetchFaqs,
   fetchSubcategories, fetchHighlights, fetchFbReviews, fetchSiteConfig,
-  fetchGoogleReviews, fetchCarouselItems,
+  fetchGoogleReviews, fetchCarouselItems, fetchFirstWorkItems, normalizeWorkItem,
 } from "./lib/supabase";
+import { FALLBACK_LIMIT } from "./lib/carouselItems";
 import { withAllCategory } from "./lib/categories";
 
 // Components (eager — needed on home page)
@@ -97,7 +98,11 @@ export default function App() {
 
   // ── Data ──
   const [cats, setCats] = useState(DEFAULT_CATS);
+  // work_items enteros: sólo los usa el admin, que los carga al iniciar sesión.
+  // Viven acá y no en AdminPanel para sobrevivir a que se desmonte.
   const [items, setItems] = useState(DEFAULT_WORK);
+  // Fallback de Recent Work cuando el carrusel no está curado: los primeros 12.
+  const [recentFallback, setRecentFallback] = useState([]);
   const [faqs, setFaqs] = useState(DEFAULT_FAQS);
   const [subcats, setSubcats] = useState(DEFAULT_SUBCATS);
   const [highlights, setHighlights] = useState(DEFAULT_HIGHLIGHTS);
@@ -134,9 +139,9 @@ export default function App() {
     if (!supabase) return;
     const safe = (fn) => fn().catch(err => { console.warn('Fetch error:', err.message); return null; });
     (async () => {
-      const [dbCats, dbItems, dbFaqs, dbSubcats, dbHighlights, dbFbReviews, dbConfig, dbGoogleReviews,
+      const [dbCats, dbFaqs, dbSubcats, dbHighlights, dbFbReviews, dbConfig, dbGoogleReviews,
         dbCarRecentWorks, dbCarHighlights, dbCarReturning, dbCarTailorJobs] = await Promise.all([
-        safe(fetchCategories), safe(fetchWorkItems), safe(fetchFaqs),
+        safe(fetchCategories), safe(fetchFaqs),
         safe(fetchSubcategories), safe(fetchHighlights), safe(fetchFbReviews),
         safe(fetchSiteConfig), safe(fetchGoogleReviews),
         safe(() => fetchCarouselItems('recent_works')),
@@ -145,7 +150,6 @@ export default function App() {
         safe(() => fetchCarouselItems('tailor_jobs')),
       ]);
       if (dbCats?.length > 0) setCats(withAllCategory(dbCats));
-      if (dbItems?.length > 0) setItems(dbItems.map(w => ({ id: w.id, type: w.type, cat: w.cat, src: w.src, thumb: w.thumb, title: w.title, desc: w.description, videoId: w.video_id, subcategory_id: w.subcategory_id || null, sort_order: w.sort_order ?? 0 })));
       if (dbFaqs?.length > 0) setFaqs(dbFaqs.map(f => ({
         id: f.id, q: f.question, a: f.answer,
         question_de: f.question_de, answer_de: f.answer_de,
@@ -170,6 +174,13 @@ export default function App() {
         // sería un request muerto. Lo carga quien lo necesita: el panel de admin
         // al abrir su sub-tab, y ReviewsPage sólo cuando se mira el preview.
       }));
+      // work_items ya no se lee al montar: el portfolio pide su resumen y sus
+      // fotos por nivel, y la home sólo necesita esto, y sólo si Recent Work no
+      // está curado.
+      if (!(dbCarRecentWorks?.length > 0)) {
+        const dbFirst = await safe(() => fetchFirstWorkItems(FALLBACK_LIMIT));
+        if (dbFirst?.length > 0) setRecentFallback(dbFirst.map(normalizeWorkItem));
+      }
       setLoading(false);
     })();
   }, []);
@@ -195,7 +206,7 @@ export default function App() {
           <ServiceAreasCTA siteConfig={siteConfig}/>
           {/* Carousel order per client feedback: Recent works → Custom projects →
               orange Customs CTA → Highlights. Returning Customers was retired. */}
-          <RecentWork items={items} curatedItems={carouselData.recent_works} setLb={openLightbox} siteConfig={siteConfig}/>
+          <RecentWork items={recentFallback} curatedItems={carouselData.recent_works} setLb={openLightbox} siteConfig={siteConfig}/>
           <TailorJobs items={carouselData.tailor_jobs} setLb={openLightbox} siteConfig={siteConfig}/>
           <TailoringCTA nav={nav} siteConfig={siteConfig}/>
           <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={openLightbox} siteConfig={siteConfig}/>
@@ -241,7 +252,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage/>}/>
             <Route path="/portfolio" element={
-              <Portfolio cats={cats} items={items} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={openLightbox} siteConfig={siteConfig}/>
+              <Portfolio cats={cats} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={openLightbox} siteConfig={siteConfig}/>
             }/>
             <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews} happyItems={carouselData.happy_customers} setLb={openLightbox} siteConfig={siteConfig}/>}/>
             <Route path="/faq" element={<FAQPage faqs={faqs} siteConfig={siteConfig}/>}/>
