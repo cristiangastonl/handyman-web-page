@@ -25,15 +25,44 @@ export const SITE_ORIGIN = "https://www.handymanservicesinzurich.ch";
 export const R = "#D4781F";
 export const G = "#4A4A4A";
 export const PHONE = "+41 76 594 95 81";
-export const WA_LINK = "https://wa.me/41765949581?text=Hi%2C%20I%20need%20a%20handyman%20in%20Zurich";
+// El mensaje en inglés es el que escribió Anibal (10/10/2026), tal cual: no corregirle el inglés.
+// Lo que se ve en el sitio sale de site_config.whatsapp_url; esto es el fallback.
 const WA_MSGS = {
-  en: "Hi, I need a handyman in Zurich",
+  en: "Hello Aníbal 😊\n\nI was just taking a look across your website and would like to come along with some questions …\n\nPlease let me know when is a good time for you to chat about it 🙂\n\nThanks",
   de: "Hallo, ich brauche einen Handyman in Zurich",
   es: "Hola, necesito un handyman en Zurich",
   fr: "Bonjour, j'ai besoin d'un handyman à Zurich",
   it: "Ciao, ho bisogno di un handyman a Zurich",
 };
-export const getWALink = (lang = "en") => `https://wa.me/41765949581?text=${encodeURIComponent(WA_MSGS[lang] || WA_MSGS.en)}`;
+export const WA_NUMBER = "41765949581";
+
+/** Arma el link de WhatsApp. El número va sin "+" ni espacios; el texto puede ir vacío. */
+export const buildWALink = (number, text = "") => {
+  const digits = String(number || "").replace(/\D/g, "") || WA_NUMBER;
+  return text ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}` : `https://wa.me/${digits}`;
+};
+
+/**
+ * Lo inverso: número y mensaje de un link ya guardado. El admin guardaba el
+ * link entero codificado (%20, %F0%9F%98%8A…) y para cambiar el mensaje había
+ * que saber armarlo; ahora el admin muestra el texto y arma el link solo.
+ * Acepta wa.me y api.whatsapp.com/send?phone=…; si no lo entiende, devuelve
+ * el número de siempre y el mensaje vacío.
+ */
+export const parseWALink = (url) => {
+  try {
+    const u = new URL(String(url || "").trim());
+    const number = u.hostname.endsWith("wa.me")
+      ? u.pathname.replace(/\D/g, "")
+      : (u.searchParams.get("phone") || "").replace(/\D/g, "");
+    return { number: number || WA_NUMBER, text: u.searchParams.get("text") || "" };
+  } catch {
+    return { number: WA_NUMBER, text: "" };
+  }
+};
+
+export const getWALink = (lang = "en") => buildWALink(WA_NUMBER, WA_MSGS[lang] || WA_MSGS.en);
+export const WA_LINK = getWALink("en");
 export const HERO_IMG = "/anibal/hero.jpeg";
 // Recorte de las dos primeras filas del collage, para mobile. Ver Hero.jsx.
 export const HERO_IMG_MOBILE = "/anibal/hero-mobile.jpeg";

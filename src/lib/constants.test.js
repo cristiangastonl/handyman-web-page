@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl } from "./constants";
 
 describe("itemThumb", () => {
   // Regression: this is the bug that white-screened /portfolio in production.
@@ -70,9 +70,44 @@ describe("fbEmbedUrl", () => {
   });
 });
 
+describe("buildWALink / parseWALink", () => {
+  const msg = "Hello Aníbal 😊\n\nI was just taking a look …\n\nThanks";
+
+  it("ida y vuelta conserva emojis y renglones", () => {
+    expect(parseWALink(buildWALink("41765949581", msg))).toEqual({ number: "41765949581", text: msg });
+  });
+
+  it("limpia el número: +, espacios y guiones", () => {
+    expect(buildWALink("+41 76 594-95-81", "hi")).toBe("https://wa.me/41765949581?text=hi");
+  });
+
+  it("sin mensaje no agrega ?text=", () => {
+    expect(buildWALink("41765949581", "")).toBe("https://wa.me/41765949581");
+  });
+
+  it("lee el link que está hoy en la base", () => {
+    expect(parseWALink("https://wa.me/41765949581?text=Hi%2C%20I%20need%20a%20handyman%20in%20Zurich"))
+      .toEqual({ number: "41765949581", text: "Hi, I need a handyman in Zurich" });
+  });
+
+  it("entiende api.whatsapp.com/send?phone=", () => {
+    expect(parseWALink("https://api.whatsapp.com/send?phone=41000000000&text=hola"))
+      .toEqual({ number: "41000000000", text: "hola" });
+  });
+
+  it("un link roto no rompe el admin: número de siempre, mensaje vacío", () => {
+    expect(parseWALink("cualquier cosa")).toEqual({ number: "41765949581", text: "" });
+    expect(parseWALink(undefined)).toEqual({ number: "41765949581", text: "" });
+  });
+
+  it("el fallback es el mensaje que escribió Anibal", () => {
+    expect(parseWALink(WA_LINK).text).toMatch(/^Hello Aníbal 😊\n\nI was just taking a look across your website/);
+  });
+});
+
 describe("getWALink", () => {
   it("uses English message by default", () => {
-    expect(getWALink()).toContain("Hi%2C%20I%20need");
+    expect(getWALink()).toContain("Hello%20An%C3%ADbal");
   });
 
   it("uses Spanish message when lang=es", () => {
@@ -80,7 +115,7 @@ describe("getWALink", () => {
   });
 
   it("falls back to English for unknown language", () => {
-    expect(getWALink("zz")).toContain("Hi%2C%20I%20need");
+    expect(getWALink("zz")).toContain("Hello%20An%C3%ADbal");
   });
 });
 

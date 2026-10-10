@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_AREAS,
+  getSocialUrls, WA_NUMBER, buildWALink, parseWALink,
   STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix } from "../../lib/constants";
 import { textoVigente, payloadSiteText } from "../../lib/siteText";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
@@ -340,6 +341,36 @@ function FooterField({ label, configKey, defaultValue, siteConfig, onSave, loadi
   );
 }
 
+// ── WhatsApp: número + mensaje en texto normal; el link wa.me se arma al guardar ──
+// Se sigue guardando en whatsapp_url, que es lo que lee el sitio (getSocialUrls).
+function WhatsAppField({ siteConfig, onSave, loading }) {
+  const actual = parseWALink(getSocialUrls(siteConfig).wa);
+  const [number, setNumber] = useState(actual.number);
+  const [text, setText] = useState(actual.text);
+  useEffect(() => {
+    const p = parseWALink(getSocialUrls(siteConfig).wa);
+    setNumber(p.number);
+    setText(p.text);
+  }, [siteConfig.whatsapp_url]);
+  const link = buildWALink(number, text);
+  return (
+    <div style={{ marginBottom: spacing.md }}>
+      <label style={{ ...typography.caption, fontWeight: 600 }}>WhatsApp</label>
+      <span style={{ ...typography.caption, color: colors.gray400, marginLeft: spacing.sm }}>Número con código de país, sin + ni espacios</span>
+      <input value={number} onChange={e => setNumber(e.target.value)} inputMode="numeric"
+        placeholder={WA_NUMBER} className="admin-input" style={{ ...A.input, marginTop: 2, marginBottom: spacing.sm }}/>
+      <label style={{ ...typography.caption, fontWeight: 600 }}>Mensaje que le aparece escrito al cliente</label>
+      <span style={{ ...typography.caption, color: colors.gray400, marginLeft: spacing.sm }}>Se puede usar emojis y renglones</span>
+      <textarea value={text} onChange={e => setText(e.target.value)} rows={7}
+        className="admin-input" style={{ ...A.textarea, marginTop: 2, marginBottom: spacing.xs }}/>
+      <div style={{ display: "flex", gap: spacing.sm, alignItems: "center", justifyContent: "flex-end" }}>
+        <a href={link} target="_blank" rel="noopener noreferrer" style={{ ...typography.caption, color: colors.gray500 }}>Probar</a>
+        <AdminButton size="small" loading={loading} onClick={() => onSave("whatsapp_url", link)}>Save</AdminButton>
+      </div>
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════
 // Main component
 // ══════════════════════════════════════════════════════════════════
@@ -514,7 +545,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
       <AdminCard title="8 · Datos del negocio" style={{ marginBottom: spacing.xl }}>
         <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>No es una sección de la página: estos datos se usan en varias a la vez — el pie, los CTA, la franja de zonas y los links de redes. Por eso va al final y no en el medio del recorrido.</p>
         <FooterField label="Phone Number" configKey="site_phone" defaultValue={siteConfig.phone || PHONE} siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="WhatsApp URL" configKey="whatsapp_url" defaultValue={siteConfig.whatsapp_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Full wa.me link" />
+        <WhatsAppField siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Facebook URL" configKey="facebook_url" defaultValue={siteConfig.facebook_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="YouTube URL" configKey="youtube_url" defaultValue={siteConfig.youtube_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Google Review URL" configKey="google_review_url" defaultValue={siteConfig.google_review_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="El link corto de Google que abre el formulario de reseña (g.page/r/.../review)" />
