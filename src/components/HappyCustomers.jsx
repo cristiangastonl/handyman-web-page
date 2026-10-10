@@ -93,3 +93,23 @@ export function HappyCustomerTile({ item, setLb, context }) {
     </div>
   );
 }
+
+/**
+ * Foto intercalada en el carrusel de reseñas de la home, una cada dos reviews
+ * (pedido de Anibal, 10/10/2026). Alto fijo y ancho según la foto, por lo mismo
+ * que el resto: la pieza trae marco, texto y logo, y recortarla los corta.
+ * El alto es el de una tarjeta de reseña cerrada, así queda pareja en el riel.
+ */
+export function HappyCustomerCard({ item, setLb, context, height = 210 }) {
+  const src = itemThumb(item);
+  if (!src) return null;
+  return (
+    <div className="hc-carousel-tile" onClick={() => setLb?.(item, context)}
+      style={{ flexShrink: 0, alignSelf: "center", cursor: "pointer", transition: "transform .2s" }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.03)"; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = "none"; }}>
+      <img src={src} alt={item.alt_text || "Anibal with a happy customer in Zurich"} loading="lazy"
+        style={{ display: "block", height, width: "auto", maxWidth: "none" }}/>
+    </div>
+  );
+}

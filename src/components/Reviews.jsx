@@ -5,7 +5,7 @@ import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
-import HappyCustomerRails, { HappyCustomerTile } from "./HappyCustomers";
+import HappyCustomerRails, { HappyCustomerTile, HappyCustomerCard } from "./HappyCustomers";
 
 // "G + f Reviews" se leía como si "Reviews" fuera sólo lo de Facebook: la palabra
 // quedaba pegada al ícono azul y el de Google, al otro extremo, no llegaba a
@@ -42,7 +42,7 @@ function SourcePill({ fuentes, sz = 16 }) {
   const { google, facebook } = fuentes;
   if (!google && !facebook) return null;
   return (
-    <span style={sourcePill}>
+    <span data-testid="fuentes-resenas" style={sourcePill}>
       {google && <GoogleG size={sz + 6}/>}
       {google && facebook && <span style={{ fontSize: 11, color: "#ccc" }}>+</span>}
       {facebook && <SocialIcon type="fb" size={sz}/>}
@@ -118,7 +118,7 @@ export const starAverage = (reviews) => {
 };
 
 // Unified reviews carousel for the home page (Google + Facebook)
-export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], siteConfig = {} }) {
+export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], happyItems = [], setLb, siteConfig = {} }) {
   const { t, i18n } = useTranslation();
   const revTitleStyle = getStyleConfig(siteConfig, "reviews_title_style");
   const revScoreStyle = getStyleConfig(siteConfig, "reviews_score_style");
@@ -140,10 +140,14 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
   const googleOnly = allReviews.filter(r => r.source === "google" && r.r);
   const fbOnly = allReviews.filter(r => r.source === "facebook");
 
+  // Las 12 reseñas más nuevas con una foto de Happy Customers cada dos, el mismo
+  // paso que en /reviews.
+  //
   // La lista se duplica para que el loop no muestre la costura al reiniciar, igual
   // que en Carousel.jsx. El clon comparte el índice de su original, así que "Read
   // more" abre las dos copias de la misma reseña y no una sí y otra no.
-  const base = allReviews.slice(0, 12);
+  const happy = useHappyCustomers(happyItems);
+  const base = useMemo(() => interleaveHappy(allReviews.slice(0, 12), happy), [allReviews, happy]);
   const loop = base.length > 1 ? [...base, ...base] : base;
 
   const speed = useCarouselSpeed(SPEED_FACTORS.homeReviews);
@@ -250,6 +254,9 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
           <div ref={revRef} className="hs" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 4 }}>
             {loop.map((rev, k) => {
               const i = k % base.length;
+              if (rev.__photo) return (
+                <HappyCustomerCard key={k} item={rev.__photo} setLb={setLb} context={happy}/>
+              );
               return (
               <div key={k} className="review-card" style={{ minWidth: 280, maxWidth: 310, flexShrink: 0, padding: "18px", borderRadius: 12, background: "#fff", border: "1px solid #eee", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -280,9 +287,9 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], sit
 }
 
 /**
- * Las fotos de Happy Customers sólo se usan en esta página, así que se piden
- * acá y no en la carga inicial de App.jsx — en las otras 3 rutas sería un
- * request muerto. `happyItems` llega por props cuando el admin ya las cargó
+ * Las fotos de Happy Customers se usan en /reviews y en el carrusel de reseñas
+ * de la home, así que se piden ahí y no en la carga inicial de App.jsx — en
+ * /portfolio y /faq sería un request muerto. `happyItems` llega por props cuando el admin ya las cargó
  * en memoria; si no, se buscan.
  */
 function useHappyCustomers(happyItems) {
@@ -303,7 +310,9 @@ function useHappyCustomers(happyItems) {
   );
 }
 
-// Una selfie cada tres reviews. Decisión de Anibal, 29/08/2026:
+// Una selfie cada dos reviews, en /reviews (mobile) y en el carrusel de la home.
+// Era cada tres; Anibal lo bajó a dos el 10/10/2026. La decisión original, del
+// 29/08/2026:
 //
 //   "Cada diez es bocha. Hay 13 y nadie scrolea 130 reviews. Las imágenes
 //    garpan 100 veces más q la review escrita, son fotos reales, en casas
@@ -315,11 +324,12 @@ function useHappyCustomers(happyItems) {
 // El paso fijo las concentra adelante: se agotan alrededor de la review 40 y
 // de ahí en adelante quedan sólo reviews escritas. Es el intercambio elegido
 // a propósito — que se vean todas vale más que cubrir un final que no se lee.
-const REVIEWS_POR_FOTO = 3;
+const REVIEWS_POR_FOTO = 2;
 
 /**
- * Mobile: las fotos se intercalan entre las reviews. En desktop el CSS las
- * oculta — ahí el contenido vive en los rieles de los márgenes.
+ * Intercala una foto cada REVIEWS_POR_FOTO reviews. En /reviews los tiles se ven
+ * sólo en mobile (en desktop el CSS los oculta: ahí están los rieles de los
+ * márgenes); en el carrusel de la home se ven en todos los anchos.
  */
 function interleaveHappy(reviews, photos) {
   if (photos.length === 0) return reviews;
@@ -363,7 +373,6 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
   const allReviews = reviews;
   const googleOnly = reviews.filter(r => r.source === "google" && r.r);
   const fbOnly = reviews.filter(r => r.source === "facebook");
-  const fuentes = fuentesDeReseñas(reviews);
   const avg = starAverage(reviews);
 
   return (
@@ -371,8 +380,10 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
       <HappyCustomerRails items={happy} setLb={setLb}/>
       <div style={{ textAlign: "center", padding: "24px 0 36px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+          {/* Sin pastilla de fuentes, a diferencia de la home: Anibal la pidió fuera
+              de /reviews el 10/10/2026. Acá sobraba, porque justo debajo están las
+              dos columnas, cada una con el ícono de su fuente. */}
           <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
-          <SourcePill fuentes={fuentes} sz={20}/>
         </div>
         {/* Una columna por fuente, y cada número contado sobre su propia fuente.
             Antes era un if/else sobre el promedio: apenas entró la primera reseña

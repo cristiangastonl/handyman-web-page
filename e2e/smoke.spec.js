@@ -241,7 +241,7 @@ test.describe('happy customers', () => {
         }).length);
       expect(visibles).toBeGreaterThan(0);
     } else {
-      // Intercaladas, una cada tres reviews.
+      // Intercaladas, una cada dos reviews (era cada tres hasta el 10/10/2026).
       //
       // Este check cambió a propósito el 29/08/2026. Antes exigía que la última
       // foto cayera pasado el 60% de la página: el reparto se calculaba sobre el
@@ -270,27 +270,62 @@ test.describe('happy customers', () => {
         const idx = hijos.flatMap((el, i) => el.classList.contains('hc-inline-tile') ? [i] : []);
         return {
           primera: idx[0],
-          // Con una foto cada 3 reviews, entre foto y foto hay 4 posiciones.
+          // Con una foto cada 2 reviews, entre foto y foto hay 3 posiciones.
           saltos: idx.slice(1).map((v, i) => v - idx[i]),
           cuantas: idx.length,
           reviews: hijos.length - idx.length,
         };
       });
 
-      // La primera foto va después de 3 reviews: con menos de 3 no entra
+      // La primera foto va después de 2 reviews: con menos de 2 no entra
       // ninguna, y que la grilla no tenga tiles es lo correcto.
-      if (pasos.reviews < 3) {
-        expect(pasos.cuantas, 'sin 3 reviews no hay dónde meter una foto').toBe(0);
+      if (pasos.reviews < 2) {
+        expect(pasos.cuantas, 'sin 2 reviews no hay dónde meter una foto').toBe(0);
         return;
       }
 
       await expect(photos.first()).toHaveAttribute('alt', /.+/);
-      expect(pasos.primera, 'la primera foto va después de 3 reviews').toBe(3);
+      expect(pasos.primera, 'la primera foto va después de 2 reviews').toBe(2);
       if (pasos.cuantas > 1) {
-        expect([...new Set(pasos.saltos)], 'el paso tiene que ser parejo: 3 reviews y una foto')
-          .toEqual([4]);
+        expect([...new Set(pasos.saltos)], 'el paso tiene que ser parejo: 2 reviews y una foto')
+          .toEqual([3]);
       }
     }
+  });
+
+  test('en el carrusel de reseñas de la home va una foto cada dos reviews', async ({ page }) => {
+    // Pedido de Anibal del 10/10/2026, en todos los anchos (lo de "sólo mobile"
+    // era para /reviews). Mismo paso que la grilla: 2 reviews y una foto.
+    await visit(page, '/');
+    await page.waitForFunction(() => document.querySelectorAll('.review-card').length > 1,
+      null, { timeout: 20_000 });
+
+    // Las fotos llegan por un fetch aparte de las reviews; se les da tiempo, y si
+    // no hay ninguna cargada en la base el carrusel queda sólo con reseñas.
+    const hayFotos = await page.waitForFunction(() => document.querySelector('.hc-carousel-tile img'),
+      null, { timeout: 10_000 }).then(() => true, () => false);
+    if (!hayFotos) {
+      await expect(page.locator('.hc-carousel-tile')).toHaveCount(0);
+      return;
+    }
+
+    const pasos = await page.evaluate(() => {
+      const riel = document.querySelector('.review-card').parentElement;
+      // El riel va duplicado para el loop: se mira sólo la primera mitad.
+      const hijos = [...riel.children].slice(0, riel.children.length / 2);
+      const idx = hijos.flatMap((el, i) => el.classList.contains('hc-carousel-tile') ? [i] : []);
+      return { primera: idx[0], saltos: idx.slice(1).map((v, i) => v - idx[i]) };
+    });
+    expect(pasos.primera, 'la primera foto va después de 2 reviews').toBe(2);
+    expect([...new Set(pasos.saltos)], 'el paso tiene que ser parejo: 2 reviews y una foto').toEqual([3]);
+    await expect(page.locator('.hc-carousel-tile img').first()).toHaveAttribute('alt', /.+/);
+
+    // La foto no se recorta: la pieza trae texto y logo adentro.
+    const recorte = await page.locator('.hc-carousel-tile img').first().evaluate((img) => {
+      const b = img.getBoundingClientRect();
+      return img.naturalWidth ? Math.abs(b.width / b.height - img.naturalWidth / img.naturalHeight) : 0;
+    });
+    expect(recorte, 'la foto del carrusel está deformada o recortada').toBeLessThan(0.02);
   });
 });
 
@@ -708,6 +743,30 @@ test.describe('cabecera de reseñas de la home', () => {
 });
 
 test.describe('orden de la home', () => {
+  test('Service Areas va entre los dos primeros carruseles', async ({ page }) => {
+    // Pedido de Anibal del 10/10/2026: antes iba entre About y Recent Works, y
+    // ahora el primer carrusel sube justo debajo de About.
+    await visit(page, '/');
+    await page.waitForFunction(
+      () => [...document.querySelectorAll('div')].some(
+        (d) => d.style.willChange === 'transform' && d.children.length > 3),
+      null,
+      { timeout: 20_000 },
+    );
+    const orden = await page.evaluate(() => {
+      const y = (el) => el ? el.getBoundingClientRect().top + scrollY : NaN;
+      const secciones = [...document.querySelectorAll('section')];
+      const conTitulo = (re) => secciones.find((s) => re.test(s.querySelector('h2, h4')?.innerText ?? ''));
+      return {
+        recent: y(conTitulo(/recent/i)),
+        zonas: y(secciones.find((s) => s.querySelector('h4') && /area/i.test(s.querySelector('h4').innerText))),
+        custom: y(conTitulo(/custom|tailor/i)),
+      };
+    });
+    expect(orden.recent, 'Recent Works va antes de Service Areas').toBeLessThan(orden.zonas);
+    expect(orden.zonas, 'Service Areas va antes de Custom Projects').toBeLessThan(orden.custom);
+  });
+
   test('las marcas cierran la página: después del CTA y antes del footer', async ({ page }) => {
     // Pedido de Anibal: "lo de trusted brands tiene q ir al cierre, entre
     // 'ready to get…' y el pie de página". Antes partía al medio el bloque de
@@ -863,8 +922,35 @@ test.describe('presentación en mobile', () => {
 });
 
 test.describe('resumen de /reviews', () => {
-  // El conteo al pie de una columna del resumen ("Based on 1 Google reviews",
-  // "145 people recommend Anibal"), como entero. Va contra el renglón puntual y no
+  test('/reviews no lleva la pastilla de fuentes; la home sí', async ({ page }) => {
+    // Anibal la pidió fuera de /reviews el 10/10/2026, en desktop y mobile: ahí
+    // las dos columnas del resumen ya dicen de qué fuente es cada número. En la
+    // home se queda, al lado del título del carrusel.
+    await visit(page, '/reviews');
+    await expect(page.locator('.reviews-grid > *').first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('fuentes-resenas')).toHaveCount(0);
+
+    await visit(page, '/');
+    await page.waitForFunction(() => document.querySelectorAll('.review-card').length > 0,
+      null, { timeout: 20_000 });
+    await expect(page.getByTestId('fuentes-resenas')).toHaveCount(1);
+  });
+
+  test('los textos del resumen: sin "Anibal" y "Google Reviews" con mayúscula', async ({ page }) => {
+    // Pedido del 10/10/2026. "Anibal" se sacó en los 5 idiomas; la mayúscula
+    // sólo en inglés, los otros idiomas quedan traducidos.
+    await visit(page, '/reviews');
+    await expect(page.locator('.reviews-grid > *').first()).toBeVisible({ timeout: 20_000 });
+    for (const fuente of ['google', 'facebook']) {
+      const conteo = page.getByTestId(`conteo-${fuente}`);
+      if (await conteo.count() === 0) continue;
+      await expect(conteo).not.toContainText('Anibal');
+      if (fuente === 'google') await expect(conteo).toContainText(/Google Reviews?$/);
+    }
+  });
+
+  // El conteo al pie de una columna del resumen ("Based on 1 Google Review",
+  // "145 people recommend"), como entero. Va contra el renglón puntual y no
   // contra el texto de toda la columna: la de Google termina con las cinco barras
   // de distribución, así que "el último número" pasó a ser el 0 de 1★.
   const conteoDe = async (page, fuente) => {

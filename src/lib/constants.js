@@ -497,7 +497,10 @@ export const css = `
        727 px el hero ya está contra su min-height y no puede ceder más, así que los
        píxeles tienen que salir de acá. Es espacio muerto entre las tarjetas de redes y
        la foto, no se nota. */
-    section:has(> .about-row) { padding: 10px 24px 16px !important; }
+    /* Abajo va el aire de sección entero (40, SECTION_Y): desde el 10/10/2026 lo que
+       sigue es el carrusel Recent Works, que arranca sin padding propio, y con 16
+       quedaba más pegado que los otros dos carruseles. Antes seguía Service Areas. */
+    section:has(> .about-row) { padding: 10px 24px 40px !important; }
     /* Dos columnas: el texto en la primera y la foto en la segunda, centrada
        verticalmente contra el bloque entero de título + bio.
 

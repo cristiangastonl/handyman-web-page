@@ -203,14 +203,16 @@ export default function App() {
           <Hero siteConfig={siteConfig}/>
           <StatsBar siteConfig={siteConfig}/>
           <About nav={nav} navToCategory={navToCategory} cats={cats} siteConfig={siteConfig}/>
-          <ServiceAreasCTA siteConfig={siteConfig}/>
           {/* Carousel order per client feedback: Recent works → Custom projects →
-              orange Customs CTA → Highlights. Returning Customers was retired. */}
+              orange Customs CTA → Highlights. Returning Customers was retired.
+              Service Areas va entre los dos primeros carruseles (pedido de Anibal,
+              10/10/2026): así el primer trabajo aparece apenas después de About. */}
           <RecentWork items={recentFallback} curatedItems={carouselData.recent_works} setLb={openLightbox} siteConfig={siteConfig}/>
+          <ServiceAreasCTA siteConfig={siteConfig}/>
           <TailorJobs items={carouselData.tailor_jobs} setLb={openLightbox} siteConfig={siteConfig}/>
           <TailoringCTA nav={nav} siteConfig={siteConfig}/>
           <Highlights highlights={highlights} curatedItems={carouselData.highlights} setLb={openLightbox} siteConfig={siteConfig}/>
-          <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews} siteConfig={siteConfig}/>
+          <GoogleReviewsHome nav={nav} googleReviews={googleReviews} fbReviews={fbReviews} happyItems={carouselData.happy_customers} setLb={openLightbox} siteConfig={siteConfig}/>
           <FAQHome faqs={faqs} nav={nav} siteConfig={siteConfig}/>
           <BottomCTA siteConfig={siteConfig}/>
           {/* Las marcas van al cierre, entre el CTA y el footer: es prueba social
