@@ -7,48 +7,10 @@ import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 import HappyCustomerRails, { HappyCustomerTile, HappyCustomerCard } from "./HappyCustomers";
 
-// "G + f Reviews" se leía como si "Reviews" fuera sólo lo de Facebook: la palabra
-// quedaba pegada al ícono azul y el de Google, al otro extremo, no llegaba a
-// alcanzarla. Ahora el título va primero y los dos íconos van detrás agrupados en
-// una pastilla, que se lee como "estas son las fuentes" y no como parte de la frase.
-const sourcePill = {
-  display: "inline-flex", alignItems: "center", gap: 6,
-  padding: "3px 10px", borderRadius: 999,
-  background: "#fff", border: "1px solid #e8e8e8",
-};
-
-/**
- * Qué fuentes de reseñas hay realmente cargadas.
- *
- * Una sola decisión para todo lo que depende de eso: la pastilla de fuentes, las
- * estrellas y el promedio. Antes cada uno resolvía por su cuenta y quedaban
- * incoherencias — la pastilla anunciaba "Google + Facebook" con cero reseñas de
- * Google, mientras el bloque de al lado ya mostraba recomendaciones porque sabía
- * que no había puntajes.
- *
- * Se mira lo que hay, no lo que debería haber: el día que Anibal cargue una
- * reseña de Google, la G aparece sola y con ella vuelven las estrellas.
- */
-export const fuentesDeReseñas = (reviews = []) => ({
-  google: reviews.some(r => r.source === "google"),
-  facebook: reviews.some(r => r.source === "facebook"),
-});
-
-/**
- * La pastilla que dice de dónde salen las reseñas. Muestra sólo las fuentes que
- * tienen algo, y el "+" únicamente cuando hay dos que separar.
- */
-function SourcePill({ fuentes, sz = 16 }) {
-  const { google, facebook } = fuentes;
-  if (!google && !facebook) return null;
-  return (
-    <span data-testid="fuentes-resenas" style={sourcePill}>
-      {google && <GoogleG size={sz + 6}/>}
-      {google && facebook && <span style={{ fontSize: 11, color: "#ccc" }}>+</span>}
-      {facebook && <SocialIcon type="fb" size={sz}/>}
-    </span>
-  );
-}
+// Sin pastilla de fuentes (G + F) en ningún lado, y sin título "Reviews" en
+// /reviews: Anibal los pidió fuera el 10/10/2026. Cada número del resumen ya
+// lleva el ícono de su fuente al lado, así que la pastilla repetía lo mismo.
+// En la home el título "Reviews" se queda: ahí es lo que nombra la sección.
 
 // Sentido de marcha del carrusel de reseñas de la home.
 //   -1 → de izquierda a derecha: las tarjetas entran por el borde izquierdo.
@@ -135,7 +97,6 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
   };
   // Home always leads with the newest reviews — the asc/desc control lives on /reviews.
   const allReviews = useAllReviews(googleReviews, fbReviews, i18n.language, "desc");
-  const fuentes = fuentesDeReseñas(allReviews);
   const avg = starAverage(allReviews);
   const googleOnly = allReviews.filter(r => r.source === "google" && r.r);
   const fbOnly = allReviews.filter(r => r.source === "facebook");
@@ -190,10 +151,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
               página entera al 76% para que entre— y el sitio se veía chico en el
               celular sin que nada pareciera roto. */}
           <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: revTitleStyle.fontSize, fontFamily: `'${revTitleStyle.fontFamily}', sans-serif`, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
-              <SourcePill fuentes={fuentes} sz={16}/>
-            </div>
+            <span style={{ fontSize: revTitleStyle.fontSize, fontFamily: `'${revTitleStyle.fontFamily}', sans-serif`, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
             {/* Las dos fuentes, una al lado de la otra, igual que en /reviews: antes
                 era un if/else y apenas entró la primera reseña de Google la fila
                 dejó de mostrar las 145 recomendaciones de Facebook, que son la
@@ -379,12 +337,6 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
     <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
       <HappyCustomerRails items={happy} setLb={setLb}/>
       <div style={{ textAlign: "center", padding: "24px 0 36px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
-          {/* Sin pastilla de fuentes, a diferencia de la home: Anibal la pidió fuera
-              de /reviews el 10/10/2026. Acá sobraba, porque justo debajo están las
-              dos columnas, cada una con el ícono de su fuente. */}
-          <span style={{ fontSize: 18, fontWeight: 700 }}>{t("reviews.title")}</span>
-        </div>
         {/* Una columna por fuente, y cada número contado sobre su propia fuente.
             Antes era un if/else sobre el promedio: apenas entró la primera reseña
             de Google el bloque saltó a la rama de estrellas y mostró "5.0" —el

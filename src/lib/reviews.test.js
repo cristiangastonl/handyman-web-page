@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
-import { starAverage, fuentesDeReseñas } from "../components/Reviews";
+import { starAverage } from "../components/Reviews";
 
 // El 03/09/2026 el sitio de un negocio real publicó reseñas inventadas.
 //
@@ -67,36 +67,10 @@ describe("no hay reseñas de relleno en el código", () => {
   });
 });
 
-// La pastilla de fuentes anunciaba "Google + Facebook" siempre, aunque no
-// hubiera ni una reseña de Google. Quedaba incoherente con el bloque de al lado,
-// que ya mostraba recomendaciones justamente porque sabía que no había puntajes.
-// Ahora las dos cosas salen de la misma función.
-describe("qué fuentes de reseñas hay", () => {
-  const g = { source: "google", r: 5 };
-  const fb = { source: "facebook", r: null };
-
-  it("sin reseñas no hay ninguna fuente, y la pastilla no se dibuja", () => {
-    expect(fuentesDeReseñas([])).toEqual({ google: false, facebook: false });
-    expect(fuentesDeReseñas()).toEqual({ google: false, facebook: false });
-  });
-
-  it("sólo Facebook: no anuncia Google", () => {
-    expect(fuentesDeReseñas([fb, fb])).toEqual({ google: false, facebook: true });
-  });
-
-  it("sólo Google: no anuncia Facebook", () => {
-    expect(fuentesDeReseñas([g])).toEqual({ google: true, facebook: false });
-  });
-
-  it("las dos, que es cuando el + tiene sentido", () => {
-    expect(fuentesDeReseñas([g, fb])).toEqual({ google: true, facebook: true });
-  });
-
-  it("una reseña de Google sin puntaje igual cuenta como fuente", () => {
-    // La pastilla dice de dónde salen las reseñas; las estrellas dependen de que
-    // además tengan puntaje. Son dos preguntas distintas sobre el mismo dato.
-    const sinPuntaje = { source: "google", r: null };
-    expect(fuentesDeReseñas([sinPuntaje]).google).toBe(true);
-    expect(starAverage([sinPuntaje])).toBeNull();
+// La pastilla de fuentes (y su fuentesDeReseñas) se fue el 10/10/2026, a pedido
+// de Anibal. De sus tests queda el único que miraba otra cosa: el promedio.
+describe("reseña de Google sin puntaje", () => {
+  it("no entra en el promedio", () => {
+    expect(starAverage([{ source: "google", r: null }])).toBeNull();
   });
 });

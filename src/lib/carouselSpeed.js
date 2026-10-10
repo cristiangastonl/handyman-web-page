@@ -46,8 +46,10 @@ export const SPEED_FACTORS = {
   // El carrusel de tarjetas de reseñas de la home. Hasta el 31/08 era el único de
   // la home que no se movía solo: scroll manual con flechas. Estuvo en 1.05x, lo
   // más lento de todo, porque son tarjetas de texto que se leen mientras se
-  // mueven; el 02/09 Anibal lo subió a 2x junto con Custom Projects.
-  homeReviews: enX(2),
+  // mueven; el 02/09 Anibal lo subió a 2x junto con Custom Projects, y el
+  // 10/10 pidió subirlo otra vez: pasa a 3x, la velocidad global de los
+  // carruseles de fotos.
+  homeReviews: enX(3),
 };
 
 export function useCarouselSpeed(factor = SPEED_FACTORS.default) {

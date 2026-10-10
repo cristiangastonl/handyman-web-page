@@ -394,11 +394,12 @@ test.describe('velocidad de los carruseles', () => {
     const pxPorFrame = await medir();
     // La velocidad se verifica en módulo y el sentido aparte: son dos decisiones
     // distintas y el sentido lo cambia una constante (REVIEWS_DIR en Reviews.jsx).
-    // 0.5 (base) x 3 (velocidad global) x enX(2) = 1.0 px/frame ≈ 60 px/s.
-    // Venía de 0.525 y Anibal lo subió a 2x el 02/09. La banda cubre el ruido de
-    // medición, no un rango de velocidades: 1.5 sería la global sin correrse.
-    expect(Math.abs(pxPorFrame), 'el carrusel de reseñas no se está moviendo').toBeGreaterThan(0.7);
-    expect(Math.abs(pxPorFrame), 'va a la velocidad global en vez de a 2x').toBeLessThan(1.3);
+    // 0.5 (base) x 3 (velocidad global) x enX(3) = 1.5 px/frame ≈ 90 px/s.
+    // Venía de 0.525, Anibal lo subió a 2x (1.0) el 02/09 y a 3x el 10/10. La
+    // banda cubre el ruido de medición, no un rango de velocidades: 1.0 sería
+    // quedarse en el 2x de antes.
+    expect(Math.abs(pxPorFrame), 'el carrusel de reseñas no se está moviendo').toBeGreaterThan(1.2);
+    expect(Math.abs(pxPorFrame), 'va más rápido que la velocidad global').toBeLessThan(1.8);
     // Hoy corre de izquierda a derecha (REVIEWS_DIR = -1), o sea que scrollLeft baja.
     expect(pxPorFrame, 'cambió el sentido de marcha del carrusel').toBeLessThan(0);
 
@@ -922,18 +923,31 @@ test.describe('presentación en mobile', () => {
 });
 
 test.describe('resumen de /reviews', () => {
-  test('/reviews no lleva la pastilla de fuentes; la home sí', async ({ page }) => {
-    // Anibal la pidió fuera de /reviews el 10/10/2026, en desktop y mobile: ahí
-    // las dos columnas del resumen ya dicen de qué fuente es cada número. En la
-    // home se queda, al lado del título del carrusel.
+  test('sin pastilla de fuentes; "Reviews" sólo como título de la home', async ({ page }) => {
+    // Anibal, 10/10/2026: fuera la pastilla en las dos páginas y la palabra
+    // "Reviews" de arriba del resumen de /reviews. En la home la palabra se
+    // queda, porque ahí es el título de la sección.
     await visit(page, '/reviews');
     await expect(page.locator('.reviews-grid > *').first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('fuentes-resenas')).toHaveCount(0);
+    // "Reviews" sigue en el menú y en el pie; lo que no puede haber es un título
+    // suelto arriba del resumen.
+    const tituloResumen = await page.evaluate(() => {
+      const resumen = document.querySelector('[data-testid^="resumen-"]');
+      const bloque = resumen?.parentElement?.parentElement;
+      return bloque ? [...bloque.querySelectorAll('span')].some((s) => s.textContent.trim() === 'Reviews') : false;
+    });
+    expect(tituloResumen, 'quedó el título "Reviews" arriba del resumen').toBe(false);
 
     await visit(page, '/');
     await page.waitForFunction(() => document.querySelectorAll('.review-card').length > 0,
       null, { timeout: 20_000 });
-    await expect(page.getByTestId('fuentes-resenas')).toHaveCount(1);
+    await expect(page.getByTestId('fuentes-resenas')).toHaveCount(0);
+    const tituloHome = await page.evaluate(() => {
+      const fila = document.querySelector('[data-testid^="home-"]')?.parentElement;
+      return fila ? [...fila.querySelectorAll('span')].some((s) => s.textContent.trim() === 'Reviews') : false;
+    });
+    expect(tituloHome, 'falta el título "Reviews" en la cabecera del carrusel').toBe(true);
   });
 
   test('los textos del resumen: sin "Anibal" y "Google Reviews" con mayúscula', async ({ page }) => {

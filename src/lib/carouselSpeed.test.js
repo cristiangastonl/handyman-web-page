@@ -60,10 +60,18 @@ describe("velocidad por carrusel", () => {
     // Custom Projects venía de 1.5x, los rieles de 1.5x y el de reseñas de la home
     // de 1.05x, que era lo más lento del sitio. Después de esa ronda no queda nada
     // en 1.5: o va a la global o va a 2x.
-    for (const clave of ["tailorJobs", "homeReviews", "happyRails"]) {
+    // El de reseñas de la home salió de esta lista el 10/10: Anibal lo subió a 3x.
+    for (const clave of ["tailorJobs", "happyRails"]) {
       expect(SPEED_FACTORS[clave], clave).toBe(enX(2));
       expect(Math.round(useCarouselSpeed(SPEED_FACTORS[clave]) * 60), clave).toBe(60);
     }
+  });
+
+  it("el carrusel de reseñas de la home va a 3x (90 px/s), como los de fotos", () => {
+    // "Me olvidé de pedirte que le subas la velocidad al carrusel de las reviews"
+    // (10/10/2026). Estaba en 2x; pasa a la global.
+    expect(SPEED_FACTORS.homeReviews).toBe(enX(3));
+    expect(Math.round(useCarouselSpeed(SPEED_FACTORS.homeReviews) * 60)).toBe(90);
   });
 
   it("los rieles siguen por debajo de la global, no igualados", () => {
