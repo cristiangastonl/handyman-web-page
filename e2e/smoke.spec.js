@@ -293,9 +293,10 @@ test.describe('happy customers', () => {
     }
   });
 
-  test('en el carrusel de reseñas de la home va una foto cada dos reviews', async ({ page }) => {
-    // Pedido de Anibal del 10/10/2026, en todos los anchos (lo de "sólo mobile"
-    // era para /reviews). Mismo paso que la grilla: 2 reviews y una foto.
+  test('en el carrusel de reseñas de la home va una foto entre cada review', async ({ page }) => {
+    // Pedido de Anibal, en todos los anchos (lo de "sólo mobile" era para
+    // /reviews). Arrancó en una cada dos el 10/10 y él lo corrigió el 11/10: "no,
+    // era cada una, una y una". Review, foto, review, foto.
     await visit(page, '/');
     await page.waitForFunction(() => document.querySelectorAll('.review-card').length > 1,
       null, { timeout: 20_000 });
@@ -316,8 +317,8 @@ test.describe('happy customers', () => {
       const idx = hijos.flatMap((el, i) => el.classList.contains('hc-carousel-tile') ? [i] : []);
       return { primera: idx[0], saltos: idx.slice(1).map((v, i) => v - idx[i]) };
     });
-    expect(pasos.primera, 'la primera foto va después de 2 reviews').toBe(2);
-    expect([...new Set(pasos.saltos)], 'el paso tiene que ser parejo: 2 reviews y una foto').toEqual([3]);
+    expect(pasos.primera, 'la primera foto va después de la primera review').toBe(1);
+    expect([...new Set(pasos.saltos)], 'tiene que alternar: una review y una foto').toEqual([2]);
     await expect(page.locator('.hc-carousel-tile img').first()).toHaveAttribute('alt', /.+/);
 
     // La foto no se recorta: la pieza trae texto y logo adentro.

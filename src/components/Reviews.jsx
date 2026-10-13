@@ -100,14 +100,15 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
   const googleOnly = allReviews.filter(r => r.source === "google" && r.r);
   const fbOnly = allReviews.filter(r => r.source === "facebook");
 
-  // Las 12 reseñas más nuevas con una foto de Happy Customers cada dos, el mismo
-  // paso que en /reviews.
+  // Las 12 reseñas más nuevas con una foto de Happy Customers entre cada una:
+  // reseña, foto, reseña, foto. Anibal lo aclaró el 11/10/2026 —"no, era cada
+  // una, una y una"—; el cada dos quedó sólo para /reviews.
   //
   // La lista se duplica para que el loop no muestre la costura al reiniciar, igual
   // que en Carousel.jsx. El clon comparte el índice de su original, así que "Read
   // more" abre las dos copias de la misma reseña y no una sí y otra no.
   const happy = useHappyCustomers(happyItems);
-  const base = useMemo(() => interleaveHappy(allReviews.slice(0, 12), happy), [allReviews, happy]);
+  const base = useMemo(() => interleaveHappy(allReviews.slice(0, 12), happy, FOTO_CADA_UNA), [allReviews, happy]);
   const loop = base.length > 1 ? [...base, ...base] : base;
 
   const speed = useCarouselSpeed(SPEED_FACTORS.homeReviews);
@@ -265,8 +266,9 @@ function useHappyCustomers(happyItems) {
   );
 }
 
-// Una selfie cada dos reviews, en /reviews (mobile) y en el carrusel de la home.
-// Era cada tres; Anibal lo bajó a dos el 10/10/2026. La decisión original, del
+// Una selfie cada dos reviews en /reviews (mobile). Era cada tres; Anibal lo
+// bajó a dos el 10/10/2026. En el carrusel de la home va una cada una
+// (FOTO_CADA_UNA), pedido aparte del 11/10. La decisión original, del
 // 29/08/2026:
 //
 //   "Cada diez es bocha. Hay 13 y nadie scrolea 130 reviews. Las imágenes
@@ -280,19 +282,20 @@ function useHappyCustomers(happyItems) {
 // de ahí en adelante quedan sólo reviews escritas. Es el intercambio elegido
 // a propósito — que se vean todas vale más que cubrir un final que no se lee.
 const REVIEWS_POR_FOTO = 2;
+const FOTO_CADA_UNA = 1;
 
 /**
  * Intercala una foto cada REVIEWS_POR_FOTO reviews. En /reviews los tiles se ven
  * sólo en mobile (en desktop el CSS los oculta: ahí están los rieles de los
  * márgenes); en el carrusel de la home se ven en todos los anchos.
  */
-function interleaveHappy(reviews, photos) {
+function interleaveHappy(reviews, photos, paso = REVIEWS_POR_FOTO) {
   if (photos.length === 0) return reviews;
   const out = [];
   let p = 0;
   reviews.forEach((rev, i) => {
     out.push(rev);
-    if ((i + 1) % REVIEWS_POR_FOTO === 0 && p < photos.length) out.push({ __photo: photos[p++] });
+    if ((i + 1) % paso === 0 && p < photos.length) out.push({ __photo: photos[p++] });
   });
   return out;
 }
