@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl } from "./constants";
+import en from "../locales/en.json";
 
 describe("itemThumb", () => {
   // Regression: this is the bug that white-screened /portfolio in production.
@@ -329,5 +330,21 @@ describe("link para dejar reseña en Google", () => {
   it("un campo vacío no lo rompe", () => {
     expect(getGoogleReviewUrl({ google_review_url: "  " })).toBe(getGoogleReviewUrl({}));
     expect(getGoogleReviewUrl()).toBe(getGoogleReviewUrl({}));
+  });
+});
+
+describe("tarjetas de redes", () => {
+  it("la de Google va a la ficha: el link de reseña sin /review", () => {
+    expect(getGoogleProfileUrl({})).toBe(getGoogleReviewUrl({}).replace(/\/review$/, ""));
+    expect(getGoogleProfileUrl({ google_review_url: "https://g.page/r/ABC/review/" })).toBe("https://g.page/r/ABC");
+    expect(getGoogleProfileUrl({ google_review_url: "https://maps.app.goo.gl/xyz" })).toBe("https://maps.app.goo.gl/xyz");
+  });
+
+  it("el texto por defecto del admin es el mismo que muestra el sitio en inglés", () => {
+    // Si difieren, el campo del admin arranca con un texto que no es el que se ve,
+    // y guardar sin tocar nada pisaría las traducciones.
+    for (const [clave, i18n] of [["google", "social.google"], ["yt", "social.yt"], ["wa", "social.wa"], ["fb", "social.fb"]]) {
+      expect(SITE_TEXTS[`social_card_${clave}`].defaultText, clave).toBe(en[i18n]);
+    }
   });
 });

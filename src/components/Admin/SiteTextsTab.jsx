@@ -31,6 +31,8 @@ const KNOWN_KEYS = new Set([
   "youtube_url",
   "google_review_url",
   "brand_subtitle",
+  // Puede seguir en site_config de antes; ya no lo usa nada (12/10/2026).
+  "reviews_title_style",
   "storage_limit_gb",
 ]);
 
@@ -460,6 +462,12 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Typography</p>
         <StyleControl configKey="stats_number_style" label="Counter Numbers" hint="20+, 400+, 1.3M+, 1.4K+ — magnitude is set per stat above" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="stats_label_style" label="Counter Labels" hint="Years Experience, Video Shows, YouTube Views, Facebook Followers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Tarjetas de redes</p>
+        <p style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>Las 4 tarjetas de abajo de los números, en el orden en que se ven: Google, YouTube, WhatsApp, Facebook.</p>
+        {["social_card_google", "social_card_yt", "social_card_wa", "social_card_fb"].map(key => (
+          <SiteTextRow key={key} configKey={key} def={SITE_TEXTS[key]} currentValue={siteConfig[key]} onSave={onSave} loading={loading} />
+        ))}
       </AdminCard>
 
       {/* ── 3. About — "Meet your handyman", la bio, los tags y las 3 tarjetas ── */}
@@ -530,7 +538,6 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
       {/* ── 6. Reviews — la cabecera y las tarjetas de reseñas ── */}
       <AdminCard title="6 · Reseñas" style={{ marginBottom: spacing.xl }}>
         <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>La cabecera con el promedio y el carrusel de reseñas.</p>
-        <StyleControl configKey="reviews_title_style" label="Reviews — Section Title" hint="Reviews" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="reviews_score_style" label="Reviews — Average Score" hint="4.8" siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 

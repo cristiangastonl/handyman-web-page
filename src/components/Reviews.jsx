@@ -7,10 +7,10 @@ import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 import HappyCustomerRails, { HappyCustomerTile, HappyCustomerCard } from "./HappyCustomers";
 
-// Sin pastilla de fuentes (G + F) en ningún lado, y sin título "Reviews" en
-// /reviews: Anibal los pidió fuera el 10/10/2026. Cada número del resumen ya
-// lleva el ícono de su fuente al lado, así que la pastilla repetía lo mismo.
-// En la home el título "Reviews" se queda: ahí es lo que nombra la sección.
+// Sin título "Reviews" ni pastilla de fuentes (G + F), ni en la home ni en
+// /reviews: Anibal los pidió fuera el 10/10/2026 y lo confirmó el 12/10 con una
+// captura de la home con "Reviews" marcado en rojo. Cada número del resumen ya
+// lleva el ícono de su fuente al lado.
 
 // Sentido de marcha del carrusel de reseñas de la home.
 //   -1 → de izquierda a derecha: las tarjetas entran por el borde izquierdo.
@@ -82,7 +82,6 @@ export const starAverage = (reviews) => {
 // Unified reviews carousel for the home page (Google + Facebook)
 export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], happyItems = [], setLb, siteConfig = {} }) {
   const { t, i18n } = useTranslation();
-  const revTitleStyle = getStyleConfig(siteConfig, "reviews_title_style");
   const revScoreStyle = getStyleConfig(siteConfig, "reviews_score_style");
   const revRef = useRef(null);
   const [expanded, setExpanded] = useState(new Set());
@@ -151,7 +150,6 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
               página entera al 76% para que entre— y el sitio se veía chico en el
               celular sin que nada pareciera roto. */}
           <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", minWidth: 0 }}>
-            <span style={{ fontSize: revTitleStyle.fontSize, fontFamily: `'${revTitleStyle.fontFamily}', sans-serif`, fontWeight: 600, color: "#444" }}>{t("reviews.title")}</span>
             {/* Las dos fuentes, una al lado de la otra, igual que en /reviews: antes
                 era un if/else y apenas entró la primera reseña de Google la fila
                 dejó de mostrar las 145 recomendaciones de Facebook, que son la
@@ -160,11 +158,10 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
 
                 center y no baseline: al lado del número hay un bloque de DOS líneas
                 (estrellas + "158 reviews"), así que baseline lo pegaba a la línea de
-                las estrellas y el 4.8 quedaba 8.7px más arriba que el "Reviews" de la
-                izquierda — Anibal lo vio desalineado el 01/09. Centrado contra el
+                las estrellas y el 4.8 quedaba 8.7px más arriba que el resto de la
+                fila — Anibal lo vio desalineado el 01/09. Centrado contra el
                 bloque, su centro cae exactamente en el de la fila. */}
             {googleOnly.length > 0 && <>
-              <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
               <div data-testid="home-google" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <GoogleG size={18}/>
                 <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
@@ -183,7 +180,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
               </div>
             </>}
             {fbOnly.length > 0 && <>
-              <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>
+              {googleOnly.length > 0 && <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>}
               <div data-testid="home-facebook" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d={svgP.thumbsUp}/></svg>
                 <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>

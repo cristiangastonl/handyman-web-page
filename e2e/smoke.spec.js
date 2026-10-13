@@ -669,11 +669,13 @@ test.describe('velocidad de los carruseles', () => {
 });
 
 test.describe('cabecera de reseñas de la home', () => {
-  test('el promedio queda a la misma altura que el título "Reviews"', async ({ page }) => {
+  test('el promedio queda a la misma altura que el resto de la fila', async ({ page }) => {
     // Anibal: "el numero 4.8 lo veo desalineado, como mas arriba del resto" (01/09).
     // Estaba alineado por baseline contra un bloque de DOS líneas (estrellas +
     // "158 reviews"), así que se pegaba a la línea de las estrellas y su centro
-    // quedaba 8.7px por encima del de "Reviews". Lo que se cuida es que los dos
+    // quedaba 8.7px por encima del de "Reviews". El título se fue el 12/10/2026;
+    // desde entonces la referencia es el número de Facebook, al otro lado de la
+    // fila. Lo que se cuida es que los dos
     // extremos de la fila compartan centro, no un valor de CSS puntual: cambiar el
     // tamaño del número o agregarle un renglón al bloque no debería descolgarlo.
     await visit(page, '/');
@@ -703,9 +705,9 @@ test.describe('cabecera de reseñas de la home', () => {
 
     const centros = await page.evaluate(`(() => {
       const grupo = ${BUSCAR_GRUPO};
-      const titulo = [...grupo.parentElement.querySelectorAll('span')]
-        .find((s) => s.textContent.trim() === 'Reviews');
-      if (!titulo) return null;
+      // El número de Facebook, si está; sin Facebook queda sólo el chequeo del
+      // conteo centrado.
+      const titulo = document.querySelector('[data-testid="home-facebook"] span');
       const centro = (el) => {
         const r = el.getBoundingClientRect();
         return (r.top + r.bottom) / 2;
@@ -723,17 +725,18 @@ test.describe('cabecera de reseñas de la home', () => {
       return {
         numero: centro(grupo.children[0]),
         estrellas: centro(stack),
-        titulo: centro(titulo),
+        titulo: titulo ? centro(titulo) : null,
         xEstrellas: centroX(stack.children[0]),
         xConteo: centroX(stack.children[1]),
       };
     })()`);
 
-    expect(centros, 'no se encontró el título "Reviews" en la fila del promedio').not.toBeNull();
-    expect(Math.abs(centros.numero - centros.titulo),
-      'el promedio no está a la misma altura que "Reviews"').toBeLessThanOrEqual(1);
-    expect(Math.abs(centros.estrellas - centros.titulo),
-      'las estrellas y el conteo no están a la misma altura que "Reviews"').toBeLessThanOrEqual(1);
+    expect(Math.abs(centros.numero - centros.estrellas),
+      'el promedio no está a la misma altura que sus estrellas').toBeLessThanOrEqual(1);
+    if (centros.titulo !== null) {
+      expect(Math.abs(centros.numero - centros.titulo),
+        'el promedio no está a la misma altura que el número de Facebook').toBeLessThanOrEqual(1);
+    }
 
     // Y el conteo va centrado bajo las estrellas, no pegado a su borde izquierdo.
     // Anibal: "lo de 158 reviews deberia centrarse" (02/09). Es más angosto que la
@@ -744,6 +747,38 @@ test.describe('cabecera de reseñas de la home', () => {
 });
 
 test.describe('orden de la home', () => {
+  test('tarjetas de redes: Google, YouTube, WhatsApp, Facebook', async ({ page }) => {
+    // Pedido de Anibal del 10/10/2026: una 4ª tarjeta de Google "como la de
+    // Facebook", y ese orden. La de Google lleva a la ficha del negocio, no al
+    // formulario de reseña.
+    await visit(page, '/');
+    const tarjetas = page.locator('.social-card');
+    await expect(tarjetas).toHaveCount(4);
+    const orden = await page.locator('[data-social-card]').evaluateAll(
+      (els) => els.map((e) => e.getAttribute('data-social-card')));
+    expect(orden).toEqual(['google', 'yt', 'wa', 'fb']);
+    const google = await tarjetas.first().getAttribute('href');
+    expect(google, 'la tarjeta de Google va a la ficha').toMatch(/g\.page\/r\/[^/]+$/);
+    for (const el of await page.locator('[data-social-card]').all()) {
+      await expect(el).not.toHaveText('');
+    }
+  });
+
+  test('en el celu los textos del hero van pegados abajo', async ({ page, isMobile }) => {
+    // "Bajar todos los textos lo más sensatamente posible" para que se vea la
+    // fila de arriba del collage (Anibal, 10/10/2026, sólo celu).
+    test.skip(!isMobile, 'en la compu está como él quiere');
+    await visit(page, '/');
+    await page.waitForTimeout(2500); // las líneas entran con una animación de 1.5 s
+    const aire = await page.evaluate(() => {
+      const hero = document.querySelector('.hero-section').getBoundingClientRect();
+      const ultima = document.querySelector('.hero-trust').getBoundingClientRect();
+      return hero.bottom - ultima.bottom;
+    });
+    expect(aire, 'quedó aire de más abajo de los textos del hero').toBeLessThanOrEqual(10);
+    expect(aire, 'los textos se salen del hero').toBeGreaterThanOrEqual(0);
+  });
+
   test('Service Areas va entre los dos primeros carruseles', async ({ page }) => {
     // Pedido de Anibal del 10/10/2026: antes iba entre About y Recent Works, y
     // ahora el primer carrusel sube justo debajo de About.
@@ -923,10 +958,9 @@ test.describe('presentación en mobile', () => {
 });
 
 test.describe('resumen de /reviews', () => {
-  test('sin pastilla de fuentes; "Reviews" sólo como título de la home', async ({ page }) => {
-    // Anibal, 10/10/2026: fuera la pastilla en las dos páginas y la palabra
-    // "Reviews" de arriba del resumen de /reviews. En la home la palabra se
-    // queda, porque ahí es el título de la sección.
+  test('sin título "Reviews" ni pastilla de fuentes, en /reviews ni en la home', async ({ page }) => {
+    // Anibal, 10/10/2026: fuera la pastilla y la palabra "Reviews" en las dos
+    // páginas. En la home la palabra volvió un día y él la marcó en rojo el 12/10.
     await visit(page, '/reviews');
     await expect(page.locator('.reviews-grid > *').first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('fuentes-resenas')).toHaveCount(0);
@@ -947,7 +981,7 @@ test.describe('resumen de /reviews', () => {
       const fila = document.querySelector('[data-testid^="home-"]')?.parentElement;
       return fila ? [...fila.querySelectorAll('span')].some((s) => s.textContent.trim() === 'Reviews') : false;
     });
-    expect(tituloHome, 'falta el título "Reviews" en la cabecera del carrusel').toBe(true);
+    expect(tituloHome, 'quedó el título "Reviews" en la cabecera del carrusel').toBe(false);
   });
 
   test('los textos del resumen: sin "Anibal" y "Google Reviews" con mayúscula', async ({ page }) => {

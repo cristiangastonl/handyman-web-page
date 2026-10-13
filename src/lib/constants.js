@@ -191,6 +191,15 @@ const GOOGLE_REVIEW_URL = "https://g.page/r/CRyK6kT8aajZEBM/review";
 export const getGoogleReviewUrl = (siteConfig = {}) =>
   limpia(siteConfig.google_review_url) || GOOGLE_REVIEW_URL;
 
+/**
+ * La ficha de Google del negocio, para la tarjeta de redes. Es el mismo short
+ * link sin el "/review" del final: con él abre el formulario de reseña, sin él
+ * abre la ficha con el puntaje y las reseñas a la vista, que es lo que tiene que
+ * ver alguien que todavía no contrató (comprobado el 12/10/2026).
+ */
+export const getGoogleProfileUrl = (siteConfig = {}) =>
+  getGoogleReviewUrl(siteConfig).replace(/\/review\/?$/, "");
+
 export const ytThumb = (item) => item.thumb || (item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "");
 
 // ─── Stats bar ───
@@ -266,6 +275,13 @@ export const SITE_TEXTS = {
   about_highlight2_title: { label: "Highlight 2 — Title", defaultText: "What you truly get", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
   about_highlight2_text: { label: "Highlight 2 — Text", defaultText: "Professional-quality work at affordable prices + excellent results + flawless finish + peace of mind with the guarantee that everyone looks for.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
   about_highlight3_title: { label: "Highlight 3 — Title", defaultText: "Who I do assist", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
+  // Las 4 tarjetas de redes de abajo de los números. Anibal pidió poder editarlas
+  // desde el admin el 10/10/2026 ("habilitame que pueda editar esos números y
+  // letras"); hasta ahí eran sólo traducciones.
+  social_card_google: { label: "Social card — Google", defaultText: "5.0 ★ Google Reviews", defaultFontSize: 11, defaultFontFamily: "DM Sans" },
+  social_card_yt: { label: "Social card — YouTube", defaultText: "44 Playlists", defaultFontSize: 11, defaultFontFamily: "DM Sans" },
+  social_card_wa: { label: "Social card — WhatsApp", defaultText: "Response in less than 24hs", defaultFontSize: 11, defaultFontFamily: "DM Sans" },
+  social_card_fb: { label: "Social card — Facebook", defaultText: "100+ Real Reviews", defaultFontSize: 11, defaultFontFamily: "DM Sans" },
   about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always pleased to help both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
 };
 
@@ -311,8 +327,8 @@ export const STYLE_KEYS = {
   // Footer (TYPO-06)
   footer_heading_style: { fontSize: 12, fontFamily: "DM Sans" },
   footer_hours_style: { fontSize: 12, fontFamily: "DM Sans" },
-  // Reviews (TYPO-07)
-  reviews_title_style: { fontSize: 14, fontFamily: "DM Sans" },
+  // Reviews (TYPO-07). El título "Reviews" de la home se fue el 12/10/2026, y con
+  // él reviews_title_style: no quedaba nada que dibujara con ese estilo.
   // El promedio grande de la home. Estaba quemado en 36 contra un título de 14 y
   // Anibal lo vio desproporcionado (01/09); además pidió poder probarlo él, así que
   // vive acá y no en el JSX. El de la página /reviews es otro: ahí el número ES la
@@ -609,6 +625,12 @@ export const css = `
     .hero-section .heroContent .hero-brand { font-size: 16px !important; }
     .hero-section .heroContent .hero-subtitle { font-size: 14px !important; }
     .hero-section .heroContent { padding-bottom: 0; }
+    /* Los textos van lo más abajo que se puede sin pegarse al borde: Anibal pidió
+       "bajar todos los textos" para que se vea más la fila de arriba del collage
+       (10/10/2026, sólo en el celu). El aire de abajo pasa de 20 a 6 y la línea de
+       confianza deja de sumar margen propio. */
+    .hero-overlay { padding-bottom: 6px !important; }
+    .hero-trust { margin-bottom: 0 !important; }
     .hero-section .heroContent h1 { font-size: 31px !important; margin-bottom: 2px !important; }
     .hero-section .heroContent .hero-brand { font-size: 20px !important; }
     .hero-section .heroContent .hero-subtitle { font-size: 18px !important; }

@@ -59,7 +59,7 @@ export default function Hero({ siteConfig = {} }) {
       <div className="hero-scrim" style={{ position: "absolute", inset: 0, background: SCRIM }}/>
 
       {/* Content overlay */}
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 20px" }}>
+      <div className="hero-overlay" style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 20px" }}>
         <div className="heroContent" style={{ maxWidth: 940, margin: "0 auto" }}>
             <h1 style={{
               fontSize: title?.fontSize ? `${title.fontSize}px` : "clamp(24px, 4vw, 36px)",
@@ -85,7 +85,7 @@ export default function Hero({ siteConfig = {} }) {
             {/* Línea de confianza. El texto sale del admin o de la traducción; el ✓
                 lo pone el componente para que no haya que escribirlo a mano en cada
                 idioma ni pegarlo dentro del campo. */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <div className="hero-trust" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
               <span style={{
                 color: R,
                 fontSize: trust?.fontSize ? `${trust.fontSize}px` : 13,

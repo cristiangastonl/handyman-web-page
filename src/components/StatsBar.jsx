@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, getYtPlaylistsUrl, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix } from "../lib/constants";
-import { SocialIcon } from "./ui";
+import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix } from "../lib/constants";
+import { SocialIcon, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
 export default function StatsBar({ siteConfig = {} }) {
@@ -32,17 +32,22 @@ export default function StatsBar({ siteConfig = {} }) {
       <FadeIn>
       <section className="social-cards" style={{ padding: "20px 24px 28px", maxWidth: 940, margin: "0 auto", position: "relative" }}>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          {/* Orden pedido por Anibal el 10/10/2026: Google, YouTube, WhatsApp,
+              Facebook. La de Google es nueva ("como la de Facebook") y lleva a la
+              ficha del negocio. Los textos se editan desde el admin (social_card_*);
+              sin editar, cada idioma muestra su traducción. */}
           {[
-            { type: "fb", url: redes.fb, text: t("social.fb"), label: "Facebook" },
-            { type: "yt", url: getYtPlaylistsUrl(siteConfig), text: t("social.yt"), label: "YouTube" },
-            { type: "wa", url: redes.wa, text: t("social.wa"), label: "WhatsApp" },
-          ].map((s, i) => (
+            { type: "google", url: getGoogleProfileUrl(siteConfig), i18n: "social.google", label: "Google" },
+            { type: "yt", url: getYtPlaylistsUrl(siteConfig), i18n: "social.yt", label: "YouTube" },
+            { type: "wa", url: redes.wa, i18n: "social.wa", label: "WhatsApp" },
+            { type: "fb", url: redes.fb, i18n: "social.fb", label: "Facebook" },
+          ].map(s => ({ ...s, text: getHighlightField(siteConfig, `social_card_${s.type}`, t(s.i18n)) })).map((s, i) => (
             <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="social-card"
               style={{ flex: "1 1 200px", maxWidth: 300, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "14px 14px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", textDecoration: "none", transition: "border-color .2s", textAlign: "center" }}
               onMouseEnter={e => e.currentTarget.style.borderColor = R}
               onMouseLeave={e => e.currentTarget.style.borderColor = "#f0f0f0"}>
-              <SocialIcon type={s.type} size={28}/>
-              <span style={{ fontSize: 11, color: "#555", lineHeight: 1.5 }}>{s.text}</span>
+              {s.type === "google" ? <GoogleG size={28}/> : <SocialIcon type={s.type} size={28}/>}
+              <span data-social-card={s.type} style={{ fontSize: s.text.fontSize || 11, fontFamily: s.text.fontFamily ? `'${s.text.fontFamily}', sans-serif` : undefined, color: "#555", lineHeight: 1.5 }}>{s.text.text}</span>
             </a>
           ))}
         </div>
