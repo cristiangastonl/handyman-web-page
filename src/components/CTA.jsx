@@ -13,13 +13,13 @@ export function TailoringCTA({ nav, siteConfig = {} }) {
         quedaba pegado al banner: 12px de aire contra los 40 de los otros dos
         carruseles. Fue lo que se me escapó al normalizar los márgenes. */}
     <section style={{ padding: SECTION_PAD_TIGHT, maxWidth: 940, margin: "0 auto" }}>
-      <div style={{
-        padding: "36px 28px 32px", borderRadius: 14,
+      <div className="banda-centrada" style={{
+        padding: "34px 28px", borderRadius: 14,
         background: `linear-gradient(180deg, ${R} 0%, #B5621A 50%, ${G} 100%)`,
         color: "#fff", textAlign: "center",
         boxShadow: "0 8px 32px rgba(212,120,31,0.25)",
       }}>
-        <h3 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 8 }}>{t("tailoring.title")}</h3>
+        <h3 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 12 }}>{t("tailoring.title")}</h3>
         <p style={{ fontSize: tTextStyle.fontSize, fontFamily: `'${tTextStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, maxWidth: 460, margin: "0 auto 20px" }}>{t("tailoring.text")}</p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
@@ -49,13 +49,13 @@ export function ServiceAreasCTA({ siteConfig = {} }) {
   return (
     <FadeIn delay={0.15}>
     <section style={{ padding: SECTION_PAD_TIGHT, maxWidth: 940, margin: "0 auto" }}>
-      <div style={{
-        padding: "28px 28px 32px", borderRadius: 14,
+      <div className="banda-centrada" style={{
+        padding: "30px 28px", borderRadius: 14,
         background: `linear-gradient(180deg, ${R} 0%, #B5621A 50%, ${G} 100%)`,
         color: "#fff", textAlign: "center",
         boxShadow: "0 8px 32px rgba(212,120,31,0.25)",
       }}>
-        <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{t("serviceAreas.title")}</h4>
+        <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{t("serviceAreas.title")}</h4>
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 14 }}>{t("serviceAreas.subtitle")}</p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
           {areaNames.map(name => (
@@ -85,8 +85,8 @@ export function BottomCTA({ siteConfig = {} }) {
   return (
     <FadeIn delay={0.1}>
     <section style={{ padding: SECTION_PAD, textAlign: "center" }}>
-      <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 32px", background: `linear-gradient(135deg, ${G} 0%, #3a3a3a 100%)`, borderRadius: 16, color: "#fff" }}>
-        <h3 style={{ fontSize: bTitleStyle.fontSize, fontFamily: `'${bTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 8 }}>{t("cta.title")}</h3>
+      <div className="banda-centrada" style={{ maxWidth: 600, margin: "0 auto", padding: "40px 32px", background: `linear-gradient(135deg, ${G} 0%, #3a3a3a 100%)`, borderRadius: 16, color: "#fff" }}>
+        <h3 style={{ fontSize: bTitleStyle.fontSize, fontFamily: `'${bTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 12 }}>{t("cta.title")}</h3>
         <p style={{ fontSize: bSubStyle.fontSize, fontFamily: `'${bSubStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>{t("cta.subtitle")}</p>
         <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "12px 28px", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,211,102,0.3)" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>

@@ -748,6 +748,82 @@ test.describe('cabecera de reseñas de la home', () => {
 });
 
 test.describe('orden de la home', () => {
+  test('/faq cierra igual que /portfolio: título y botón verde de WhatsApp', async ({ page }) => {
+    // Anibal, 13/10/2026: "ese botón al pie de portfolio debería ser el mismo al
+    // pie de FAQs. Have another question (en negro) y abajo el coso verde 'ask me
+    // directly' con el loguito y todo".
+    await visit(page, '/faq');
+    const cierre = page.getByTestId('faq-cierre');
+    await expect(cierre).toContainText('Have another question?');
+    const boton = cierre.locator('a', { hasText: 'Ask me directly' });
+    await expect(boton).toHaveAttribute('href', /wa\.me|whatsapp/);
+    await expect(boton.locator('svg')).toHaveCount(1);
+    expect(await boton.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(37, 211, 102)');
+  });
+
+  test('las bandas tienen el contenido centrado arriba-abajo', async ({ page }) => {
+    // Anibal, 13/10/2026: "eso lo tenés que centrar… deberías tener la línea que te
+    // lo fuerza al medio", sobre la franja gris, Service Areas, "Need something
+    // specific?" y "Ready to get started?". Se mide lo que se VE: se saca una foto
+    // de cada banda y se cuentan las filas de píxeles vacías arriba y abajo del
+    // contenido. Medir cajas de texto no sirve, porque incluyen el aire invisible
+    // de cada renglón, que era justamente lo que las descentraba.
+    await visit(page, '/');
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.body.scrollHeight; y += 400) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 80)); }
+    });
+    await page.waitForTimeout(1500); // los FadeIn terminan de entrar
+    const bandas = {
+      'franja gris': page.locator('.stats-section'),
+      'Service Areas': page.locator('section h4', { hasText: 'Service Areas' }).locator('xpath=..'),
+      'Need something specific?': page.locator('.banda-centrada', { hasText: 'Need something specific?' }),
+      'Ready to get started?': page.locator('.banda-centrada', { hasText: 'Ready to get started?' }),
+    };
+    for (const [nombre, banda] of Object.entries(bandas)) {
+      await banda.scrollIntoViewIfNeeded();
+      const png = (await banda.screenshot({ animations: 'disabled' })).toString('base64');
+      const { arriba, abajo } = await page.evaluate(async (src) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${src}`;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const { data } = ctx.getImageData(0, 0, c.width, c.height);
+        const px = (x, y) => { const i = (y * c.width + x) * 4; return [data[i], data[i + 1], data[i + 2]]; };
+        const margen = Math.min(30, Math.floor(c.width / 4));
+        const filas = [];
+        for (let y = 0; y < c.height; y++) {
+          const fondo = px(margen, y);
+          for (let x = margen; x < c.width - margen; x += 2) {
+            const [r, g, b] = px(x, y);
+            if (Math.abs(r - fondo[0]) + Math.abs(g - fondo[1]) + Math.abs(b - fondo[2]) > 60) { filas.push(y); break; }
+          }
+        }
+        return { arriba: filas[0], abajo: c.height - 1 - filas[filas.length - 1] };
+      }, png);
+      expect(Math.abs(arriba - abajo), `${nombre}: ${arriba}px arriba contra ${abajo}px abajo`).toBeLessThanOrEqual(3);
+    }
+  });
+
+  test('reseñas de la home: Facebook con su F y "100%", y en una sola fila con Google', async ({ page, isMobile }) => {
+    // Anibal, 13/10/2026: "en vez de 144 gigante tiene que ir 100%", "cambiá el
+    // dedito por el logo de la f" y que en el celu no se parta la fila.
+    await visit(page, '/');
+    const fb = page.getByTestId('home-facebook');
+    await fb.scrollIntoViewIfNeeded();
+    if (await fb.count() === 0) return; // sin reseñas de Facebook cargadas no hay bloque
+    await expect(fb.locator('span').first()).toHaveText('100%', { timeout: 10_000 });
+    await expect(page.getByTestId('home-facebook-conteo')).toContainText(/\d+/);
+    const google = page.getByTestId('home-google');
+    if (await google.count() === 0) return;
+    const [g, f] = await Promise.all([google.boundingBox(), fb.boundingBox()]);
+    expect(Math.abs((g.y + g.height / 2) - (f.y + f.height / 2)), 'Google y Facebook no quedaron en la misma fila').toBeLessThanOrEqual(4);
+    const desborda = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+    expect(desborda, isMobile ? 'la cabecera de reseñas se sale de la pantalla del celu' : 'desborde horizontal').toBe(false);
+  });
+
   test('tarjetas de redes: Google, YouTube, WhatsApp, Facebook', async ({ page }) => {
     // Pedido de Anibal del 10/10/2026: una 4ª tarjeta de Google "como la de
     // Facebook", y ese orden. La de Google lleva a la ficha del negocio, no al
@@ -775,9 +851,12 @@ test.describe('orden de la home', () => {
     if (isMobile) {
       const anchoChico = await page.evaluate(() => innerWidth < 360);
       if (!anchoChico) {
-        expect(await tam(h1)).toBe(31);
-        expect(await tam('.hero-section .hero-brand')).toBe(20);
-        expect(await tam('.hero-section .hero-subtitle')).toBe(18);
+        // Lo cargado en el admin para el celu, y si no hay nada, el de siempre. Va
+        // contra la base real: Anibal ya cargó los suyos el 13/10.
+        for (const [sel, deSiempre] of [[h1, 31], ['.hero-section .hero-brand', 20], ['.hero-section .hero-subtitle', 18]]) {
+          const cargado = await page.locator(sel).first().evaluate((el) => parseFloat(el.style.getPropertyValue('--fs-m')) || null);
+          expect(await tam(sel), sel).toBe(cargado ?? deSiempre);
+        }
       }
       await page.locator(h1).evaluate((el) => el.style.setProperty('--fs-m', '27px'));
       expect(await tam(h1), 'el tamaño del celu no se aplica en el celu').toBe(anchoChico ? 27 * 21 / 31 : 27);
@@ -785,6 +864,22 @@ test.describe('orden de la home', () => {
       const antes = await tam(h1);
       await page.locator(h1).evaluate((el) => el.style.setProperty('--fs-m', '27px'));
       expect(await tam(h1), 'el tamaño del celu cambió la compu').toBe(antes);
+    }
+  });
+
+  test('los dos subtítulos del hero con la misma fuente se ven iguales', async ({ page }) => {
+    // Anibal, 13/10/2026: los dos en Caveat desde el admin y "no son la misma,
+    // comparé las t o las m". Al primero se le forzaba cursiva y el navegador
+    // inclinaba una fuente que no tiene cursiva. Con la misma fuente elegida,
+    // tienen que salir con el mismo estilo.
+    await visit(page, '/');
+    const [brand, sub] = await Promise.all(['.hero-section .hero-brand', '.hero-section .hero-subtitle'].map(
+      (sel) => page.locator(sel).first().evaluate((el) => {
+        const c = getComputedStyle(el);
+        return { familia: c.fontFamily.split(',')[0].trim(), estilo: c.fontStyle };
+      })));
+    if (brand.familia === sub.familia) {
+      expect(brand.estilo, 'misma fuente pero uno inclinado y el otro no').toBe(sub.estilo);
     }
   });
 
@@ -1008,28 +1103,22 @@ test.describe('resumen de /reviews', () => {
     expect(tituloHome, 'quedó el título "Reviews" en la cabecera del carrusel').toBe(false);
   });
 
-  test('los textos del resumen: sin "Anibal" y "Google Reviews" con mayúscula', async ({ page }) => {
-    // Pedido del 10/10/2026. "Anibal" se sacó en los 5 idiomas; la mayúscula
-    // sólo en inglés, los otros idiomas quedan traducidos.
+  test('los textos del resumen: sin "Anibal" y sin "Based on N Google Reviews"', async ({ page }) => {
+    // 10/10/2026: "Anibal" se sacó de los textos en los 5 idiomas. 13/10/2026: el
+    // renglón "Based on N Google Reviews" se fue entero (las barras ya dicen la
+    // cantidad) y el de Facebook pasó a ser una frase fija.
     await visit(page, '/reviews');
     await expect(page.locator('.reviews-grid > *').first()).toBeVisible({ timeout: 20_000 });
-    for (const fuente of ['google', 'facebook']) {
-      const conteo = page.getByTestId(`conteo-${fuente}`);
-      if (await conteo.count() === 0) continue;
-      await expect(conteo).not.toContainText('Anibal');
-      if (fuente === 'google') await expect(conteo).toContainText(/Google Reviews?$/);
-    }
+    const resumen = page.locator('[data-testid^="resumen-"]');
+    if (await resumen.count() === 0) return;
+    await expect(resumen.first().locator('xpath=..')).not.toContainText('Anibal');
+    await expect(page.getByText(/Based on \d+ Google/)).toHaveCount(0);
   });
 
-  // El conteo al pie de una columna del resumen ("Based on 1 Google Review",
-  // "145 people recommend"), como entero. Va contra el renglón puntual y no
-  // contra el texto de toda la columna: la de Google termina con las cinco barras
-  // de distribución, así que "el último número" pasó a ser el 0 de 1★.
-  const conteoDe = async (page, fuente) => {
-    const txt = await page.getByTestId(`conteo-${fuente}`).textContent();
-    const m = (txt || '').match(/\d+/);
-    return m ? parseInt(m[0], 10) : NaN;
-  };
+  // Lo que cuenta la columna de Google: la suma de las 5 barras. Desde el 13/10 no
+  // hay renglón "Based on N", así que el conteo se lee de ahí.
+  const conteoGoogle = (page) => page.locator('[data-conteo-estrellas]').evaluateAll(
+    (els) => els.reduce((s, e) => s + parseInt(e.textContent, 10), 0));
 
   test('el resumen de /reviews no mezcla el promedio de Google con el conteo de Facebook', async ({ page }) => {
     // El 12/09 Anibal vio "5.0 ★★★★★ / basado en N reseñas" con una sola reseña
@@ -1057,7 +1146,7 @@ test.describe('resumen de /reviews', () => {
       // Cada columna cuenta las tarjetas de SU fuente, no el total. Ese era el
       // síntoma: debajo del promedio de Google aparecía el total, Facebook
       // incluido.
-      expect(await conteoDe(page, 'google'), 'la columna de Google no cuenta las reseñas de Google')
+      expect(await conteoGoogle(page), 'las barras de Google no cuentan las reseñas de Google')
         .toBe(await page.locator('.reviews-grid [data-fuente="google"]').count());
       // Por fuente y no por la URL: el link de Google es un g.page/r/... y
       // además Anibal lo puede cambiar desde el admin.
@@ -1065,8 +1154,12 @@ test.describe('resumen de /reviews', () => {
       await expect(google.locator('[data-boton-resena="facebook"]')).toHaveCount(0);
     }
     if (hayFacebook) {
-      expect(await conteoDe(page, 'facebook'), 'la columna de Facebook no cuenta las recomendaciones de Facebook')
-        .toBe(await page.locator('.reviews-grid [data-fuente="facebook"]').count());
+      // La columna de Facebook ya no muestra el conteo: Anibal lo cambió el
+      // 13/10/2026 por "100%" grande y la frase "Built up on mentions and
+      // recommendations of real people" en el alto de las barras de Google. El
+      // conteo se sigue chequeando en la home (home-facebook-conteo).
+      await expect(facebook.getByTestId('frase-facebook')).toContainText('Built up on mentions');
+      await expect(facebook).not.toContainText(/\d+ people recommend/);
       await expect(facebook.locator('[data-boton-resena="facebook"]')).toHaveCount(1);
       await expect(facebook.locator('[data-boton-resena="google"]')).toHaveCount(0);
     }

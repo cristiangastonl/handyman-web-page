@@ -13,7 +13,7 @@ export default function StatsBar({ siteConfig = {} }) {
 
       {/* Stats counters */}
       <FadeIn>
-      <section className="stats-section" style={{ padding: "28px 24px", background: G }}>
+      <section className="stats-section banda-centrada" style={{ padding: "33px 24px", background: G }}>
         <div className="stats-grid" style={{ maxWidth: 940, margin: "0 auto", display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
           {STATS.map(s => (
             <div key={s.key} style={{ textAlign: "center", minWidth: 100 }}>
@@ -21,7 +21,7 @@ export default function StatsBar({ siteConfig = {} }) {
                 <AnimatedCounter target={getStatValue(siteConfig, s)} decimals={s.decimals}/>
                 {formatStatSuffix(getStatUnit(siteConfig, s.key, s.defaultUnit))}
               </div>
-              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{t(s.i18nKey)}</div>
+              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 7 }}>{t(s.i18nKey)}</div>
             </div>
           ))}
         </div>

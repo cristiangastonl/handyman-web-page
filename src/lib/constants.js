@@ -471,6 +471,15 @@ export const ab = (s) => ({
 export const css = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   .hs::-webkit-scrollbar { display: none; }
+  /* Bandas con el contenido centrado arriba-abajo: la franja gris de los números,
+     Service Areas, "Need something specific?" y "Ready to get started?". Anibal marcó
+     las cuatro el 13/10/2026 ("eso lo tenés que centrar… deberías tener la línea que
+     te lo fuerza al medio"). El relleno ya es el mismo arriba y abajo; lo que las
+     corría era el aire invisible de cada renglón (más grande arriba de la mayúscula
+     que abajo de la línea de base), que crece con el tamaño de letra que él elige.
+     text-box lo recorta a la letra visible. Navegadores sin soporte: quedan como antes. */
+  .banda-centrada :is(h3, h4, p) { text-box: trim-both cap alphabetic; }
+  .banda-centrada .stats-grid > div > div { text-box: trim-both cap alphabetic; }
   .hs { -ms-overflow-style: none; scrollbar-width: none; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes heroFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
@@ -651,7 +660,10 @@ export const css = `
     /* El bloque de texto ocupa mucha más altura proporcional acá que en desktop, así que
        trepa hasta donde el degradado de escritorio todavía está tenue y el título vuelve
        a competir con las paredes claras. Misma curva, corrida hacia arriba. */
-    .hero-scrim { background: linear-gradient(to top, rgba(15,15,15,0.94) 0%, rgba(15,15,15,0.86) 45%, rgba(15,15,15,0.55) 70%, rgba(15,15,15,0.18) 88%, transparent 100%) !important; }
+    /* 13/10/2026: Anibal pidió bajar "el fume" para que la fila de arriba del collage
+       quede más "spotlight". Con los textos ya pegados abajo, la sombra no necesita
+       subir tanto: arranca igual de oscura abajo y se apaga a los dos tercios. */
+    .hero-scrim { background: linear-gradient(to top, rgba(15,15,15,0.94) 0%, rgba(15,15,15,0.82) 30%, rgba(15,15,15,0.45) 50%, rgba(15,15,15,0.12) 62%, transparent 72%) !important; }
     .mobile-menu-item { min-height: 44px !important; display: flex !important; align-items: center !important; }
     /* Achicados para que los seis entren en pocas líneas: a 13px/14px de padding
        ocupaban una línea cada uno. Se mantiene el mínimo táctil de 32 px. */
@@ -662,11 +674,14 @@ export const css = `
     .skill-tags { justify-content: center !important; }
     .admin-container { padding: 20px 16px !important; }
     .admin-container input, .admin-container textarea, .admin-container select { font-size: 16px !important; }
-    .stats-section { padding: 7px 12px !important; }
+    /* 11.5 y no 7: con los renglones recortados a la letra visible (.banda-centrada) la
+       franja perdía alto y corría todo lo de abajo hacia el fold; con esto mide lo mismo
+       que antes (53 px). */
+    .stats-section { padding: 11.5px 12px !important; }
     .stats-grid { display: flex !important; flex-wrap: nowrap !important; justify-content: space-evenly !important; gap: 0 !important; }
     .stats-grid > div { min-width: unset !important; text-align: center !important; flex: 1 !important; }
     .stats-grid > div > div:first-child { font-size: 14px !important; font-weight: 800 !important; }
-    .stats-grid > div > div:last-child { font-size: 8px !important; margin-top: 1px !important; letter-spacing: 0 !important; }
+    .stats-grid > div > div:last-child { font-size: 8px !important; margin-top: 4px !important; letter-spacing: 0 !important; }
     .social-cards { padding: 8px 16px 10px !important; }
     .social-card { padding: 8px 6px !important; gap: 4px !important; flex: 1 1 0 !important; min-width: 0 !important; }
     .social-card svg { width: 18px !important; height: 18px !important; }
@@ -674,9 +689,21 @@ export const css = `
     .brand-marquee { gap: 20px !important; }
     .brand-fade-left, .brand-fade-right { width: 30px !important; }
     .review-card { min-width: 240px !important; }
+    /* Cabecera del carrusel de reseñas en el celu: Google y Facebook en dos columnas
+       iguales con el separador al medio, y "See all reviews" abajo. Con flex-wrap el
+       bloque de Facebook se caía al renglón de abajo y dejaba el separador colgando
+       (Anibal: "se repite el error… y se bajó todo", 13/10/2026). */
+    .rev-head { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+    .rev-fuentes { justify-content: center; gap: 10px !important; }
+    .rev-fuentes:has(> :nth-child(3)) { display: grid !important; grid-template-columns: 1fr auto 1fr; justify-items: center; }
+    .rev-head > button { align-self: center; }
   }
   @media (min-width: 641px) {
     .mobile-menu { display: none !important; }
+    /* En /reviews, con las columnas lado a lado, la frase de Facebook arranca a la
+       altura de las barras de Google (debajo de las estrellas) y se centra contra
+       ellas: es lo que pidió Anibal, que "equilibre la altura de las 5 barras". */
+    .frase-facebook { margin-top: 60px; }
   }
   button:focus-visible, a:focus-visible { outline: 2px solid #D4781F; outline-offset: 2px; }
   .brand-marquee { display: flex; gap: 32px; align-items: center; width: max-content; animation: marquee 25s linear infinite; }

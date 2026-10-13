@@ -73,7 +73,12 @@ export default function Hero({ siteConfig = {} }) {
               fontSize: brandSubtitle?.fontSize ? `${brandSubtitle.fontSize}px` : 15,
               fontFamily: brandSubtitle?.fontFamily ? `'${brandSubtitle.fontFamily}', cursive` : "'Dancing Script', cursive",
               ...mobileFontVar(brandSubtitle),
-              color: "rgba(255,255,255,0.9)", marginBottom: 3, fontStyle: "italic", letterSpacing: "0.02em", textShadow: "0 1px 6px rgba(0,0,0,0.5)"
+              color: "rgba(255,255,255,0.9)", marginBottom: 3, letterSpacing: "0.02em",
+              // La cursiva forzada sólo va con la Dancing Script de siempre. Con otra
+              // fuente elegida en el admin, el navegador inclinaba la letra a mano
+              // (Caveat no tiene cursiva) y las "t" y las "m" no coincidían con las del
+              // subtítulo de abajo, que va derecho. Anibal lo vio el 13/10/2026.
+              fontStyle: brandSubtitle?.fontFamily ? "normal" : "italic", textShadow: "0 1px 6px rgba(0,0,0,0.5)"
             }}>
               {brandSubtitle?.text || "Specialist Technician At Domestic Matters"}
             </p>

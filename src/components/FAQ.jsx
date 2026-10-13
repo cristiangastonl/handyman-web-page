@@ -95,11 +95,18 @@ export function FAQPage({ faqs, siteConfig = {} }) {
           </div>
         );
       })}
-      <div style={{ textAlign: "center", marginTop: 24 }}>
+      {/* El mismo cierre que el de /portfolio: título en negro y el botón verde de
+          WhatsApp con su logo. Antes era un link naranja chico de una línea. Pedido
+          de Anibal (13/10/2026): "ese botón al pie de portfolio debería ser el mismo
+          al pie de FAQs". */}
+      <div data-testid="faq-cierre" style={{ textAlign: "center", marginTop: 40, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("faq.anotherQuestion")}</p>
         <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: R, textDecoration: "none" }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill={R}><path d={svgP.wa}/></svg>
-          {t("faq.askWhatsApp", "Have another question? Ask me directly")}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
+          {t("faq.askDirectly")}
         </a>
       </div>
     </div>
