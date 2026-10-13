@@ -765,6 +765,29 @@ test.describe('orden de la home', () => {
     }
   });
 
+  test('tamaños del hero: el del celu es aparte y sin cargar queda el de siempre', async ({ page, isMobile }) => {
+    // Anibal, 13/10/2026: "cuando edito los headlines, en la compu veo los cambios,
+    // pero no en el celu". El CSS de mobile fijaba los tamaños con !important. Ahora
+    // el admin tiene un tamaño para el celu (--fs-m) y, vacío, valen los de antes.
+    await visit(page, '/');
+    const tam = (sel) => page.locator(sel).first().evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    const h1 = '.hero-section h1';
+    if (isMobile) {
+      const anchoChico = await page.evaluate(() => innerWidth < 360);
+      if (!anchoChico) {
+        expect(await tam(h1)).toBe(31);
+        expect(await tam('.hero-section .hero-brand')).toBe(20);
+        expect(await tam('.hero-section .hero-subtitle')).toBe(18);
+      }
+      await page.locator(h1).evaluate((el) => el.style.setProperty('--fs-m', '27px'));
+      expect(await tam(h1), 'el tamaño del celu no se aplica en el celu').toBe(anchoChico ? 27 * 21 / 31 : 27);
+    } else {
+      const antes = await tam(h1);
+      await page.locator(h1).evaluate((el) => el.style.setProperty('--fs-m', '27px'));
+      expect(await tam(h1), 'el tamaño del celu cambió la compu').toBe(antes);
+    }
+  });
+
   test('en el celu los textos del hero van pegados abajo', async ({ page, isMobile }) => {
     // "Bajar todos los textos lo más sensatamente posible" para que se vea la
     // fila de arriba del collage (Anibal, 10/10/2026, sólo celu).

@@ -51,3 +51,16 @@ describe("payloadSiteText", () => {
     expect(payloadSiteText({ text: "", fontSize: 12 }, DEF)).toEqual({ fontSize: 12 });
   });
 });
+
+describe("tamaño en el celu", () => {
+  const DEF = { defaultText: "Hola", defaultFontSize: 36, defaultMobileFontSize: 31 };
+
+  it("se guarda aparte del de la compu", () => {
+    expect(payloadSiteText({ text: "Hola", fontSize: 40, mobileFontSize: "28" }, DEF))
+      .toEqual({ fontSize: 40, mobileFontSize: 28 });
+  });
+
+  it("vacío no se guarda: el celu sigue con su tamaño de siempre", () => {
+    expect(payloadSiteText({ text: "Hola", fontSize: 40, mobileFontSize: "" }, DEF)).toEqual({ fontSize: 40 });
+  });
+});

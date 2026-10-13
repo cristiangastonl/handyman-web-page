@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText } from "../lib/constants";
+import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText, mobileFontVar } from "../lib/constants";
 
 // El título va entero en el naranja de la marca. Antes era a dos tonos —"Handyman"
 // naranja, el resto blanco— pero el cliente lo quiso todo del mismo color, así que
@@ -64,6 +64,7 @@ export default function Hero({ siteConfig = {} }) {
             <h1 style={{
               fontSize: title?.fontSize ? `${title.fontSize}px` : "clamp(24px, 4vw, 36px)",
               fontFamily: title?.fontFamily ? `'${title.fontFamily}', sans-serif` : undefined,
+              ...mobileFontVar(title),
               fontWeight: 800, color: R, lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line"
             }}>
               {title?.text || t("hero.title")}
@@ -71,6 +72,7 @@ export default function Hero({ siteConfig = {} }) {
             <p className="hero-brand" style={{
               fontSize: brandSubtitle?.fontSize ? `${brandSubtitle.fontSize}px` : 15,
               fontFamily: brandSubtitle?.fontFamily ? `'${brandSubtitle.fontFamily}', cursive` : "'Dancing Script', cursive",
+              ...mobileFontVar(brandSubtitle),
               color: "rgba(255,255,255,0.9)", marginBottom: 3, fontStyle: "italic", letterSpacing: "0.02em", textShadow: "0 1px 6px rgba(0,0,0,0.5)"
             }}>
               {brandSubtitle?.text || "Specialist Technician At Domestic Matters"}
@@ -78,6 +80,7 @@ export default function Hero({ siteConfig = {} }) {
             <p className="hero-subtitle" style={{
               fontSize: subtitle?.fontSize ? `${subtitle.fontSize}px` : 14,
               fontFamily: subtitle?.fontFamily ? `'${subtitle.fontFamily}', sans-serif` : undefined,
+              ...mobileFontVar(subtitle),
               color: "rgba(255,255,255,0.9)", marginBottom: 3
             }}>
               {subtitle?.text || t("hero.subtitle")}
@@ -90,6 +93,7 @@ export default function Hero({ siteConfig = {} }) {
                 color: R,
                 fontSize: trust?.fontSize ? `${trust.fontSize}px` : 13,
                 fontFamily: trust?.fontFamily ? `'${trust.fontFamily}', sans-serif` : undefined,
+                ...mobileFontVar(trust),
                 fontWeight: 700,
               }}>✓ {trust?.text || t("hero.trust")}</span>
             </div>

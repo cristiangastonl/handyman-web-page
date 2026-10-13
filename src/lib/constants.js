@@ -252,13 +252,15 @@ export const CAROUSEL_TITLE = { fontSize: 18, fontFamily: "DM Sans" };
 
 // ─── Site text definitions (known keys with defaults) ───
 export const SITE_TEXTS = {
-  hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zurich", defaultFontSize: 36, defaultFontFamily: "DM Sans" },
-  hero_subtitle: { label: "Hero Subtitle", defaultText: "Your satisfaction, my commitment", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
-  hero_brand_subtitle: { label: "Hero Brand Subtitle", defaultText: "Specialist Technician At Domestic Matters", defaultFontSize: 15, defaultFontFamily: "Dancing Script" },
+  hero_title: { label: "Hero Title", defaultText: "Professional Handyman\nServices in Zurich", defaultFontSize: 36, defaultMobileFontSize: 31, defaultFontFamily: "DM Sans" },
+  hero_subtitle: { label: "Hero Subtitle", defaultText: "Your satisfaction, my commitment", defaultFontSize: 14, defaultMobileFontSize: 18, defaultFontFamily: "DM Sans" },
+  hero_brand_subtitle: { label: "Hero Brand Subtitle", defaultText: "Specialist Technician At Domestic Matters", defaultFontSize: 15, defaultMobileFontSize: 20, defaultFontFamily: "Dancing Script" },
   // La línea de confianza del hero. Estuvo quemada en Hero.jsx hasta el 02/09, y
   // Anibal la fue a buscar al admin sin encontrarla: "no encuentro donde esta
   // 100% Recommended". El ✓ no es parte del texto, lo pone el componente.
-  hero_trust: { label: "Hero Trust Line", defaultText: "100% Recommended • Improving your home, and so your daily life • lifetime guarantee", defaultFontSize: 13, defaultFontFamily: "DM Sans" },
+  // En el celu la línea de confianza usa el mismo tamaño que en la compu salvo que se
+  // le cargue uno propio: defaultMobileFontSize null = "igual que en la compu".
+  hero_trust: { label: "Hero Trust Line", defaultText: "100% Recommended • Improving your home, and so your daily life • lifetime guarantee", defaultFontSize: 13, defaultMobileFontSize: null, defaultFontFamily: "DM Sans" },
   // Sólo aporta el TEXTO. El tamaño y la fuente salen de carousel_highlights_title_style,
   // como los otros dos carruseles: tenerlo acá dejaba un fontSize guardado (17) que le
   // ganaba al default y desalineaba el título respecto de sus hermanos.
@@ -278,15 +280,27 @@ export const SITE_TEXTS = {
   // Las 4 tarjetas de redes de abajo de los números. Anibal pidió poder editarlas
   // desde el admin el 10/10/2026 ("habilitame que pueda editar esos números y
   // letras"); hasta ahí eran sólo traducciones.
-  social_card_google: { label: "Social card — Google", defaultText: "5.0 ★ Google Reviews", defaultFontSize: 11, defaultFontFamily: "DM Sans" },
-  social_card_yt: { label: "Social card — YouTube", defaultText: "44 Playlists", defaultFontSize: 11, defaultFontFamily: "DM Sans" },
-  social_card_wa: { label: "Social card — WhatsApp", defaultText: "Response in less than 24hs", defaultFontSize: 11, defaultFontFamily: "DM Sans" },
-  social_card_fb: { label: "Social card — Facebook", defaultText: "100+ Real Reviews", defaultFontSize: 11, defaultFontFamily: "DM Sans" },
+  social_card_google: { label: "Social card — Google", defaultText: "5.0 ★ Google Reviews", defaultFontSize: 11, defaultMobileFontSize: 9, defaultFontFamily: "DM Sans" },
+  social_card_yt: { label: "Social card — YouTube", defaultText: "44 Playlists", defaultFontSize: 11, defaultMobileFontSize: 9, defaultFontFamily: "DM Sans" },
+  social_card_wa: { label: "Social card — WhatsApp", defaultText: "Response in less than 24hs", defaultFontSize: 11, defaultMobileFontSize: 9, defaultFontFamily: "DM Sans" },
+  social_card_fb: { label: "Social card — Facebook", defaultText: "100+ Real Reviews", defaultFontSize: 11, defaultMobileFontSize: 9, defaultFontFamily: "DM Sans" },
   about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always pleased to help both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
 };
 
-// Parse a site config value — supports both plain text (legacy) and JSON {text, fontSize, fontFamily}
-const CLAVES_SITE_TEXT = ["text", "fontSize", "fontFamily"];
+// Parse a site config value — supports both plain text (legacy) and JSON {text, fontSize, fontFamily, mobileFontSize}
+//
+// mobileFontSize es el tamaño en el celu. Existe desde el 13/10/2026: en el celu el
+// CSS fijaba los tamaños del hero con !important y lo que Anibal elegía en el admin
+// sólo se veía en la compu ("cuando edito los headlines, en la compu veo los
+// cambios, pero no en el celu"). Vacío = el tamaño de siempre en el celu.
+const CLAVES_SITE_TEXT = ["text", "fontSize", "fontFamily", "mobileFontSize"];
+
+/**
+ * Estilo inline para el tamaño en el celu: una custom property que el CSS de mobile
+ * usa con el tamaño de siempre como fallback. Sin valor guardado no se setea nada.
+ */
+export const mobileFontVar = (parsed) =>
+  parsed?.mobileFontSize ? { "--fs-m": `${parsed.mobileFontSize}px` } : {};
 
 export const parseSiteText = (value) => {
   if (!value) return null;
@@ -621,9 +635,6 @@ export const css = `
       min-height: 158px !important; max-height: 500px !important;
     }
     /* El texto pesa mucho sobre un hero bajo: se achica para dejar ver el collage. */
-    .hero-section .heroContent h1 { font-size: 26px !important; }
-    .hero-section .heroContent .hero-brand { font-size: 16px !important; }
-    .hero-section .heroContent .hero-subtitle { font-size: 14px !important; }
     .hero-section .heroContent { padding-bottom: 0; }
     /* Los textos van lo más abajo que se puede sin pegarse al borde: Anibal pidió
        "bajar todos los textos" para que se vea más la fila de arriba del collage
@@ -631,9 +642,12 @@ export const css = `
        confianza deja de sumar margen propio. */
     .hero-overlay { padding-bottom: 6px !important; }
     .hero-trust { margin-bottom: 0 !important; }
-    .hero-section .heroContent h1 { font-size: 31px !important; margin-bottom: 2px !important; }
-    .hero-section .heroContent .hero-brand { font-size: 20px !important; }
-    .hero-section .heroContent .hero-subtitle { font-size: 18px !important; }
+    /* Tamaños del celu: --fs-m es lo que se carga en el admin en "Tamaño en el celu";
+       sin cargar, valen los de siempre (31 / 20 / 18). */
+    .hero-section .heroContent h1 { font-size: var(--fs-m, 31px) !important; margin-bottom: 2px !important; }
+    .hero-section .heroContent .hero-brand { font-size: var(--fs-m, 20px) !important; }
+    .hero-section .heroContent .hero-subtitle { font-size: var(--fs-m, 18px) !important; }
+    .hero-trust > span[style*="--fs-m"] { font-size: var(--fs-m) !important; }
     /* El bloque de texto ocupa mucha más altura proporcional acá que en desktop, así que
        trepa hasta donde el degradado de escritorio todavía está tenue y el título vuelve
        a competir con las paredes claras. Misma curva, corrida hacia arriba. */
@@ -656,7 +670,7 @@ export const css = `
     .social-cards { padding: 8px 16px 10px !important; }
     .social-card { padding: 8px 6px !important; gap: 4px !important; flex: 1 1 0 !important; min-width: 0 !important; }
     .social-card svg { width: 18px !important; height: 18px !important; }
-    .social-card span { font-size: 9px !important; line-height: 1.3 !important; }
+    .social-card span { font-size: var(--fs-m, 9px) !important; line-height: 1.3 !important; }
     .brand-marquee { gap: 20px !important; }
     .brand-fade-left, .brand-fade-right { width: 30px !important; }
     .review-card { min-width: 240px !important; }
@@ -705,9 +719,11 @@ export const css = `
   /* Por debajo de 360 px el título entra en dos líneas y el bloque de texto se sale del
      hero. Se achica sólo acá para que siga cerrando. */
   @media (max-width: 359px) {
-    .hero-section .heroContent h1 { font-size: 21px !important; }
-    .hero-section .heroContent .hero-brand { font-size: 14px !important; }
-    .hero-section .heroContent .hero-subtitle { font-size: 12.5px !important; }
+    /* Misma proporción que antes (31→21, 20→14, 18→12.5), aplicada al tamaño del celu
+       que haya: sin cargar da exactamente los números de siempre. */
+    .hero-section .heroContent h1 { font-size: calc(var(--fs-m, 31px) * 21 / 31) !important; }
+    .hero-section .heroContent .hero-brand { font-size: calc(var(--fs-m, 20px) * 14 / 20) !important; }
+    .hero-section .heroContent .hero-subtitle { font-size: calc(var(--fs-m, 18px) * 12.5 / 18) !important; }
   }
 
   @media (prefers-reduced-motion: reduce) {

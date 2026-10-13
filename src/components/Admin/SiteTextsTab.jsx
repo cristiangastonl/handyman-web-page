@@ -257,18 +257,22 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
   const [text, setText] = useState(() => textoVigente(currentValue, def));
   const [fontSize, setFontSize] = useState(parsed.fontSize || "");
   const [fontFamily, setFontFamily] = useState(parsed.fontFamily || "");
+  const [mobileFontSize, setMobileFontSize] = useState(parsed.mobileFontSize || "");
+  // Sólo los textos que en el celu se ven con otro tamaño traen el campo del celu.
+  const tieneCelu = def && "defaultMobileFontSize" in def;
 
   useEffect(() => {
     const p = parseSiteText(currentValue) || {};
     setText(textoVigente(currentValue, def));
     setFontSize(p.fontSize || "");
     setFontFamily(p.fontFamily || "");
+    setMobileFontSize(p.mobileFontSize || "");
   }, [currentValue]);
 
   const sinTocar = !payloadSiteText({ text }, def).text;
 
   const handleSave = () =>
-    onSave(configKey, JSON.stringify(payloadSiteText({ text, fontSize, fontFamily }, def)));
+    onSave(configKey, JSON.stringify(payloadSiteText({ text, fontSize, fontFamily, mobileFontSize }, def)));
 
   return (
     <div style={{ ...A.card, marginBottom: spacing.md }}>
@@ -285,13 +289,26 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
           ? "Sin cambios: cada idioma sigue mostrando su propia traducción."
           : "Editado: este texto se va a ver igual en los 5 idiomas."}
       </p>
-      <div style={{ display: "flex", gap: spacing.sm }}>
-        <div style={{ flex: 1 }}>
-          <label style={typography.caption}>Font size (px)</label>
+      <div style={{ display: "flex", gap: spacing.sm, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 120 }}>
+          <label style={typography.caption}>{tieneCelu ? "💻 Tamaño en la compu (px)" : "Font size (px)"}</label>
           <input type="number" value={fontSize} onChange={e => setFontSize(e.target.value)}
             placeholder={`${def.defaultFontSize}`}
             className="admin-input" style={{ ...A.input, marginTop: 2 }}/>
         </div>
+        {tieneCelu && (
+          <div style={{ flex: 1, minWidth: 120 }}>
+            <label style={typography.caption}>📱 Tamaño en el celu (px)</label>
+            <input type="number" value={mobileFontSize} onChange={e => setMobileFontSize(e.target.value)}
+              placeholder={def.defaultMobileFontSize ? `${def.defaultMobileFontSize}` : "igual que en la compu"}
+              className="admin-input" style={{ ...A.input, marginTop: 2 }}/>
+            <p style={{ ...typography.caption, color: colors.gray400, marginTop: 2 }}>
+              {def.defaultMobileFontSize
+                ? `Vacío = ${def.defaultMobileFontSize} px, el tamaño de siempre en el celu.`
+                : "Vacío = el mismo tamaño que en la compu."}
+            </p>
+          </div>
+        )}
         <div style={{ flex: 2 }}>
           <label style={typography.caption}>Font family</label>
           <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}

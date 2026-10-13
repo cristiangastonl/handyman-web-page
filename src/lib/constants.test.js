@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl, mobileFontVar } from "./constants";
 import en from "../locales/en.json";
 
 describe("itemThumb", () => {
@@ -346,5 +346,24 @@ describe("tarjetas de redes", () => {
     for (const [clave, i18n] of [["google", "social.google"], ["yt", "social.yt"], ["wa", "social.wa"], ["fb", "social.fb"]]) {
       expect(SITE_TEXTS[`social_card_${clave}`].defaultText, clave).toBe(en[i18n]);
     }
+  });
+});
+
+describe("tamaño en el celu (mobileFontSize)", () => {
+  it("un JSON que sólo trae el tamaño del celu se reconoce como configuración", () => {
+    expect(parseSiteText('{"mobileFontSize":28}')).toEqual({ mobileFontSize: 28 });
+  });
+
+  it("mobileFontVar sólo setea la variable cuando hay tamaño de celu", () => {
+    expect(mobileFontVar({ mobileFontSize: 28 })).toEqual({ "--fs-m": "28px" });
+    expect(mobileFontVar({ fontSize: 40 })).toEqual({});
+    expect(mobileFontVar(null)).toEqual({});
+  });
+
+  it("los textos del hero y las tarjetas traen su tamaño de celu de hoy como default", () => {
+    expect(SITE_TEXTS.hero_title.defaultMobileFontSize).toBe(31);
+    expect(SITE_TEXTS.hero_brand_subtitle.defaultMobileFontSize).toBe(20);
+    expect(SITE_TEXTS.hero_subtitle.defaultMobileFontSize).toBe(18);
+    expect(SITE_TEXTS.social_card_fb.defaultMobileFontSize).toBe(9);
   });
 });

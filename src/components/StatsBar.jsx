@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix } from "../lib/constants";
+import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, parseSiteText, mobileFontVar, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix } from "../lib/constants";
 import { SocialIcon, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
@@ -41,13 +41,16 @@ export default function StatsBar({ siteConfig = {} }) {
             { type: "yt", url: getYtPlaylistsUrl(siteConfig), i18n: "social.yt", label: "YouTube" },
             { type: "wa", url: redes.wa, i18n: "social.wa", label: "WhatsApp" },
             { type: "fb", url: redes.fb, i18n: "social.fb", label: "Facebook" },
-          ].map(s => ({ ...s, text: getHighlightField(siteConfig, `social_card_${s.type}`, t(s.i18n)) })).map((s, i) => (
+          ].map(s => ({ ...s,
+            text: getHighlightField(siteConfig, `social_card_${s.type}`, t(s.i18n)),
+            celu: mobileFontVar(parseSiteText(siteConfig[`social_card_${s.type}`])),
+          })).map((s, i) => (
             <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="social-card"
               style={{ flex: "1 1 200px", maxWidth: 300, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "14px 14px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", textDecoration: "none", transition: "border-color .2s", textAlign: "center" }}
               onMouseEnter={e => e.currentTarget.style.borderColor = R}
               onMouseLeave={e => e.currentTarget.style.borderColor = "#f0f0f0"}>
               {s.type === "google" ? <GoogleG size={28}/> : <SocialIcon type={s.type} size={28}/>}
-              <span data-social-card={s.type} style={{ fontSize: s.text.fontSize || 11, fontFamily: s.text.fontFamily ? `'${s.text.fontFamily}', sans-serif` : undefined, color: "#555", lineHeight: 1.5 }}>{s.text.text}</span>
+              <span data-social-card={s.type} style={{ fontSize: s.text.fontSize || 11, fontFamily: s.text.fontFamily ? `'${s.text.fontFamily}', sans-serif` : undefined, ...s.celu, color: "#555", lineHeight: 1.5 }}>{s.text.text}</span>
             </a>
           ))}
         </div>
