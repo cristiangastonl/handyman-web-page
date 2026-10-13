@@ -478,7 +478,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Typography</p>
         <StyleControl configKey="stats_number_style" label="Counter Numbers" hint="20+, 400+, 1.3M+, 1.4K+ — magnitude is set per stat above" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="stats_label_style" label="Counter Labels" hint="Years Experience, Video Shows, YouTube Views, Facebook Followers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="stats_label_style" label="Counter Labels" hint="Years Experience, Works in CH, YouTube Views, Facebook Followers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
 
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Tarjetas de redes</p>
         <p style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>Las 4 tarjetas de abajo de los números, en el orden en que se ven: Google, YouTube, WhatsApp, Facebook.</p>

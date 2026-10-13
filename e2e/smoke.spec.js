@@ -748,6 +748,13 @@ test.describe('cabecera de reseñas de la home', () => {
 });
 
 test.describe('orden de la home', () => {
+  test('la franja gris dice "Works in CH" y no "Video Shows"', async ({ page }) => {
+    // Pedido de Anibal del 13/10/2026.
+    await visit(page, '/');
+    await expect(page.locator('.stats-section')).toContainText('Works in CH');
+    await expect(page.locator('.stats-section')).not.toContainText('Video Shows');
+  });
+
   test('/faq cierra igual que /portfolio: título y botón verde de WhatsApp', async ({ page }) => {
     // Anibal, 13/10/2026: "ese botón al pie de portfolio debería ser el mismo al
     // pie de FAQs. Have another question (en negro) y abajo el coso verde 'ask me
@@ -881,6 +888,28 @@ test.describe('orden de la home', () => {
     if (brand.familia === sub.familia) {
       expect(brand.estilo, 'misma fuente pero uno inclinado y el otro no').toBe(sub.estilo);
     }
+  });
+
+  test('en el celu el título del hero tiene sombra atrás aunque el texto sea más grande', async ({ page, isMobile }) => {
+    // Anibal, 13/10/2026: "lo bajaste mucho". En su iPhone (tamaño de texto del
+    // sistema más grande) el título salía sobre las fotos claras, por arriba de una
+    // sombra que estaba fija en el 72% del hero. Ahora la sombra es el fondo del
+    // bloque de texto y sube con él. Se agranda el texto un 45% para simularlo.
+    test.skip(!isMobile, 'en la compu la sombra es otra y nunca tuvo el problema');
+    await visit(page, '/');
+    await page.waitForTimeout(2500); // las líneas del hero entran con animación
+    const r = await page.evaluate(() => {
+      for (const el of document.querySelectorAll('.hero-section h1, .hero-section .hero-brand, .hero-section .hero-subtitle, .hero-trust > span')) {
+        el.style.setProperty('font-size', `${parseFloat(getComputedStyle(el).fontSize) * 1.45}px`, 'important');
+      }
+      const sombra = document.querySelector('.hero-overlay');
+      return {
+        fondo: getComputedStyle(sombra).backgroundImage,
+        aireArribaDelTitulo: document.querySelector('.hero-section h1').getBoundingClientRect().top - sombra.getBoundingClientRect().top,
+      };
+    });
+    expect(r.fondo, 'el bloque de texto del hero no tiene la sombra').toContain('gradient');
+    expect(r.aireArribaDelTitulo, 'el título se sale por arriba de la sombra').toBeGreaterThanOrEqual(40);
   });
 
   test('en el celu los textos del hero van pegados abajo', async ({ page, isMobile }) => {

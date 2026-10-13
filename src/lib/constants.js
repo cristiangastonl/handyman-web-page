@@ -212,7 +212,9 @@ export const STAT_UNITS = ["", "K", "M"];
 // could mean 950K or 950M — so it is only trusted once a unit is stored alongside it.
 export const STATS = [
   { key: "stat_experience", label: "Years Experience", i18nKey: "stats.experience", defaultVal: "20", defaultUnit: "", decimals: 0 },
-  { key: "stat_videos", label: "Video Shows", i18nKey: "stats.videos", defaultVal: "400", defaultUnit: "", decimals: 0 },
+  // El rótulo era "Video Shows"; desde el 13/10/2026 dice "Works in CH" (pedido de
+  // Anibal). La clave sigue siendo stat_videos para no perder el número guardado.
+  { key: "stat_videos", label: "Works in CH", i18nKey: "stats.videos", defaultVal: "400", defaultUnit: "", decimals: 0 },
   { key: "stat_yt_views", label: "YouTube Views", i18nKey: "stats.ytViews", defaultVal: "1.3", defaultUnit: "M", decimals: 1, needsExplicitUnit: true },
   { key: "stat_fb_followers", label: "Facebook Followers", i18nKey: "stats.fbFollowers", defaultVal: "1.4", defaultUnit: "K", decimals: 1, needsExplicitUnit: true },
 ];
@@ -657,13 +659,21 @@ export const css = `
     .hero-section .heroContent .hero-brand { font-size: var(--fs-m, 20px) !important; }
     .hero-section .heroContent .hero-subtitle { font-size: var(--fs-m, 18px) !important; }
     .hero-trust > span[style*="--fs-m"] { font-size: var(--fs-m) !important; }
-    /* El bloque de texto ocupa mucha más altura proporcional acá que en desktop, así que
-       trepa hasta donde el degradado de escritorio todavía está tenue y el título vuelve
-       a competir con las paredes claras. Misma curva, corrida hacia arriba. */
-    /* 13/10/2026: Anibal pidió bajar "el fume" para que la fila de arriba del collage
-       quede más "spotlight". Con los textos ya pegados abajo, la sombra no necesita
-       subir tanto: arranca igual de oscura abajo y se apaga a los dos tercios. */
-    .hero-scrim { background: linear-gradient(to top, rgba(15,15,15,0.94) 0%, rgba(15,15,15,0.82) 30%, rgba(15,15,15,0.45) 50%, rgba(15,15,15,0.12) 62%, transparent 72%) !important; }
+    /* La sombra del celu va pegada al bloque de texto y no a una altura fija del hero.
+       Historia: el 13/10/2026 Anibal pidió bajar "el fume" para que se vea la fila de
+       arriba del collage, y se bajó a un porcentaje fijo. Esa misma tarde mandó "lo
+       bajaste mucho": en su iPhone el título salía sobre las fotos claras, sin sombra.
+       El suyo tiene el tamaño de texto del sistema más grande que el de Gastón (mismo
+       modelo de teléfono), así que su bloque de texto es más alto y el título trepaba
+       por encima de donde terminaba la sombra.
+       Ahora la sombra es el fondo de .hero-overlay, que mide lo que mida el texto más
+       un fundido de 56 px por arriba: con texto chico la fila de arriba queda limpia,
+       con texto grande la sombra sube con él y el título siempre tiene fondo oscuro. */
+    .hero-scrim { background: none !important; }
+    .hero-overlay {
+      padding-top: 56px !important;
+      background: linear-gradient(to top, rgba(15,15,15,0.94) 0%, rgba(15,15,15,0.86) 55%, rgba(15,15,15,0.55) 78%, transparent 100%);
+    }
     .mobile-menu-item { min-height: 44px !important; display: flex !important; align-items: center !important; }
     /* Achicados para que los seis entren en pocas líneas: a 13px/14px de padding
        ocupaban una línea cada uno. Se mantiene el mínimo táctil de 32 px. */
