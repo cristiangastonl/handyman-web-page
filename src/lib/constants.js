@@ -695,7 +695,11 @@ export const css = `
     .social-cards { padding: 8px 16px 10px !important; }
     .social-card { padding: 8px 6px !important; gap: 4px !important; flex: 1 1 0 !important; min-width: 0 !important; }
     .social-card svg { width: 18px !important; height: 18px !important; }
-    .social-card span { font-size: var(--fs-m, 9px) !important; line-height: 1.3 !important; }
+    /* pre-line: en el celu, cada Enter que Anibal escribe en el admin es un renglón.
+       Lo pidió el 13/10/2026 ("¿hay manera de forzar dos renglones para celu?") porque
+       según el tamaño de letra de cada teléfono las tarjetas se cortaban distinto. En
+       la compu el Enter se ignora (white-space normal) y todo va en una línea. */
+    .social-card span { font-size: var(--fs-m, 9px) !important; line-height: 1.3 !important; white-space: pre-line; }
     .brand-marquee { gap: 20px !important; }
     .brand-fade-left, .brand-fade-right { width: 30px !important; }
     .review-card { min-width: 240px !important; }
@@ -713,7 +717,7 @@ export const css = `
     /* En /reviews, con las columnas lado a lado, la frase de Facebook arranca a la
        altura de las barras de Google (debajo de las estrellas) y se centra contra
        ellas: es lo que pidió Anibal, que "equilibre la altura de las 5 barras". */
-    .frase-facebook { margin-top: 60px; }
+    .frase-facebook { margin-top: 84px; }
   }
   button:focus-visible, a:focus-visible { outline: 2px solid #D4781F; outline-offset: 2px; }
   .brand-marquee { display: flex; gap: 32px; align-items: center; width: max-content; animation: marquee 25s linear infinite; }

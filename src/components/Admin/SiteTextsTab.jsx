@@ -482,6 +482,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Tarjetas de redes</p>
         <p style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>Las 4 tarjetas de abajo de los números, en el orden en que se ven: Google, YouTube, WhatsApp, Facebook.</p>
+        <p style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>📱 Para elegir dónde corta en el celu, apretá Enter en ese lugar del texto. En la compu se sigue viendo todo en una línea.</p>
         {["social_card_google", "social_card_yt", "social_card_wa", "social_card_fb"].map(key => (
           <SiteTextRow key={key} configKey={key} def={SITE_TEXTS[key]} currentValue={siteConfig[key]} onSave={onSave} loading={loading} />
         ))}

@@ -4,6 +4,7 @@ import { R, G, getSocialUrls, itemThumb, svgP, playlistUrl } from "../lib/consta
 import { fetchPortfolioSummary, fetchPortfolioItems, normalizeWorkItem } from "../lib/supabase";
 import { normalizeSummaryRow, buildPortfolioSummary, countsOf } from "../lib/portfolioSummary";
 import { SocialIcon } from "./ui";
+import BandaCentrada from "./BandaCentrada";
 
 function Spinner() {
   return (
@@ -404,7 +405,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
       })()}
 
       {/* Bottom CTA */}
-      <div style={{ textAlign: "center", marginTop: 40, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
+      <BandaCentrada data-testid="portfolio-cierre" py={24} px={20} style={{ marginTop: 40, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("portfolio.ctaTitle", "Like what you see?")}</p>
         <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
@@ -413,7 +414,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
           {t("portfolio.ctaButton", "Tell me about your project")}
         </a>
-      </div>
+      </BandaCentrada>
     </div>
   );
 }

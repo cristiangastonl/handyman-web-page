@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { R, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD } from "../lib/constants";
+import { R, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD, SECTION_Y } from "../lib/constants";
 import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
@@ -144,7 +144,12 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
     <FadeIn>
     <section style={{ padding: SECTION_PAD, background: "#fafafa" }}>
       <div style={{ maxWidth: 940, margin: "0 auto" }}>
-        <div className="rev-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
+        {/* Centrada entre el borde de arriba de la sección y las tarjetas: arriba hay
+            SECTION_Y de padding y abajo el mismo margen, más 3 px porque el número
+            grande trae más aire invisible arriba que "See all reviews" abajo (medido
+            por píxeles: 46 contra 43). Con 24 se veía corrida para abajo (Anibal,
+            13/10/2026); el test de centrado la mide junto con las bandas. */}
+        <div className="rev-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SECTION_Y + 3, flexWrap: "wrap", gap: 16 }}>
           {/* flexWrap acá también, no sólo en la fila de afuera: con las dos fuentes
               la tirada "Reviews · G 5.0 ★★★★★ · 👍 145 100% recommended" no entra en
               393 px. Sin wrap no se desbordaba visiblemente —Chromium achica la
@@ -183,20 +188,16 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
             {fbOnly.length > 0 && <>
               {googleOnly.length > 0 && <div style={{ width: 1, height: 24, background: "#e0e0e0" }}/>}
               {/* Espejo del bloque de Google, a pedido de Anibal (13/10/2026): el logo
-                  de la F en vez del pulgar, "100%" como número grande en vez del
-                  conteo ("en vez de 144 gigante tiene que ir 100%") y los dos del
-                  mismo tamaño. El conteo baja a dos renglones chicos, como el
-                  "25 reviews" de al lado; así entran los dos bloques en una fila
-                  también en el celu, que era lo que se partía. */}
+                  de la F en vez del pulgar, "100%" como número grande ("en vez de 144
+                  gigante tiene que ir 100%") y al lado "144 Reviews", con la misma
+                  forma que el "25 Reviews" de Google: "respetamos la paridad entre
+                  ambos". El número sale de las reseñas cargadas y sube solo. */}
               <div data-testid="home-facebook" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <SocialIcon type="fb" size={18}/>
                 <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
                   <AnimatedCounter target={100} duration={1400} decimals={0}/>%
                 </span>
-                <div data-testid="home-facebook-conteo" style={{ fontSize: 11, color: "#777", lineHeight: 1.3, textAlign: "center" }}>
-                  <div>{t("reviews.fbPeople", { count: fbOnly.length })}</div>
-                  <div>{t("reviews.fbVerb", { count: fbOnly.length })}</div>
-                </div>
+                <div data-testid="home-facebook-conteo" style={{ fontSize: 11, color: "#777" }}>{t("reviews.count", { count: fbOnly.length })}</div>
               </div>
             </>}
           </div>
@@ -362,9 +363,11 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
                 </span>
               </div>
               <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
-              {/* Sin "Based on N Google Reviews": la cantidad ya la dicen las barras de
-                  abajo. Anibal, 13/10/2026: "ese último se saca por la cantidad de
-                  estrellas". */}
+              {/* "25 Reviews", igual que en la home. Hubo un "Based on N Google Reviews"
+                  que Anibal sacó el 13/10 y esa misma tarde pidió el número de vuelta,
+                  corto: "a la izquierda el 25 y a la derecha el 144, igual que en la
+                  home". */}
+              <div data-testid="conteo-google" style={{ fontSize: 14, color: "#777" }}>{t("reviews.count", { count: googleOnly.length })}</div>
               {/* La distribución por estrellas es de Google y de nadie más: estaba
                   centrada debajo de las dos columnas y se leía como si también
                   resumiera las recomendaciones de Facebook, que no tienen puntaje. */}
@@ -396,7 +399,9 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
                   "100%" del mismo cuerpo que el 5.0 (Anibal, 13/10/2026). */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
                 <SocialIcon type="fb" size={28}/>
-                <span style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                {/* Al 90% del 5.0: "bajalo al 90%, está muy agresivo… al estar más
+                    solo" (Anibal, 13/10/2026). Sin estrellas abajo pesaba más. */}
+                <span style={{ fontSize: 50, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
                   <AnimatedCounter target={100} duration={1600} decimals={0}/>%
                 </span>
               </div>
@@ -407,7 +412,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
                   real people" —"la idea del texto tan largo es equilibrarlo con la
                   altura de las 5 barras". El conteo sigue en la home. */}
               <div data-testid="frase-facebook" className="frase-facebook" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 0", maxWidth: 260 }}>
-                <p style={{ fontSize: 15, color: "#555", lineHeight: 1.6, textAlign: "center", margin: 0 }}>{t("reviews.fbBuiltOn")}</p>
+                <p style={{ fontSize: 15, color: "#555", lineHeight: 1.6, textAlign: "center", margin: 0 }}>{t("reviews.fbBuiltOn", { count: fbOnly.length })}</p>
               </div>
               <BotonDejarResena fuente="facebook" href={getFbReviewsUrl(siteConfig)} label={t("reviews.leaveReviewFb")} icon={<SocialIcon type="fb" size={16}/>}/>
             </div>

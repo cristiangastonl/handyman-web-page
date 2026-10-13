@@ -768,50 +768,83 @@ test.describe('orden de la home', () => {
     expect(await boton.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(37, 211, 102)');
   });
 
+  // Filas de píxeles vacías arriba y abajo del contenido de una caja, medidas sobre
+  // una foto de la caja. Medir cajas de texto no sirve: incluyen el aire invisible de
+  // cada renglón, que era justamente lo que descentraba las bandas.
+  const aireVisible = async (page, caja) => {
+    // scale 'css': en píxeles de la página, no del dispositivo, para poder sumarlo
+    // con medidas del DOM en el celu (que tiene más densidad).
+    const png = (await caja.screenshot({ animations: 'disabled', scale: 'css' })).toString('base64');
+    return page.evaluate(async (src) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${src}`;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const { data } = ctx.getImageData(0, 0, c.width, c.height);
+      const px = (x, y) => { const i = (y * c.width + x) * 4; return [data[i], data[i + 1], data[i + 2]]; };
+      const margen = Math.min(30, Math.floor(c.width / 4));
+      const filas = [];
+      for (let y = 0; y < c.height; y++) {
+        const fondo = px(margen, y);
+        for (let x = margen; x < c.width - margen; x += 2) {
+          const [r, g, b] = px(x, y);
+          if (Math.abs(r - fondo[0]) + Math.abs(g - fondo[1]) + Math.abs(b - fondo[2]) > 60) { filas.push(y); break; }
+        }
+      }
+      return { arriba: filas[0], abajo: c.height - 1 - filas[filas.length - 1] };
+    }, png);
+  };
+
   test('las bandas tienen el contenido centrado arriba-abajo', async ({ page }) => {
     // Anibal, 13/10/2026: "eso lo tenés que centrar… deberías tener la línea que te
     // lo fuerza al medio", sobre la franja gris, Service Areas, "Need something
-    // specific?" y "Ready to get started?". Se mide lo que se VE: se saca una foto
-    // de cada banda y se cuentan las filas de píxeles vacías arriba y abajo del
-    // contenido. Medir cajas de texto no sirve, porque incluyen el aire invisible
-    // de cada renglón, que era justamente lo que las descentraba.
+    // specific?", "Ready to get started?" y los cierres de /faq y /portfolio. Todas
+    // salvo la franja gris usan BandaCentrada. Se mide lo que se VE.
+    const revisar = async (bandas) => {
+      for (const [nombre, banda] of Object.entries(bandas)) {
+        await banda.scrollIntoViewIfNeeded();
+        const { arriba, abajo } = await aireVisible(page, banda);
+        expect(Math.abs(arriba - abajo), `${nombre}: ${arriba}px arriba contra ${abajo}px abajo`).toBeLessThanOrEqual(3);
+      }
+    };
     await visit(page, '/');
     await page.evaluate(async () => {
       for (let y = 0; y < document.body.scrollHeight; y += 400) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 80)); }
     });
     await page.waitForTimeout(1500); // los FadeIn terminan de entrar
-    const bandas = {
+    await revisar({
       'franja gris': page.locator('.stats-section'),
       'Service Areas': page.locator('section h4', { hasText: 'Service Areas' }).locator('xpath=..'),
       'Need something specific?': page.locator('.banda-centrada', { hasText: 'Need something specific?' }),
       'Ready to get started?': page.locator('.banda-centrada', { hasText: 'Ready to get started?' }),
-    };
-    for (const [nombre, banda] of Object.entries(bandas)) {
-      await banda.scrollIntoViewIfNeeded();
-      const png = (await banda.screenshot({ animations: 'disabled' })).toString('base64');
-      const { arriba, abajo } = await page.evaluate(async (src) => {
-        const img = new Image();
-        img.src = `data:image/png;base64,${src}`;
-        await img.decode();
-        const c = document.createElement('canvas');
-        c.width = img.width; c.height = img.height;
-        const ctx = c.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const { data } = ctx.getImageData(0, 0, c.width, c.height);
-        const px = (x, y) => { const i = (y * c.width + x) * 4; return [data[i], data[i + 1], data[i + 2]]; };
-        const margen = Math.min(30, Math.floor(c.width / 4));
-        const filas = [];
-        for (let y = 0; y < c.height; y++) {
-          const fondo = px(margen, y);
-          for (let x = margen; x < c.width - margen; x += 2) {
-            const [r, g, b] = px(x, y);
-            if (Math.abs(r - fondo[0]) + Math.abs(g - fondo[1]) + Math.abs(b - fondo[2]) > 60) { filas.push(y); break; }
-          }
-        }
-        return { arriba: filas[0], abajo: c.height - 1 - filas[filas.length - 1] };
-      }, png);
-      expect(Math.abs(arriba - abajo), `${nombre}: ${arriba}px arriba contra ${abajo}px abajo`).toBeLessThanOrEqual(3);
-    }
+    });
+    await visit(page, '/faq');
+    await revisar({ 'cierre de /faq': page.getByTestId('faq-cierre') });
+    await visit(page, '/portfolio');
+    await revisar({ 'cierre de /portfolio': page.getByTestId('portfolio-cierre') });
+  });
+
+  test('la cabecera de reseñas de la home queda centrada entre la sección de arriba y las tarjetas', async ({ page }) => {
+    // Anibal, 13/10/2026, con una captura marcada "1" arriba y "2" abajo.
+    await visit(page, '/');
+    const cabecera = page.locator('.rev-head');
+    await cabecera.scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelectorAll('.review-card').length > 0, null, { timeout: 20_000 });
+    await page.waitForTimeout(1500);
+    const tinta = await aireVisible(page, cabecera);
+    const pos = await cabecera.evaluate((h) => {
+      const tarjeta = h.parentElement.querySelector('.review-card, .hc-carousel-tile');
+      return {
+        arriba: h.getBoundingClientRect().top - h.closest('section').getBoundingClientRect().top,
+        abajo: tarjeta.getBoundingClientRect().top - h.getBoundingClientRect().bottom,
+      };
+    });
+    const arriba = pos.arriba + tinta.arriba;
+    const abajo = pos.abajo + tinta.abajo;
+    expect(Math.abs(arriba - abajo), `${arriba}px arriba contra ${abajo}px abajo`).toBeLessThanOrEqual(3);
   });
 
   test('reseñas de la home: Facebook con su F y "100%", y en una sola fila con Google', async ({ page, isMobile }) => {
@@ -822,13 +855,26 @@ test.describe('orden de la home', () => {
     await fb.scrollIntoViewIfNeeded();
     if (await fb.count() === 0) return; // sin reseñas de Facebook cargadas no hay bloque
     await expect(fb.locator('span').first()).toHaveText('100%', { timeout: 10_000 });
-    await expect(page.getByTestId('home-facebook-conteo')).toContainText(/\d+/);
+    // "144 Reviews", con la misma forma que el "25 Reviews" de Google.
+    await expect(page.getByTestId('home-facebook-conteo')).toHaveText(/^\d+ Reviews?$/);
     const google = page.getByTestId('home-google');
     if (await google.count() === 0) return;
     const [g, f] = await Promise.all([google.boundingBox(), fb.boundingBox()]);
     expect(Math.abs((g.y + g.height / 2) - (f.y + f.height / 2)), 'Google y Facebook no quedaron en la misma fila').toBeLessThanOrEqual(4);
     const desborda = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     expect(desborda, isMobile ? 'la cabecera de reseñas se sale de la pantalla del celu' : 'desborde horizontal').toBe(false);
+  });
+
+  test('tarjetas de redes: un Enter en el texto es renglón en el celu y espacio en la compu', async ({ page, isMobile }) => {
+    // Anibal, 13/10/2026: "¿hay una manera de forzar dos renglones para celu?". El
+    // corte lo elige él con un Enter en el admin; se simula poniendo ese texto.
+    await visit(page, '/');
+    const renglones = await page.locator('[data-social-card="wa"]').evaluate((el) => {
+      el.textContent = 'Answer in less\nthan 24hs';
+      const lh = parseFloat(getComputedStyle(el).lineHeight);
+      return Math.round(el.getBoundingClientRect().height / lh);
+    });
+    expect(renglones, isMobile ? 'en el celu el Enter tiene que cortar el renglón' : 'en la compu tiene que ir en una línea').toBe(isMobile ? 2 : 1);
   });
 
   test('tarjetas de redes: Google, YouTube, WhatsApp, Facebook', async ({ page }) => {
@@ -1175,8 +1221,10 @@ test.describe('resumen de /reviews', () => {
       // Cada columna cuenta las tarjetas de SU fuente, no el total. Ese era el
       // síntoma: debajo del promedio de Google aparecía el total, Facebook
       // incluido.
-      expect(await conteoGoogle(page), 'las barras de Google no cuentan las reseñas de Google')
-        .toBe(await page.locator('.reviews-grid [data-fuente="google"]').count());
+      const reseniasGoogle = await page.locator('.reviews-grid [data-fuente="google"]').count();
+      expect(await conteoGoogle(page), 'las barras de Google no cuentan las reseñas de Google').toBe(reseniasGoogle);
+      // "25 Reviews" a la izquierda, como en la home (Anibal, 13/10/2026).
+      await expect(page.getByTestId('conteo-google')).toHaveText(new RegExp(`^${reseniasGoogle} Reviews?$`));
       // Por fuente y no por la URL: el link de Google es un g.page/r/... y
       // además Anibal lo puede cambiar desde el admin.
       await expect(google.locator('[data-boton-resena="google"]')).toHaveCount(1);
@@ -1187,7 +1235,9 @@ test.describe('resumen de /reviews', () => {
       // 13/10/2026 por "100%" grande y la frase "Built up on mentions and
       // recommendations of real people" en el alto de las barras de Google. El
       // conteo se sigue chequeando en la home (home-facebook-conteo).
-      await expect(facebook.getByTestId('frase-facebook')).toContainText('Built up on mentions');
+      // "…of 144 real people": el número es el de las reseñas de Facebook cargadas.
+      const reseniasFb = await page.locator('.reviews-grid [data-fuente="facebook"]').count();
+      await expect(facebook.getByTestId('frase-facebook')).toContainText(`Built up on mentions and recommendations of ${reseniasFb} real`);
       await expect(facebook).not.toContainText(/\d+ people recommend/);
       await expect(facebook.locator('[data-boton-resena="facebook"]')).toHaveCount(1);
       await expect(facebook.locator('[data-boton-resena="google"]')).toHaveCount(0);
