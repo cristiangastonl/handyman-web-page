@@ -1473,3 +1473,18 @@ test.describe('resumen de /reviews: clásico o tarjetas', () => {
     expect(m.scroll, 'las tarjetas desbordan la pantalla').toBeLessThanOrEqual(m.vista);
   });
 });
+
+test('/reviews: "Newest first" tiene el mismo aire arriba y abajo', async ({ page }) => {
+  // Anibal, 14/10/2026: quedaba más cerca del resumen (20 px) que de las
+  // reseñas (36). Se mide contra lo que se ve: el borde de abajo de las
+  // columnas del resumen y el de arriba de la primera tarjeta de reseña.
+  await visit(page, '/reviews');
+  await page.locator('.reviews-grid > *').first().waitFor();
+  const r = await page.evaluate(() => {
+    const boton = document.querySelector('[data-testid="orden-resenas"] button').getBoundingClientRect();
+    const columnas = [...document.querySelectorAll('[data-testid^="resumen-"]')].map((c) => c.getBoundingClientRect().bottom);
+    const grilla = document.querySelector('.reviews-grid').getBoundingClientRect();
+    return { arriba: boton.top - Math.max(...columnas), abajo: grilla.top - boton.bottom };
+  });
+  expect(Math.abs(r.arriba - r.abajo), `${Math.round(r.arriba)} px arriba contra ${Math.round(r.abajo)} abajo`).toBeLessThanOrEqual(3);
+});

@@ -320,6 +320,8 @@ function interleaveHappy(reviews, photos, paso = REVIEWS_POR_FOTO) {
 // Anibal pidió que "fuente y tamaño tienen que coincidir, y tal vez color"
 // (13/10/2026), y antes eran 14 px gris claro contra 15 px gris oscuro.
 const TEXTO_CONTEO = { fontSize: 15, color: "#555" };
+// Aire arriba y abajo del botón "Newest first", entre el resumen y las reseñas.
+const AIRE_ORDEN = 28;
 
 // Estilo "tarjetas" del resumen de /reviews (ver resumenResenas.js). Los tamaños
 // de los números van en NUMEROS para que los dos estilos convivan sin ramas
@@ -372,7 +374,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
     // de los dos lados, como /faq y /portfolio (14/10/2026; eran 32 y 80).
     <div style={{ maxWidth: 940, margin: "0 auto", padding: `28px 24px ${SECTION_Y}px` }}>
       <HappyCustomerRails items={happy} setLb={setLb}/>
-      <div style={{ textAlign: "center", padding: "24px 0 36px" }}>
+      <div style={{ textAlign: "center", padding: `24px 0 ${AIRE_ORDEN}px` }}>
         {/* Una columna por fuente, y cada número contado sobre su propia fuente.
             Antes era un if/else sobre el promedio: apenas entró la primera reseña
             de Google el bloque saltó a la rama de estrellas y mostró "5.0" —el
@@ -466,8 +468,9 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
           )}
         </div>
 
-        {/* Chronological order toggle */}
-        <div style={{ marginTop: 20 }}>
+        {/* Chronological order toggle. AIRE_ORDEN arriba y abajo: eran 20 contra 36
+            y el botón quedaba pegado al resumen (Anibal, 14/10/2026). */}
+        <div data-testid="orden-resenas" style={{ marginTop: AIRE_ORDEN }}>
           <button onClick={() => setDirection(d => d === "desc" ? "asc" : "desc")}
             aria-label={t("reviews.sortAria", "Change review order")}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 16px", borderRadius: 10, border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#555", transition: "border-color .2s, color .2s" }}
