@@ -394,7 +394,11 @@ test.describe('velocidad de los carruseles', () => {
       const frame = () => new Promise((r) => requestAnimationFrame(r));
       await frame();
       const desde = riel.scrollLeft;
-      const FRAMES = 30;
+      // 15 y no 30: con el carrusel en pantalla se decodifican fotos de ~1 MB y,
+      // con 8 workers, cada frame llegó a tardar ~300 ms; dos mediciones de 30 no
+      // entraban en los 30 s del test. Como se mide px POR FRAME, 15 sobran: a
+      // 1.5 px/frame son 22 px contra ≤1 px de redondeo de scrollLeft.
+      const FRAMES = 15;
       for (let i = 0; i < FRAMES; i++) await frame();
       return (riel.scrollLeft - desde) / FRAMES;
     });
@@ -1347,5 +1351,53 @@ test.describe('peso de la home', () => {
     // también el de la compu, que no usa.
     const heros = fijas.map((f) => f.path).filter((p) => /\/anibal\/hero/.test(p));
     expect(heros).toEqual([isMobile ? '/anibal/hero-mobile.webp' : '/anibal/hero.webp']);
+  });
+});
+
+test.describe('carga de la home', () => {
+  test('lo prerenderizado no se cambia por un spinner al cargar', async ({ page }) => {
+    // Hasta el 14/10/2026 la app tiraba el HTML prerenderizado y mostraba un
+    // spinner hasta que respondía Supabase: el hero aparecía, desaparecía ~0,8 s
+    // y volvía, en cada visita. Ahora arranca con los datos que el prerender dejó
+    // en el HTML (#datos-prerender) y los refresca por atrás.
+    await page.addInitScript(() => {
+      window.__sinHero = 0;
+      window.__spinner = 0;
+      new MutationObserver(() => {
+        if (!document.querySelector('.hero-section') && document.querySelector('main')) window.__sinHero++;
+        if ([...document.querySelectorAll('#root div')].some((d) => (d.getAttribute('style') || '').includes('spin 0.8s'))) window.__spinner++;
+      }).observe(document, { childList: true, subtree: true });
+    });
+    await visit(page, '/');
+    await expect(page.locator('#datos-prerender')).toHaveCount(1);
+    const r = await page.evaluate(() => ({ sinHero: window.__sinHero, spinner: window.__spinner }));
+    expect(r.spinner, 'apareció el spinner sobre la página ya armada').toBe(0);
+    expect(r.sinHero, 'el hero prerenderizado desapareció mientras cargaba').toBe(0);
+  });
+
+  test('no pide tablas retiradas ni respaldos que no hacen falta', async ({ page }) => {
+    // returning_customers se pedía en las 4 rutas aunque ese carrusel ya no
+    // existe, y la tabla legacy de highlights también aunque el carrusel esté
+    // curado. Ahora el respaldo sólo se pide si el carrusel está vacío.
+    const pedidos = [];
+    page.on('request', (req) => { if (req.url().includes('/rest/v1/')) pedidos.push(decodeURIComponent(req.url())); });
+    await visit(page, '/');
+    expect(pedidos.filter((u) => u.includes('returning_customers'))).toEqual([]);
+    const curado = await page.evaluate(() =>
+      JSON.parse(document.getElementById('datos-prerender')?.textContent || '{}').carouselData?.highlights?.length > 0);
+    if (curado) expect(pedidos.filter((u) => /\/rest\/v1\/highlights\b/.test(u))).toEqual([]);
+  });
+
+  test('abrir una foto no rearma la home', async ({ page }) => {
+    // HomePage era un componente definido adentro de App: cualquier cambio de
+    // estado (abrir el Lightbox, el menú) creaba un tipo nuevo y React desmontaba
+    // y volvía a montar la home entera. Ahora es JSX, como el contenido del admin.
+    await visit(page, '/');
+    await page.locator('[data-item-id] img').first().waitFor({ state: 'attached' });
+    await page.evaluate(() => { window.__hero = document.querySelector('.hero-section'); });
+    await page.evaluate(() => document.querySelector('[data-item-id]').click());
+    await expect(page.getByRole('dialog', { name: 'Image viewer' })).toBeVisible();
+    expect(await page.evaluate(() => window.__hero === document.querySelector('.hero-section')),
+      'el hero es otro nodo: la home se desmontó y se volvió a montar').toBe(true);
   });
 });

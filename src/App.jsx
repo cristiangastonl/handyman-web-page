@@ -49,6 +49,19 @@ const normalizeCarouselItem = (ci) => ({
   sort_order: ci.sort_order,
 });
 
+// Los datos con que el prerender armó esta página (scripts/prerender.mjs los deja en
+// el HTML). Con ellos la app arranca mostrando lo mismo que ya está en pantalla, en
+// vez de cambiar el HTML prerenderizado por un spinner hasta que responda Supabase:
+// eso hacía que la página apareciera, desapareciera y volviera en cada visita.
+// Igual se piden frescos al montar: lo del HTML es del último deploy y Anibal edita
+// desde el admin sin deployar.
+const PRE = (() => {
+  try {
+    const el = typeof document !== "undefined" && document.getElementById("datos-prerender");
+    return el ? JSON.parse(el.textContent) : null;
+  } catch { return null; }
+})();
+
 export default function App() {
   const { i18n } = useTranslation();
   const navigate = useNavigate();
@@ -94,33 +107,35 @@ export default function App() {
     setLbItems(Array.isArray(contextItems) && contextItems.length > 0 ? contextItems : (item ? [item] : []));
   };
   const [portfolioView, setPortfolioView] = useState("categories");
-  const [loading, setLoading] = useState(!!supabase);
+  const [loading, setLoading] = useState(!!supabase && !PRE);
 
   // ── Data ──
-  const [cats, setCats] = useState(DEFAULT_CATS);
+  const [cats, setCats] = useState(PRE?.cats ?? DEFAULT_CATS);
   // work_items enteros: sólo los usa el admin, que los carga al iniciar sesión.
   // Viven acá y no en AdminPanel para sobrevivir a que se desmonte.
   const [items, setItems] = useState(DEFAULT_WORK);
   // Fallback de Recent Work cuando el carrusel no está curado: los primeros 12.
-  const [recentFallback, setRecentFallback] = useState([]);
-  const [faqs, setFaqs] = useState(DEFAULT_FAQS);
-  const [subcats, setSubcats] = useState(DEFAULT_SUBCATS);
-  const [highlights, setHighlights] = useState(DEFAULT_HIGHLIGHTS);
+  const [recentFallback, setRecentFallback] = useState(PRE?.recentFallback ?? []);
+  const [faqs, setFaqs] = useState(PRE?.faqs ?? DEFAULT_FAQS);
+  const [subcats, setSubcats] = useState(PRE?.subcats ?? DEFAULT_SUBCATS);
+  const [highlights, setHighlights] = useState(PRE?.highlights ?? DEFAULT_HIGHLIGHTS);
   // Arranca vacío: mostrar reseñas que viven en el código mientras Supabase
   // responde es publicar contenido que no es del cliente, aunque sea un segundo.
-  const [fbReviews, setFbReviews] = useState([]);
-  const [siteConfig, setSiteConfig] = useState({});
-  const [googleReviews, setGoogleReviews] = useState([]);
+  const [fbReviews, setFbReviews] = useState(PRE?.fbReviews ?? []);
+  const [siteConfig, setSiteConfig] = useState(PRE?.siteConfig ?? {});
+  const [googleReviews, setGoogleReviews] = useState(PRE?.googleReviews ?? []);
   const [adminTab, setAdminTab] = useState("categories");
-  // returning_customers is retired from the site and the admin, but its rows are
-  // still fetched so nothing breaks if the table is repopulated later.
-  const [carouselData, setCarouselData] = useState({
+  // returning_customers está retirado del sitio y del admin; la clave queda vacía
+  // para que nada que la lea se rompa, pero ya no se pide (era un request muerto
+  // en cada una de las 4 rutas).
+  const [carouselData, setCarouselData] = useState(() => ({
     recent_works: [],
     highlights: [],
     returning_customers: [],
     tailor_jobs: [],
     happy_customers: [],
-  });
+    ...PRE?.carouselData,
+  }));
 
   // ── Effects ──
   // La sesión de admin la maneja AdminPanel, que es el único que la necesita.
@@ -139,48 +154,61 @@ export default function App() {
     if (!supabase) return;
     const safe = (fn) => fn().catch(err => { console.warn('Fetch error:', err.message); return null; });
     (async () => {
-      const [dbCats, dbFaqs, dbSubcats, dbHighlights, dbFbReviews, dbConfig, dbGoogleReviews,
-        dbCarRecentWorks, dbCarHighlights, dbCarReturning, dbCarTailorJobs] = await Promise.all([
+      const [dbCats, dbFaqs, dbSubcats, dbFbReviews, dbConfig, dbGoogleReviews,
+        dbCarRecentWorks, dbCarHighlights, dbCarTailorJobs] = await Promise.all([
         safe(fetchCategories), safe(fetchFaqs),
-        safe(fetchSubcategories), safe(fetchHighlights), safe(fetchFbReviews),
+        safe(fetchSubcategories), safe(fetchFbReviews),
         safe(fetchSiteConfig), safe(fetchGoogleReviews),
         safe(() => fetchCarouselItems('recent_works')),
         safe(() => fetchCarouselItems('highlights')),
-        safe(() => fetchCarouselItems('returning_customers')),
         safe(() => fetchCarouselItems('tailor_jobs')),
       ]);
-      if (dbCats?.length > 0) setCats(withAllCategory(dbCats));
-      if (dbFaqs?.length > 0) setFaqs(dbFaqs.map(f => ({
+      // Lo que queda en pantalla, para que el prerender lo guarde en el HTML. Cada
+      // valor sólo se pisa si el fetch trajo algo, igual que antes.
+      const datos = {};
+      if (dbCats?.length > 0) datos.cats = withAllCategory(dbCats);
+      if (dbFaqs?.length > 0) datos.faqs = dbFaqs.map(f => ({
         id: f.id, q: f.question, a: f.answer,
         question_de: f.question_de, answer_de: f.answer_de,
         question_es: f.question_es, answer_es: f.answer_es,
         question_fr: f.question_fr, answer_fr: f.answer_fr,
         question_it: f.question_it, answer_it: f.answer_it,
-      })));
-      if (dbSubcats?.length > 0) setSubcats(dbSubcats);
-      if (dbHighlights?.length > 0) setHighlights(dbHighlights);
-      if (dbFbReviews?.length > 0) setFbReviews(dbFbReviews);
-      if (dbConfig) setSiteConfig(dbConfig);
-      if (dbGoogleReviews?.length > 0) setGoogleReviews(dbGoogleReviews);
+      }));
+      if (dbSubcats?.length > 0) datos.subcats = dbSubcats;
+      if (dbFbReviews?.length > 0) datos.fbReviews = dbFbReviews;
+      if (dbConfig) datos.siteConfig = dbConfig;
+      if (dbGoogleReviews?.length > 0) datos.googleReviews = dbGoogleReviews;
       // Carousel curated items
-      setCarouselData(prev => ({
-        ...prev,
+      // happy_customers NO se pide acá. Tiene tabla propia y todavía no está
+      // colocado en ninguna página del sitio, así que pedirlo en las 4 rutas
+      // sería un request muerto. Lo carga quien lo necesita: el panel de admin
+      // al abrir su sub-tab, y ReviewsPage sólo cuando se mira el preview.
+      datos.carouselData = {
         recent_works: dbCarRecentWorks?.length > 0 ? dbCarRecentWorks.map(normalizeCarouselItem) : [],
         highlights: dbCarHighlights?.length > 0 ? dbCarHighlights.map(normalizeCarouselItem) : [],
-        returning_customers: dbCarReturning?.length > 0 ? dbCarReturning.map(normalizeCarouselItem) : [],
         tailor_jobs: dbCarTailorJobs?.length > 0 ? dbCarTailorJobs.map(normalizeCarouselItem) : [],
-        // happy_customers NO se pide acá. Tiene tabla propia y todavía no está
-        // colocado en ninguna página del sitio, así que pedirlo en las 4 rutas
-        // sería un request muerto. Lo carga quien lo necesita: el panel de admin
-        // al abrir su sub-tab, y ReviewsPage sólo cuando se mira el preview.
-      }));
-      // work_items ya no se lee al montar: el portfolio pide su resumen y sus
-      // fotos por nivel, y la home sólo necesita esto, y sólo si Recent Work no
-      // está curado.
-      if (!(dbCarRecentWorks?.length > 0)) {
-        const dbFirst = await safe(() => fetchFirstWorkItems(FALLBACK_LIMIT));
-        if (dbFirst?.length > 0) setRecentFallback(dbFirst.map(normalizeWorkItem));
-      }
+      };
+      // Los dos respaldos van sólo si hacen falta. La tabla legacy de highlights se
+      // pedía siempre en las 4 rutas aunque el carrusel estuviera curado; ahora,
+      // igual que work_items para Recent Work, sólo si el carrusel está vacío.
+      const [dbHighlights, dbFirst] = await Promise.all([
+        datos.carouselData.highlights.length ? null : safe(fetchHighlights),
+        datos.carouselData.recent_works.length ? null : safe(() => fetchFirstWorkItems(FALLBACK_LIMIT)),
+      ]);
+      if (dbHighlights?.length > 0) datos.highlights = dbHighlights;
+      if (dbFirst?.length > 0) datos.recentFallback = dbFirst.map(normalizeWorkItem);
+
+      if (datos.cats) setCats(datos.cats);
+      if (datos.faqs) setFaqs(datos.faqs);
+      if (datos.subcats) setSubcats(datos.subcats);
+      if (datos.highlights) setHighlights(datos.highlights);
+      if (datos.fbReviews) setFbReviews(datos.fbReviews);
+      if (datos.siteConfig) setSiteConfig(datos.siteConfig);
+      if (datos.googleReviews) setGoogleReviews(datos.googleReviews);
+      if (datos.recentFallback) setRecentFallback(datos.recentFallback);
+      setCarouselData(prev => ({ ...prev, ...datos.carouselData }));
+      // Sólo bajo Puppeteer (el prerender): ahí se lee esto para guardarlo en el HTML.
+      if (navigator.webdriver) window.__datosPrerender = datos;
       setLoading(false);
     })();
   }, []);
@@ -191,7 +219,12 @@ export default function App() {
   };
 
   // ── Home page content ──
-  const HomePage = () => (
+  // JSX y no un componente, por lo mismo que adminPageContent más abajo: definido
+  // como `const HomePage = () => …` adentro de App, cada render de App creaba un
+  // tipo de componente nuevo y React desmontaba y volvía a montar la home entera
+  // —abrir una foto, el menú del celu, cualquier estado— con los carruseles
+  // saltando a otra posición y las animaciones de entrada repitiéndose.
+  const homeContent = (
     <>
       {loading && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
@@ -252,14 +285,14 @@ export default function App() {
         <Suspense fallback={<div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}><div style={{ width: 40, height: 40, border: "3px solid #f0f0f0", borderTop: "3px solid #D4781F", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/></div>}>
           <Seo/>
           <Routes>
-            <Route path="/" element={<HomePage/>}/>
+            <Route path="/" element={homeContent}/>
             <Route path="/portfolio" element={
               <Portfolio cats={cats} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={openLightbox} siteConfig={siteConfig}/>
             }/>
             <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews} happyItems={carouselData.happy_customers} setLb={openLightbox} siteConfig={siteConfig}/>}/>
             <Route path="/faq" element={<FAQPage faqs={faqs} siteConfig={siteConfig}/>}/>
             <Route path="/admin" element={adminPageContent}/>
-            <Route path="*" element={<HomePage/>}/>
+            <Route path="*" element={homeContent}/>
           </Routes>
         </Suspense>
       </main>

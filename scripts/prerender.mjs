@@ -88,6 +88,22 @@ async function prerender() {
       await page.waitForSelector('main', { timeout: 10000 });
       await waitForDataIdle(inflight);
 
+      // Los datos con que se armó la página van en el HTML para que la app arranque
+      // con ellos y no cambie lo prerenderizado por un spinner (ver PRE en App.jsx).
+      // Como JSON y no como script ejecutable; el "<" va escapado para que ningún
+      // texto cargado desde el admin pueda cerrar el tag.
+      const guardados = await page.evaluate(() => {
+        const datos = window.__datosPrerender;
+        if (!datos) return false;
+        const el = document.createElement('script');
+        el.type = 'application/json';
+        el.id = 'datos-prerender';
+        el.textContent = JSON.stringify(datos).replace(/</g, '\\u003c');
+        document.head.appendChild(el);
+        return el.textContent.length;
+      });
+      if (!guardados) throw new Error(`${route}: la app no dejó sus datos (window.__datosPrerender)`);
+
       const html = await page.content();
 
       // Write to dist
