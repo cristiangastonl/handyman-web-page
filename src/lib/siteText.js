@@ -43,3 +43,21 @@ export function payloadSiteText({ text, fontSize, fontFamily, mobileFontSize }, 
   if (mobileFontSize) val.mobileFontSize = Number(mobileFontSize);
   return val;
 }
+
+/**
+ * El tamaño de letra (px) con que un texto se ve en el celu: el que se cargó en
+ * "Tamaño en el celu", si no el de siempre del celu, y si ese texto no tiene uno
+ * propio (la Trust Line), el de la compu. Es la misma cascada que arma el CSS con
+ * `var(--fs-m, <default>)`, y la usa la preview del celu del admin.
+ *
+ * Existe por un "No anda / Cambio y no hay efecto" de Anibal (13/10/2026): cargaba
+ * el tamaño del celu y miraba la preview del admin, que sólo mostraba la compu.
+ */
+export function tamanoCelu(currentValue, def) {
+  const guardado = parseSiteText(currentValue) || {};
+  return Number(guardado.mobileFontSize)
+    || def?.defaultMobileFontSize
+    || Number(guardado.fontSize)
+    || def?.defaultFontSize
+    || 14;
+}

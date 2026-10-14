@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { textoVigente, payloadSiteText } from "./siteText";
+import { textoVigente, payloadSiteText, tamanoCelu } from "./siteText";
 
 const DEF = { defaultText: "Always pleased to help both the local community.", defaultFontSize: 12, defaultFontFamily: "DM Sans" };
 
@@ -62,5 +62,27 @@ describe("tamaño en el celu", () => {
 
   it("vacío no se guarda: el celu sigue con su tamaño de siempre", () => {
     expect(payloadSiteText({ text: "Hola", fontSize: 40, mobileFontSize: "" }, DEF)).toEqual({ fontSize: 40 });
+  });
+});
+
+describe("tamanoCelu", () => {
+  // Lo que muestra la preview del celu del admin. Anibal cargaba el tamaño del
+  // celu y no veía cambio (13/10/2026): la única preview era la de la compu.
+  const TITULO = { defaultFontSize: 36, defaultMobileFontSize: 31 };
+  const TRUST = { defaultFontSize: 13, defaultMobileFontSize: null };
+
+  it("con tamaño del celu cargado, usa ése y no el de la compu", () => {
+    expect(tamanoCelu(JSON.stringify({ fontSize: 30, mobileFontSize: 27 }), TITULO)).toBe(27);
+  });
+
+  it("sin tamaño del celu, usa el de siempre del celu aunque haya uno de compu", () => {
+    expect(tamanoCelu(JSON.stringify({ fontSize: 30 }), TITULO)).toBe(31);
+    expect(tamanoCelu(undefined, TITULO)).toBe(31);
+  });
+
+  it("un texto sin tamaño propio en el celu (Trust Line) usa el de la compu", () => {
+    expect(tamanoCelu(JSON.stringify({ fontSize: 10 }), TRUST)).toBe(10);
+    expect(tamanoCelu(undefined, TRUST)).toBe(13);
+    expect(tamanoCelu(JSON.stringify({ fontSize: 10, mobileFontSize: 8 }), TRUST)).toBe(8);
   });
 });

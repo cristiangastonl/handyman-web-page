@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_AREAS,
   getSocialUrls, WA_NUMBER, buildWALink, parseWALink,
   STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix } from "../../lib/constants";
-import { textoVigente, payloadSiteText } from "../../lib/siteText";
+import { textoVigente, payloadSiteText, tamanoCelu } from "../../lib/siteText";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminCard } from "./adminUI";
 
@@ -37,7 +37,7 @@ const KNOWN_KEYS = new Set([
 ]);
 
 // ── Preview wrapper ──
-function PreviewBox({ dark, children }) {
+function PreviewBox({ dark, label = "Preview", style, children }) {
   return (
     <div style={{
       background: dark ? "#1a1a1a" : colors.gray50,
@@ -45,8 +45,9 @@ function PreviewBox({ dark, children }) {
       borderRadius: radii.md,
       padding: spacing.md,
       marginBottom: spacing.lg,
+      ...style,
     }}>
-      <span style={{ fontSize: 9, color: dark ? "rgba(255,255,255,0.4)" : colors.gray400, display: "block", marginBottom: spacing.xs }}>Preview</span>
+      <span style={{ fontSize: 9, color: dark ? "rgba(255,255,255,0.4)" : colors.gray400, display: "block", marginBottom: spacing.xs }}>{label}</span>
       {children}
     </div>
   );
@@ -333,11 +334,13 @@ function getTextValue(siteConfig, key) {
   return SITE_TEXTS[key] ? SITE_TEXTS[key].defaultText : "";
 }
 
-function getTextStyle(siteConfig, key) {
+// celu: el tamaño con que se ve en el celu, no el de la compu (ver tamanoCelu).
+function getTextStyle(siteConfig, key, celu = false) {
   const parsed = parseSiteText(siteConfig[key]) || {};
   const def = SITE_TEXTS[key] || {};
   return {
-    fontSize: parsed.fontSize ? `${parsed.fontSize}px` : `${def.defaultFontSize || 14}px`,
+    fontSize: celu ? `${tamanoCelu(siteConfig[key], def)}px`
+      : parsed.fontSize ? `${parsed.fontSize}px` : `${def.defaultFontSize || 14}px`,
     fontFamily: parsed.fontFamily ? `'${parsed.fontFamily}', sans-serif` : `'${def.defaultFontFamily || "DM Sans"}', sans-serif`,
   };
 }
@@ -418,33 +421,49 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
         {/* Hero text preview + controls together */}
         <p style={{ ...typography.label, marginTop: spacing.xl, marginBottom: spacing.sm }}>Hero Texts</p>
-        <PreviewBox dark>
-          <div style={{ textAlign: "center", padding: `${spacing.lg}px 0` }}>
-            <div style={{
-              ...getTextStyle(siteConfig, "hero_title"),
-              color: "#fff",
-              fontWeight: 700,
-              lineHeight: 1.2,
-              marginBottom: spacing.sm,
-              whiteSpace: "pre-line",
-            }}>
-              {getTextValue(siteConfig, "hero_title")}
-            </div>
-            <div style={{
-              ...getTextStyle(siteConfig, "hero_brand_subtitle"),
-              color: colors.brand,
-              marginBottom: spacing.xs,
-            }}>
-              {getTextValue(siteConfig, "hero_brand_subtitle")}
-            </div>
-            <div style={{
-              ...getTextStyle(siteConfig, "hero_subtitle"),
-              color: "rgba(255,255,255,0.8)",
-            }}>
-              {getTextValue(siteConfig, "hero_subtitle")}
-            </div>
-          </div>
-        </PreviewBox>
+        {/* Una preview por pantalla: los campos "Tamaño en el celu" sólo se ven en la
+            segunda. Con una sola (la de la compu) cambiar el celu parecía no hacer nada. */}
+        <div style={{ display: "flex", gap: spacing.md, flexWrap: "wrap", alignItems: "flex-start" }}>
+          {[{ celu: false, label: "💻 Preview en la compu", style: { flex: "2 1 320px" } },
+            { celu: true, label: "📱 Preview en el celu", style: { flex: "1 1 220px", maxWidth: 375 } }].map(({ celu, label, style }) => (
+            <PreviewBox dark key={label} label={label} style={style}>
+              <div className="preview-hero" data-celu={celu ? "1" : "0"} style={{ textAlign: "center", padding: `${spacing.lg}px 0` }}>
+                <div style={{
+                  ...getTextStyle(siteConfig, "hero_title", celu),
+                  color: "#fff",
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  marginBottom: spacing.sm,
+                  whiteSpace: "pre-line",
+                }}>
+                  {getTextValue(siteConfig, "hero_title")}
+                </div>
+                <div style={{
+                  ...getTextStyle(siteConfig, "hero_brand_subtitle", celu),
+                  color: colors.brand,
+                  marginBottom: spacing.xs,
+                }}>
+                  {getTextValue(siteConfig, "hero_brand_subtitle")}
+                </div>
+                <div style={{
+                  ...getTextStyle(siteConfig, "hero_subtitle", celu),
+                  color: "rgba(255,255,255,0.8)",
+                  marginBottom: spacing.xs,
+                }}>
+                  {getTextValue(siteConfig, "hero_subtitle")}
+                </div>
+                <div style={{
+                  ...getTextStyle(siteConfig, "hero_trust", celu),
+                  color: colors.brand,
+                  fontWeight: 700,
+                  whiteSpace: "pre-line",
+                }}>
+                  ✓ {getTextValue(siteConfig, "hero_trust")}
+                </div>
+              </div>
+            </PreviewBox>
+          ))}
+        </div>
         {["hero_title", "hero_brand_subtitle", "hero_subtitle", "hero_trust"].map(key => (
           <SiteTextRow key={key} configKey={key} def={SITE_TEXTS[key]} currentValue={siteConfig[key]} onSave={onSave} loading={loading} />
         ))}
