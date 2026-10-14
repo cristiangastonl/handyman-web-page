@@ -1,5 +1,7 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
+import { estiloResumen } from "../lib/resumenResenas";
 import { R, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD, SECTION_Y } from "../lib/constants";
 import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
@@ -319,6 +321,15 @@ function interleaveHappy(reviews, photos, paso = REVIEWS_POR_FOTO) {
 // (13/10/2026), y antes eran 14 px gris claro contra 15 px gris oscuro.
 const TEXTO_CONTEO = { fontSize: 15, color: "#555" };
 
+// Estilo "tarjetas" del resumen de /reviews (ver resumenResenas.js). Los tamaños
+// de los números van en NUMEROS para que los dos estilos convivan sin ramas
+// sueltas por todo el JSX.
+const NUMEROS = {
+  clasico: { icono: 28, google: 56, facebook: 50 },
+  tarjetas: { icono: 22, google: 36, facebook: 33 },
+};
+const TARJETA_RESUMEN = { border: "1px solid #ececec", borderRadius: 16, padding: "22px 26px", background: "#fff", boxShadow: "0 2px 10px rgba(0,0,0,0.04)", minWidth: 280, flex: "1 1 280px", maxWidth: 400 };
+
 // Full reviews page
 /**
  * Botón "dejá tu reseña" de una fuente. Vive dentro de la columna de esa fuente:
@@ -351,6 +362,10 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
   const googleOnly = reviews.filter(r => r.source === "google" && r.r);
   const fbOnly = reviews.filter(r => r.source === "facebook");
   const avg = starAverage(reviews);
+  const estilo = estiloResumen(siteConfig, useLocation().search);
+  const tarjetas = estilo === "tarjetas";
+  const num = NUMEROS[estilo];
+  const columna = { display: "flex", flexDirection: "column", alignItems: "center", minWidth: 140, ...(tarjetas ? TARJETA_RESUMEN : {}) };
 
   return (
     // Cierra con SECTION_Y, lo mismo que la caja final tiene arriba: el mismo aire
@@ -370,12 +385,12 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
             Las tarjetas de abajo siguen mezcladas y ordenadas por fecha: lo que se
             separa es sólo el resumen, que es donde conviven dos escalas que no se
             pueden promediar entre sí (estrellas de Google, pulgar de Facebook). */}
-        <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", gap: 36, flexWrap: "wrap" }}>
+        <div data-estilo-resumen={estilo} style={{ display: "flex", alignItems: "stretch", justifyContent: "center", gap: tarjetas ? 24 : 36, flexWrap: "wrap" }}>
           {googleOnly.length > 0 && (
-            <div data-testid="resumen-google" style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 140 }}>
+            <div data-testid="resumen-google" style={columna}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                <GoogleG size={28}/>
-                <span style={{ fontSize: 56, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                <GoogleG size={num.icono}/>
+                <span style={{ fontSize: num.google, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
                   <AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/>
                 </span>
               </div>
@@ -411,24 +426,39 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
             </div>
           )}
           {fbOnly.length > 0 && (
-            <div data-testid="resumen-facebook" style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 140 }}>
+            <div data-testid="resumen-facebook" style={columna}>
               {/* Igual que en la home: la F de Facebook del mismo tamaño que la G, y
                   "100%" del mismo cuerpo que el 5.0 (Anibal, 13/10/2026). */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                <SocialIcon type="fb" size={28}/>
+                <SocialIcon type="fb" size={num.icono}/>
                 {/* Al 90% del 5.0: "bajalo al 90%, está muy agresivo… al estar más
                     solo" (Anibal, 13/10/2026). Sin estrellas abajo pesaba más. */}
-                <span style={{ fontSize: 50, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                <span style={{ fontSize: num.facebook, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
                   <AnimatedCounter target={100} duration={1600} decimals={0}/>%
                 </span>
               </div>
+              {/* En "tarjetas", donde Google tiene las estrellas, Facebook lleva su
+                  sello: así las dos columnas tienen la misma forma (número, sello,
+                  contenido) y no queda el hueco debajo del 100%. */}
+              {tarjetas && (
+                <div data-testid="pildora-facebook" style={{ margin: "8px 0 6px", minHeight: 27, display: "flex", alignItems: "center" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#E7F0FD", color: "#1877F2", fontWeight: 700, fontSize: 13, padding: "3px 12px", borderRadius: 999 }}>
+                    👍 {t("reviews.recommendedPill")}
+                  </span>
+                </div>
+              )}
               {/* Donde Google tiene "Based on 25 Google Reviews" y las 5 barras, acá va
                   una frase sola, centrada en ese mismo alto para que las dos columnas
                   queden parejas. Pedido de Anibal (13/10/2026): se va "144 people
                   recommend" y en su lugar "Built up on mentions and recommendations of
                   real people" —"la idea del texto tan largo es equilibrarlo con la
                   altura de las 5 barras". El conteo sigue en la home. */}
-              <div data-testid="frase-facebook" className="frase-facebook" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 0", maxWidth: 260 }}>
+              {/* En "tarjetas" la frase va centrada entre la píldora y el botón. El
+                  paddingTop de 12 compensa los 18 que trae el envoltorio del botón menos los 6 de margen de la píldora
+                  (BotonDejarResena), así el aire queda igual arriba y abajo. Sin la
+                  clase frase-facebook, que en la compu la baja 84 px. */}
+              <div data-testid="frase-facebook" className={tarjetas ? undefined : "frase-facebook"}
+                style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: tarjetas ? "12px 0 0" : "14px 0", maxWidth: tarjetas ? 300 : 260 }}>
                 <p style={{ ...TEXTO_CONTEO, lineHeight: 1.6, textAlign: "center", margin: 0 }}>{t("reviews.fbBuiltOn", { count: fbOnly.length })}</p>
               </div>
               <BotonDejarResena fuente="facebook" href={getFbReviewsUrl(siteConfig)} label={t("reviews.leaveReviewFb")} icon={<SocialIcon type="fb" size={16}/>}/>

@@ -7,6 +7,7 @@ import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_A
   getSocialUrls, WA_NUMBER, buildWALink, parseWALink,
   STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix } from "../../lib/constants";
 import { textoVigente, payloadSiteText, tamanoCelu } from "../../lib/siteText";
+import { estiloResumen } from "../../lib/resumenResenas";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminCard } from "./adminUI";
 
@@ -576,6 +577,25 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
       <AdminCard title="6 · Reseñas" style={{ marginBottom: spacing.xl }}>
         <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>La cabecera con el promedio y el carrusel de reseñas.</p>
         <StyleControl configKey="reviews_score_style" label="Reviews — Average Score" hint="4.8" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        {/* Volver al anterior es un click, sin deploy. Ver resumenResenas.js. */}
+        <div style={{ marginTop: spacing.lg }}>
+          <label style={{ ...typography.caption, fontWeight: 600 }}>Resumen de /reviews (5.0 y 100%)</label>
+          <div style={{ display: "flex", gap: spacing.sm, marginTop: 4, flexWrap: "wrap" }}>
+            {[["clasico", "Clásico — números grandes"], ["tarjetas", "Tarjetas — con \"Recommended\""]].map(([valor, texto]) => {
+              const activo = estiloResumen(siteConfig) === valor;
+              return (
+                <AdminButton key={valor} size="small" loading={loading}
+                  variant={activo ? undefined : "secondary"}
+                  onClick={() => { if (!activo) onSave("reviews_summary_style", valor); }}>
+                  {activo ? "✓ " : ""}{texto}
+                </AdminButton>
+              );
+            })}
+          </div>
+          <p style={{ ...typography.caption, color: colors.gray400, marginTop: 4 }}>
+            Para verlo sin activarlo: /reviews?resumen=tarjetas
+          </p>
+        </div>
       </AdminCard>
 
       {/* ── 7. Footer — el pie de página ── */}

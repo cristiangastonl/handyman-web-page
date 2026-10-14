@@ -1442,3 +1442,34 @@ test.describe('aire alrededor de las cajas de cierre', () => {
     });
   }
 });
+
+test.describe('resumen de /reviews: clásico o tarjetas', () => {
+  // 14/10/2026: estilo "tarjetas" propuesto por Gastón, elegible desde el admin
+  // (site_config.reviews_summary_style) para poder volver al clásico con un click.
+  // ?resumen= lo pisa para mostrarlo sin activarlo. Ver resumenResenas.js.
+  // El de por defecto (tarjetas) lo cubre resumenResenas.test.js: acá
+  // depende de lo que tenga guardado la base real.
+  test('?resumen=clasico muestra el clásico, sin píldora', async ({ page }) => {
+    await visit(page, '/reviews?resumen=clasico');
+    await expect(page.locator('[data-estilo-resumen]')).toHaveAttribute('data-estilo-resumen', 'clasico');
+    await expect(page.getByTestId('pildora-facebook')).toHaveCount(0);
+  });
+
+  test('tarjetas: píldora "Recommended", mismo ancho y la frase centrada entre la píldora y el botón', async ({ page }) => {
+    await visit(page, '/reviews?resumen=tarjetas');
+    await expect(page.locator('[data-estilo-resumen]')).toHaveAttribute('data-estilo-resumen', 'tarjetas');
+    const hayFacebook = await page.getByTestId('resumen-facebook').count();
+    test.skip(!hayFacebook, 'sin reseñas de Facebook no hay columna');
+    await expect(page.getByTestId('pildora-facebook')).toContainText('Recommended');
+    const m = await page.evaluate(() => {
+      const G = document.querySelector('[data-testid="resumen-google"]'), F = document.querySelector('[data-testid="resumen-facebook"]');
+      const pil = document.querySelector('[data-testid="pildora-facebook"]').getBoundingClientRect();
+      const t = F.querySelector('[data-testid="frase-facebook"] p').getBoundingClientRect();
+      const bt = F.querySelector('[data-boton-resena]').getBoundingClientRect();
+      return { arriba: t.top - pil.bottom, abajo: bt.top - t.bottom, anchoG: G?.getBoundingClientRect().width, anchoF: F.getBoundingClientRect().width, scroll: document.documentElement.scrollWidth, vista: innerWidth };
+    });
+    expect(Math.abs(m.arriba - m.abajo), `${Math.round(m.arriba)} px arriba de la frase contra ${Math.round(m.abajo)} abajo`).toBeLessThanOrEqual(3);
+    if (m.anchoG) expect(Math.abs(m.anchoG - m.anchoF), 'las dos tarjetas no miden lo mismo').toBeLessThanOrEqual(1);
+    expect(m.scroll, 'las tarjetas desbordan la pantalla').toBeLessThanOrEqual(m.vista);
+  });
+});
