@@ -1406,7 +1406,8 @@ test.describe('aire alrededor de las cajas de cierre', () => {
   // Anibal, 14/10/2026, con capturas de las tres: /faq y /portfolio tenían 40 px
   // arriba de la caja y 80 abajo hasta el footer; "Ready to get started?" en la
   // home, 80 arriba y 40 abajo hasta las marcas. Quiere el mismo aire de los dos
-  // lados. Se mide entre lo que se ve —lo de arriba, la caja, lo de abajo— con la
+  // lados. /reviews tenía lo mismo (32 y 80) y apareció en una revisión de todo el
+  // sitio ese mismo día. Se mide entre lo que se ve —lo de arriba, la caja, lo de abajo— con la
   // animación de entrada terminada, que mientras dura corre la caja 24 px.
   const piezas = (ruta) => {
     if (ruta === '/') {
@@ -1415,11 +1416,11 @@ test.describe('aire alrededor de las cajas de cierre', () => {
       const abajo = [...document.querySelectorAll('section')].find((x) => /^Trusted Brands/i.test(x.textContent.trim()));
       return { caja, arriba, abajo };
     }
-    const caja = document.querySelector(ruta === '/faq' ? '[data-testid="faq-cierre"]' : '[data-testid="portfolio-cierre"]');
+    const caja = document.querySelector(`[data-testid="${ruta.slice(1)}-cierre"]`);
     return { caja, arriba: caja?.previousElementSibling, abajo: document.querySelector('footer') };
   };
 
-  for (const ruta of ['/faq', '/portfolio', '/']) {
+  for (const ruta of ['/faq', '/portfolio', '/reviews', '/']) {
     test(`${ruta}: la caja de cierre tiene el mismo aire arriba y abajo`, async ({ page }) => {
       await visit(page, ruta);
       const fn = `(${piezas.toString()})(${JSON.stringify(ruta)})`;

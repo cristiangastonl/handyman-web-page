@@ -5,6 +5,7 @@ import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
+import BandaCentrada from "./BandaCentrada";
 import HappyCustomerRails, { HappyCustomerTile, HappyCustomerCard } from "./HappyCustomers";
 
 // Sin título "Reviews" ni pastilla de fuentes (G + F), ni en la home ni en
@@ -352,7 +353,9 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
   const avg = starAverage(reviews);
 
   return (
-    <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
+    // Cierra con SECTION_Y, lo mismo que la caja final tiene arriba: el mismo aire
+    // de los dos lados, como /faq y /portfolio (14/10/2026; eran 32 y 80).
+    <div style={{ maxWidth: 940, margin: "0 auto", padding: `28px 24px ${SECTION_Y}px` }}>
       <HappyCustomerRails items={happy} setLb={setLb}/>
       <div style={{ textAlign: "center", padding: "24px 0 36px" }}>
         {/* Una columna por fuente, y cada número contado sobre su propia fuente.
@@ -465,14 +468,14 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
           </div>
         ))}
       </div>
-      <div style={{ textAlign: "center", marginTop: 32, padding: "24px 20px", background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
+      <BandaCentrada data-testid="reviews-cierre" py={24} px={20} style={{ marginTop: SECTION_Y, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: "#4A4A4A", marginBottom: 10 }}>{t("reviews.ctaTitle", "Ready to experience the same quality?")}</p>
         <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
           {t("cta.button")}
         </a>
-      </div>
+      </BandaCentrada>
     </div>
   );
 }
