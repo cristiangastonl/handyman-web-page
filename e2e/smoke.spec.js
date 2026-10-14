@@ -748,6 +748,23 @@ test.describe('cabecera de reseñas de la home', () => {
 });
 
 test.describe('orden de la home', () => {
+  test('las tarjetas de redes tienen el mismo aire arriba y abajo', async ({ page }) => {
+    // Anibal, 13/10/2026: "quedó muy ancho" entre las tarjetas y "Meet your
+    // handyman" (20 px arriba contra 68 abajo en la compu).
+    await visit(page, '/');
+    const r = await page.evaluate(() => {
+      const franja = document.querySelector('.stats-section').getBoundingClientRect();
+      const cards = [...document.querySelectorAll('.social-card')].map((c) => c.getBoundingClientRect());
+      const h2 = [...document.querySelectorAll('h2')].find((h) => /Meet your handyman/i.test(h.textContent));
+      const rg = document.createRange(); rg.selectNodeContents(h2);
+      return {
+        arriba: Math.min(...cards.map((c) => c.top)) - franja.bottom,
+        abajo: rg.getBoundingClientRect().top - Math.max(...cards.map((c) => c.bottom)),
+      };
+    });
+    expect(Math.abs(r.arriba - r.abajo), `${r.arriba}px arriba contra ${r.abajo}px abajo`).toBeLessThanOrEqual(3);
+  });
+
   test('la franja gris dice "Works in CH" y no "Video Shows"', async ({ page }) => {
     // Pedido de Anibal del 13/10/2026.
     await visit(page, '/');
@@ -798,33 +815,57 @@ test.describe('orden de la home', () => {
     }, png);
   };
 
-  test('las bandas tienen el contenido centrado arriba-abajo', async ({ page }) => {
-    // Anibal, 13/10/2026: "eso lo tenés que centrar… deberías tener la línea que te
-    // lo fuerza al medio", sobre la franja gris, Service Areas, "Need something
-    // specific?", "Ready to get started?" y los cierres de /faq y /portfolio. Todas
-    // salvo la franja gris usan BandaCentrada. Se mide lo que se VE.
-    const revisar = async (bandas) => {
-      for (const [nombre, banda] of Object.entries(bandas)) {
-        await banda.scrollIntoViewIfNeeded();
-        const { arriba, abajo } = await aireVisible(page, banda);
-        expect(Math.abs(arriba - abajo), `${nombre}: ${arriba}px arriba contra ${abajo}px abajo`).toBeLessThanOrEqual(3);
+  // Anibal, 13/10/2026: "eso lo tenés que centrar… deberías tener la línea que te lo
+  // fuerza al medio", sobre la franja gris, Service Areas, "Need something
+  // specific?", "Ready to get started?" y los cierres de /faq y /portfolio. Todas
+  // salvo la franja gris usan BandaCentrada. Se mide lo que se VE.
+  //
+  // Un test por página: juntas cargaban tres páginas y sacaban seis capturas en un
+  // solo test, y con la máquina cargada no entraba en el timeout. Y la home se mide
+  // recién con las reseñas en pantalla: antes React reemplaza el HTML prerenderizado
+  // y la caja que se estaba midiendo se desprendía del DOM a mitad de la medición.
+  // Se lleva la banda a la vista y se espera a que su FadeIn haya terminado de
+  // entrar (ella y todo lo que la contiene, con opacidad 1 y sin desplazamiento):
+  // medir a mitad de la entrada daba números falsos. Es la condición real, no un
+  // tiempo fijo.
+  const bandaCentrada = async (page, nombre, banda) => {
+    await banda.scrollIntoViewIfNeeded();
+    await expect.poll(() => banda.evaluate((el) => {
+      for (let n = el; n; n = n.parentElement) {
+        const c = getComputedStyle(n);
+        if (c.opacity !== '1' || (c.transform !== 'none' && n !== el)) return false;
       }
-    };
-    await visit(page, '/');
-    await page.evaluate(async () => {
-      for (let y = 0; y < document.body.scrollHeight; y += 400) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 80)); }
+      return true;
+    }), { timeout: 10_000 }).toBe(true);
+    const { arriba, abajo } = await aireVisible(page, banda);
+    expect(Math.abs(arriba - abajo), `${nombre}: ${arriba}px arriba contra ${abajo}px abajo`).toBeLessThanOrEqual(3);
+  };
+
+  // Un test por banda: juntas en la home (la página más pesada, con los carruseles
+  // moviéndose) no entraban en el timeout con la máquina cargada. La home se mide
+  // con las reseñas ya en pantalla: antes React reemplaza el HTML prerenderizado y
+  // la caja que se estaba midiendo se desprendía del DOM.
+  for (const [nombre, banda] of [
+    ['franja gris', (page) => page.locator('.stats-section')],
+    ['Service Areas', (page) => page.locator('section h4', { hasText: 'Service Areas' }).locator('xpath=..')],
+    ['Need something specific?', (page) => page.locator('.banda-centrada', { hasText: 'Need something specific?' })],
+    ['Ready to get started?', (page) => page.locator('.banda-centrada', { hasText: 'Ready to get started?' })],
+  ]) {
+    test(`home: "${nombre}" tiene el contenido centrado arriba-abajo`, async ({ page }) => {
+      await visit(page, '/');
+      await page.waitForFunction(() => document.querySelectorAll('.review-card').length > 0, null, { timeout: 20_000 });
+      await bandaCentrada(page, nombre, banda(page));
     });
-    await page.waitForTimeout(1500); // los FadeIn terminan de entrar
-    await revisar({
-      'franja gris': page.locator('.stats-section'),
-      'Service Areas': page.locator('section h4', { hasText: 'Service Areas' }).locator('xpath=..'),
-      'Need something specific?': page.locator('.banda-centrada', { hasText: 'Need something specific?' }),
-      'Ready to get started?': page.locator('.banda-centrada', { hasText: 'Ready to get started?' }),
-    });
+  }
+
+  test('el cierre de /faq tiene el contenido centrado arriba-abajo', async ({ page }) => {
     await visit(page, '/faq');
-    await revisar({ 'cierre de /faq': page.getByTestId('faq-cierre') });
+    await bandaCentrada(page, 'cierre de /faq', page.getByTestId('faq-cierre'));
+  });
+
+  test('el cierre de /portfolio tiene el contenido centrado arriba-abajo', async ({ page }) => {
     await visit(page, '/portfolio');
-    await revisar({ 'cierre de /portfolio': page.getByTestId('portfolio-cierre') });
+    await bandaCentrada(page, 'cierre de /portfolio', page.getByTestId('portfolio-cierre'));
   });
 
   test('la cabecera de reseñas de la home queda centrada entre la sección de arriba y las tarjetas', async ({ page }) => {
@@ -1239,6 +1280,12 @@ test.describe('resumen de /reviews', () => {
       const reseniasFb = await page.locator('.reviews-grid [data-fuente="facebook"]').count();
       await expect(facebook.getByTestId('frase-facebook')).toContainText(`Built up on mentions and recommendations of ${reseniasFb} real`);
       await expect(facebook).not.toContainText(/\d+ people recommend/);
+      // "Fuente y tamaño tienen que coincidir" con el "25 Reviews" de al lado.
+      if (hayGoogle) {
+        const estilo = (loc) => loc.evaluate((el) => { const c = getComputedStyle(el); return [c.fontFamily, c.fontSize, c.color].join(' / '); });
+        expect(await estilo(facebook.getByTestId('frase-facebook').locator('p')))
+          .toBe(await estilo(page.getByTestId('conteo-google')));
+      }
       await expect(facebook.locator('[data-boton-resena="facebook"]')).toHaveCount(1);
       await expect(facebook.locator('[data-boton-resena="google"]')).toHaveCount(0);
     }

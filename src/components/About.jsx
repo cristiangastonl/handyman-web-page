@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, PROFILE_IMG, parseSiteText, getHighlightField, SECTION_PAD } from "../lib/constants";
+import { R, PROFILE_IMG, parseSiteText, getHighlightField, SECTION_X, SECTION_Y, ABOUT_TOP } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
 // Fallback skill tags for when no categories exist yet (fresh install / Supabase down).
@@ -25,7 +25,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
     : FALLBACK_SKILLS.map(s => ({ key: s, label: t(`about.skills.${s}`), target: s }));
   return (
     <FadeIn>
-    <section style={{ padding: SECTION_PAD, maxWidth: 940, margin: "0 auto" }}>
+    <section style={{ padding: `${ABOUT_TOP}px ${SECTION_X}px ${SECTION_Y}px`, maxWidth: 940, margin: "0 auto" }}>
       {/* La foto va después del texto, a la derecha. Pedido de Anibal: "primero
           lees 'meet your handyman', y tu cerebro está listo para que cuando
           abren la puerta, pum, este es el gato". El título planta el contexto y

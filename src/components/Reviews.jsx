@@ -304,6 +304,12 @@ function interleaveHappy(reviews, photos, paso = REVIEWS_POR_FOTO) {
   return out;
 }
 
+// El texto chico de cada columna del resumen de /reviews: "25 Reviews" a la
+// izquierda y "Built up on… 144 real people" a la derecha. Uno solo para los dos:
+// Anibal pidió que "fuente y tamaño tienen que coincidir, y tal vez color"
+// (13/10/2026), y antes eran 14 px gris claro contra 15 px gris oscuro.
+const TEXTO_CONTEO = { fontSize: 15, color: "#555" };
+
 // Full reviews page
 /**
  * Botón "dejá tu reseña" de una fuente. Vive dentro de la columna de esa fuente:
@@ -367,7 +373,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
                   que Anibal sacó el 13/10 y esa misma tarde pidió el número de vuelta,
                   corto: "a la izquierda el 25 y a la derecha el 144, igual que en la
                   home". */}
-              <div data-testid="conteo-google" style={{ fontSize: 14, color: "#777" }}>{t("reviews.count", { count: googleOnly.length })}</div>
+              <div data-testid="conteo-google" style={TEXTO_CONTEO}>{t("reviews.count", { count: googleOnly.length })}</div>
               {/* La distribución por estrellas es de Google y de nadie más: estaba
                   centrada debajo de las dos columnas y se leía como si también
                   resumiera las recomendaciones de Facebook, que no tienen puntaje. */}
@@ -412,7 +418,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
                   real people" —"la idea del texto tan largo es equilibrarlo con la
                   altura de las 5 barras". El conteo sigue en la home. */}
               <div data-testid="frase-facebook" className="frase-facebook" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 0", maxWidth: 260 }}>
-                <p style={{ fontSize: 15, color: "#555", lineHeight: 1.6, textAlign: "center", margin: 0 }}>{t("reviews.fbBuiltOn", { count: fbOnly.length })}</p>
+                <p style={{ ...TEXTO_CONTEO, lineHeight: 1.6, textAlign: "center", margin: 0 }}>{t("reviews.fbBuiltOn", { count: fbOnly.length })}</p>
               </div>
               <BotonDejarResena fuente="facebook" href={getFbReviewsUrl(siteConfig)} label={t("reviews.leaveReviewFb")} icon={<SocialIcon type="fb" size={16}/>}/>
             </div>

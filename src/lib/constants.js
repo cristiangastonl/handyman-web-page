@@ -428,6 +428,9 @@ export const getHighlightField = (siteConfig, key, fallbackText) => {
 // con 12 y con 14. Ahora sale todo de acá.
 export const SECTION_X = 24;
 export const SECTION_Y = 40;
+// Aire arriba y abajo de las tarjetas de redes: el mismo de los dos lados (lo pone
+// StatsBar arriba y About arriba suyo). En el celu lo pisa el CSS de mobile.
+export const ABOUT_TOP = 24;
 // Sección que abre y cierra con el mismo aire.
 export const SECTION_PAD = `${SECTION_Y}px ${SECTION_X}px`;
 // Sección que viene pegada a la de arriba y sólo cierra: si además abriera con
@@ -541,7 +544,7 @@ export const css = `
     /* Abajo va el aire de sección entero (40, SECTION_Y): desde el 10/10/2026 lo que
        sigue es el carrusel Recent Works, que arranca sin padding propio, y con 16
        quedaba más pegado que los otros dos carruseles. Antes seguía Service Areas. */
-    section:has(> .about-row) { padding: 10px 24px 40px !important; }
+    section:has(> .about-row) { padding: 14px 24px 40px !important; }
     /* Dos columnas: el texto en la primera y la foto en la segunda, centrada
        verticalmente contra el bloque entero de título + bio.
 
@@ -692,7 +695,9 @@ export const css = `
     .stats-grid > div { min-width: unset !important; text-align: center !important; flex: 1 !important; }
     .stats-grid > div > div:first-child { font-size: 14px !important; font-weight: 800 !important; }
     .stats-grid > div > div:last-child { font-size: 8px !important; margin-top: 4px !important; letter-spacing: 0 !important; }
-    .social-cards { padding: 8px 16px 10px !important; }
+    /* 14 arriba de las tarjetas y 14 abajo (lo pone About): parejo. Suma lo mismo que
+       antes (8 + 10 + 10 = 28), así no cambia lo que entra en la primera pantalla. */
+    .social-cards { padding: 14px 16px 0 !important; }
     .social-card { padding: 8px 6px !important; gap: 4px !important; flex: 1 1 0 !important; min-width: 0 !important; }
     .social-card svg { width: 18px !important; height: 18px !important; }
     /* pre-line: en el celu, cada Enter que Anibal escribe en el admin es un renglón.

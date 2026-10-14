@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, parseSiteText, mobileFontVar, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix } from "../lib/constants";
+import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, parseSiteText, mobileFontVar, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix, ABOUT_TOP } from "../lib/constants";
 import { SocialIcon, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
@@ -30,7 +30,10 @@ export default function StatsBar({ siteConfig = {} }) {
 
       {/* Social proof cards */}
       <FadeIn>
-      <section className="social-cards" style={{ padding: "20px 24px 28px", maxWidth: 940, margin: "0 auto", position: "relative" }}>
+      {/* Sin aire abajo: el que separa las tarjetas de "Meet your handyman" lo pone
+          About arriba (ABOUT_TOP), igual al de acá arriba. Antes eran 20 arriba contra
+          68 abajo y Anibal lo vio "muy ancho" (13/10/2026). */}
+      <section className="social-cards" style={{ padding: `${ABOUT_TOP}px 24px 0`, maxWidth: 940, margin: "0 auto", position: "relative" }}>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           {/* Orden pedido por Anibal el 10/10/2026: Google, YouTube, WhatsApp,
               Facebook. La de Google es nueva ("como la de Facebook") y lleva a la
