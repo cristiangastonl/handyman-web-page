@@ -1401,3 +1401,43 @@ test.describe('carga de la home', () => {
       'el hero es otro nodo: la home se desmontó y se volvió a montar').toBe(true);
   });
 });
+
+test.describe('aire alrededor de las cajas de cierre', () => {
+  // Anibal, 14/10/2026, con capturas de las tres: /faq y /portfolio tenían 40 px
+  // arriba de la caja y 80 abajo hasta el footer; "Ready to get started?" en la
+  // home, 80 arriba y 40 abajo hasta las marcas. Quiere el mismo aire de los dos
+  // lados. Se mide entre lo que se ve —lo de arriba, la caja, lo de abajo— con la
+  // animación de entrada terminada, que mientras dura corre la caja 24 px.
+  const piezas = (ruta) => {
+    if (ruta === '/') {
+      const caja = [...document.querySelectorAll('h3')].find((h) => /Ready to get started/i.test(h.textContent))?.closest('.banda-centrada');
+      const arriba = [...document.querySelectorAll('div')].find((d) => d.style.background && /^Top Questions/i.test(d.textContent));
+      const abajo = [...document.querySelectorAll('section')].find((x) => /^Trusted Brands/i.test(x.textContent.trim()));
+      return { caja, arriba, abajo };
+    }
+    const caja = document.querySelector(ruta === '/faq' ? '[data-testid="faq-cierre"]' : '[data-testid="portfolio-cierre"]');
+    return { caja, arriba: caja?.previousElementSibling, abajo: document.querySelector('footer') };
+  };
+
+  for (const ruta of ['/faq', '/portfolio', '/']) {
+    test(`${ruta}: la caja de cierre tiene el mismo aire arriba y abajo`, async ({ page }) => {
+      await visit(page, ruta);
+      const fn = `(${piezas.toString()})(${JSON.stringify(ruta)})`;
+      await page.waitForFunction((fn) => { const p = eval(fn); return p.caja && p.arriba && p.abajo; }, fn, { timeout: 20_000 });
+      await page.evaluate((fn) => eval(fn).caja.scrollIntoView({ block: 'center', behavior: 'instant' }), fn);
+      await page.waitForFunction((fn) => {
+        for (let e = eval(fn).caja; e; e = e.parentElement) {
+          const cs = getComputedStyle(e);
+          if (cs.opacity !== '1' || (cs.transform !== 'none' && cs.transform !== 'matrix(1, 0, 0, 1, 0, 0)')) return false;
+        }
+        return true;
+      }, fn, { timeout: 10_000 });
+      const r = await page.evaluate((fn) => {
+        const p = eval(fn);
+        const [a, c, b] = [p.arriba, p.caja, p.abajo].map((e) => e.getBoundingClientRect());
+        return { arriba: c.top - a.bottom, abajo: b.top - c.bottom };
+      }, fn);
+      expect(Math.abs(r.arriba - r.abajo), `${Math.round(r.arriba)} px arriba contra ${Math.round(r.abajo)} abajo`).toBeLessThanOrEqual(3);
+    });
+  }
+});

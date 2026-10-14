@@ -91,7 +91,10 @@ export function BottomCTA({ siteConfig = {} }) {
   const bSubStyle = getStyleConfig(siteConfig, "cta_bottom_subtitle_style");
   return (
     <FadeIn delay={0.1}>
-    <section style={{ padding: SECTION_PAD, textAlign: "center" }}>
+    {/* TIGHT: la sección de FAQs de arriba ya cierra con SECTION_Y. Abriendo con
+        otro SECTION_Y quedaban 80 px arriba contra 40 abajo, y Anibal pidió el
+        mismo aire de los dos lados (14/10/2026). */}
+    <section style={{ padding: SECTION_PAD_TIGHT, textAlign: "center" }}>
       <BandaCentrada py={40} px={32} style={{ maxWidth: 600, margin: "0 auto", background: `linear-gradient(135deg, ${G} 0%, #3a3a3a 100%)`, borderRadius: 16, color: "#fff" }}>
         <h3 style={{ fontSize: bTitleStyle.fontSize, fontFamily: `'${bTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 12 }}>{t("cta.title")}</h3>
         <p style={{ fontSize: bSubStyle.fontSize, fontFamily: `'${bSubStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>{t("cta.subtitle")}</p>

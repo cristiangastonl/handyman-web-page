@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, svgP, SECTION_PAD } from "../lib/constants";
+import { R, G, getSocialUrls, svgP, SECTION_PAD, SECTION_Y } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 import BandaCentrada from "./BandaCentrada";
 
@@ -45,7 +45,9 @@ export function FAQPage({ faqs, siteConfig = {} }) {
   const lang = i18n.language?.slice(0, 2) || "en";
   const [fq, setFq] = useState(null);
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: "32px 24px 80px" }}>
+    // Cierra con SECTION_Y y no con 80: la caja de "Have another question?" tiene
+    // SECTION_Y arriba, y Anibal pidió el mismo aire arriba y abajo (14/10/2026).
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: `32px 24px ${SECTION_Y}px` }}>
       <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>{t("faq.title")}</h1>
       {faqs.map((f, i) => {
         const isOpen = fq === i;
@@ -100,7 +102,7 @@ export function FAQPage({ faqs, siteConfig = {} }) {
           WhatsApp con su logo. Antes era un link naranja chico de una línea. Pedido
           de Anibal (13/10/2026): "ese botón al pie de portfolio debería ser el mismo
           al pie de FAQs". */}
-      <BandaCentrada data-testid="faq-cierre" py={24} px={20} style={{ marginTop: 40, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
+      <BandaCentrada data-testid="faq-cierre" py={24} px={20} style={{ marginTop: SECTION_Y, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("faq.anotherQuestion")}</p>
         <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}

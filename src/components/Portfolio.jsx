@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, itemThumb, svgP, playlistUrl } from "../lib/constants";
+import { R, G, getSocialUrls, itemThumb, svgP, playlistUrl, SECTION_Y } from "../lib/constants";
 import { fetchPortfolioSummary, fetchPortfolioItems, normalizeWorkItem } from "../lib/supabase";
 import { normalizeSummaryRow, buildPortfolioSummary, countsOf } from "../lib/portfolioSummary";
 import { SocialIcon } from "./ui";
@@ -172,7 +172,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
 
   if (!summary) {
     return (
-      <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
+      <div style={{ maxWidth: 940, margin: "0 auto", padding: `28px 24px ${SECTION_Y}px` }}>
         <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("portfolio.title")}</h1>
         <Spinner/>
       </div>
@@ -184,7 +184,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
   const totalVideos = summary.totals.videos;
 
   return (
-    <div style={{ maxWidth: 940, margin: "0 auto", padding: "28px 24px 80px" }}>
+    <div style={{ maxWidth: 940, margin: "0 auto", padding: `28px 24px ${SECTION_Y}px` }}>
       <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("portfolio.title")}</h1>
       {portfolioView === "categories" && (
         <p style={{ fontSize: 12, color: "#888", marginBottom: 18 }}>
@@ -404,8 +404,9 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
         );
       })()}
 
-      {/* Bottom CTA */}
-      <BandaCentrada data-testid="portfolio-cierre" py={24} px={20} style={{ marginTop: 40, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
+      {/* Bottom CTA. SECTION_Y arriba y abajo (el contenedor cierra con lo mismo):
+          Anibal pidió el mismo aire de los dos lados (14/10/2026); eran 40 y 80. */}
+      <BandaCentrada data-testid="portfolio-cierre" py={24} px={20} style={{ marginTop: SECTION_Y, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("portfolio.ctaTitle", "Like what you see?")}</p>
         <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
