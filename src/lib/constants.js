@@ -63,10 +63,10 @@ export const parseWALink = (url) => {
 
 export const getWALink = (lang = "en") => buildWALink(WA_NUMBER, WA_MSGS[lang] || WA_MSGS.en);
 export const WA_LINK = getWALink("en");
-export const HERO_IMG = "/anibal/hero.jpeg";
+export const HERO_IMG = "/anibal/hero.webp";
 // Recorte de las dos primeras filas del collage, para mobile. Ver Hero.jsx.
-export const HERO_IMG_MOBILE = "/anibal/hero-mobile.jpeg";
-export const PROFILE_IMG = "/anibal/foto_perfil_colores.jpeg";
+export const HERO_IMG_MOBILE = "/anibal/hero-mobile.webp";
+export const PROFILE_IMG = "/anibal/foto_perfil_colores.webp";
 
 export const DEFAULT_CATS = [
   { id: "all", label: "All" },
@@ -463,7 +463,7 @@ export const itemThumb = (item) => {
   if (!item) return "";
   if (item.thumb) return item.thumb;
   if (item.type === "video") return item.videoId ? `https://img.youtube.com/vi/${ytId(item.videoId)}/hqdefault.jpg` : "";
-  if (item.type === "facebook") return item.thumb || "/anibal/facebook_icon.jpeg";
+  if (item.type === "facebook") return item.thumb || "/anibal/facebook_icon.webp";
   return item.src;
 };
 

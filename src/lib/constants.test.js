@@ -31,7 +31,7 @@ describe("itemThumb", () => {
   });
 
   it("falls back to facebook icon for facebook items without thumb", () => {
-    expect(itemThumb({ type: "facebook" })).toBe("/anibal/facebook_icon.jpeg");
+    expect(itemThumb({ type: "facebook" })).toBe("/anibal/facebook_icon.webp");
   });
 
   it("returns src for image items without thumb", () => {

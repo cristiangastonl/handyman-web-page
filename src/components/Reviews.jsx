@@ -122,8 +122,16 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
     const el = revRef.current;
     if (!el || base.length <= 1) return;
     let raf;
+    // Fuera de pantalla no se mueve: cada vuelta escribe scrollLeft, que fuerza
+    // layout, y eso se pagaba en cada frame del scroll de la página aunque nadie
+    // estuviera mirando el carrusel. Ver Carousel.jsx.
+    let visible = true;
+    const obs = typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: "200px 0px" })
+      : null;
+    obs?.observe(el);
     const step = () => {
-      if (!paused && el.scrollWidth > 0) {
+      if (!paused && visible && el.scrollWidth > 0) {
         const unSet = el.scrollWidth / 2;
         // Si alguien scrolleó a mano o tocó una flecha, se retoma desde ahí.
         if (Math.abs(el.scrollLeft - posRef.current) > 2) posRef.current = el.scrollLeft;
@@ -137,7 +145,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); obs?.disconnect(); };
   }, [paused, speed, base.length]);
 
   return (

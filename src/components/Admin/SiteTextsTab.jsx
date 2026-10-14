@@ -95,7 +95,7 @@ function HeroPositionControl({ xVal, yVal, onSave, loading }) {
     };
   }, [updateFromEvent]);
 
-  const HERO_IMG = "/anibal/hero.jpeg";
+  const HERO_IMG = "/anibal/hero.webp";
   return (
     <div>
       <div

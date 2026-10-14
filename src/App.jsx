@@ -244,7 +244,7 @@ export default function App() {
   // ── Main site ──
   return (
     <div style={S.root}><style>{css}</style>
-      <img src="/anibal/watermark.png" alt="" aria-hidden="true"
+      <img src="/anibal/watermark.webp" alt="" aria-hidden="true"
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 940, width: "90%", opacity: 0.03, pointerEvents: "none", objectFit: "contain", zIndex: 9999 }}/>
       <a href="#main-content" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>Skip to main content</a>
       {page !== "admin" && <Nav page={page} nav={nav} mobileMenu={mobileMenu} setMobileMenu={setMobileMenu} changeLang={changeLang} siteConfig={siteConfig}/>}

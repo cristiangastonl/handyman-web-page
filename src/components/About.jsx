@@ -36,7 +36,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           el order la manda de vuelta a la derecha, así que se sigue leyendo el
           título antes que la cara, que es como lo quería Anibal. */}
       <div className="about-row" style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
-        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" style={{ order: 2, width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
+        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" width={150} height={150} decoding="async" style={{ order: 2, width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
         <div style={{ order: 1, flex: 1, minWidth: 240 }}>
           {/* El fontFamily va explícito y no heredado del root: Anibal lo quiere
               atado a la misma familia que los títulos de las 3 tarjetas de abajo

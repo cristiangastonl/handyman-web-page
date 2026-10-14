@@ -62,6 +62,20 @@ export default function Carousel({
   const speedRef = useRef(speed);
   speedRef.current = speed;
 
+  // Qué fotos ya se pidieron, por id de trabajo. El loading="lazy" del navegador
+  // no servía acá: las tarjetas están fuera de pantalla hacia los costados, no
+  // hacia abajo, y Chrome igual bajaba las 120 fotos de la home de entrada, unos
+  // 127 MB de originales de ~3700 px (medido el 14/10/2026). Ahora cada tarjeta
+  // pide su foto cuando se acerca a la parte visible del carrusel. Va por id y no
+  // por posición porque el track repite la lista tres veces: la primera copia que
+  // asoma la baja y las otras dos salen del caché.
+  const containerRef = useRef(null);
+  const [cargadas, setCargadas] = useState(() => new Set());
+  // Si el carrusel entero está fuera de pantalla no se mueve: mover 120 tarjetas
+  // que nadie ve le costaba frames al scroll de la página (el "tiemblan cuando
+  // scrolleo" de Anibal, 13/10/2026).
+  const visibleRef = useRef(true);
+
   // Duplicate items for seamless loop (need at least 2 sets)
   const loopItems = items.length > 0 ? [...items, ...items, ...items] : [];
   const singleSetWidth = items.length * CARD_WIDTH;
@@ -77,8 +91,27 @@ export default function Carousel({
     if (trackRef.current) trackRef.current.style.transform = `translateX(${-posRef.current}px)`;
   }, [randomStart, items.length]);
 
+  useEffect(() => {
+    const root = containerRef.current;
+    if (!root || typeof IntersectionObserver === "undefined") return;
+    // Tarjetas: raíz = el carrusel, con dos tarjetas y media de margen a cada lado
+    // para que la foto ya esté cuando la tarjeta entra.
+    const obsTarjetas = new IntersectionObserver(entries => {
+      const nuevas = entries.filter(e => e.isIntersecting).map(e => e.target.dataset.itemId);
+      if (nuevas.length) setCargadas(prev => {
+        if (nuevas.every(id => prev.has(id))) return prev;
+        const sig = new Set(prev); nuevas.forEach(id => sig.add(id)); return sig;
+      });
+    }, { root, rootMargin: `0px ${CARD_WIDTH * 2.5}px` });
+    root.querySelectorAll("[data-item-id]").forEach(el => obsTarjetas.observe(el));
+    // El carrusel contra la ventana: si no se ve, no se anima.
+    const obsVisible = new IntersectionObserver(([e]) => { visibleRef.current = e.isIntersecting; }, { rootMargin: "200px 0px" });
+    obsVisible.observe(root);
+    return () => { obsTarjetas.disconnect(); obsVisible.disconnect(); };
+  }, [items]);
+
   const animate = useCallback(() => {
-    if (!trackRef.current || paused || isDragging.current || singleSetWidth === 0) {
+    if (!trackRef.current || paused || isDragging.current || singleSetWidth === 0 || !visibleRef.current) {
       animRef.current = requestAnimationFrame(animate);
       return;
     }
@@ -147,7 +180,7 @@ export default function Carousel({
   if (items.length === 0) return null;
 
   return (
-    <div style={{ position: "relative", overflow: "hidden" }}
+    <div ref={containerRef} style={{ position: "relative", overflow: "hidden" }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
@@ -161,14 +194,16 @@ export default function Carousel({
         onPointerLeave={onPointerUp}
         onPointerCancel={onPointerUp}>
         {loopItems.map((item, i) => (
-          <div key={`${item.id}-${i}`}
+          <div key={`${item.id}-${i}`} data-item-id={String(item.id)}
             onClick={() => { if (!moved.current) onClickItem(item); }}
             style={{ width: CARD_W, flex: "0 0 auto", borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s", userSelect: "none" }}
             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-            <div style={{ position: "relative", paddingTop: "62%" }}>
-              <img src={itemThumb(item)} alt={item.title} loading="lazy" draggable={false}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+            <div style={{ position: "relative", paddingTop: "62%", background: "#f3f3f3" }}>
+              {cargadas.has(String(item.id)) && (
+                <img src={itemThumb(item)} alt={item.title} decoding="async" draggable={false}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+              )}
               {(item.type === "video" || item.type === "facebook") && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.1)" }}>
                   <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>

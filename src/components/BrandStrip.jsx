@@ -18,15 +18,15 @@ const STRIP_SECONDS = 50;
 const BRAND_HEIGHT = 64;
 
 const BRANDS = [
-  { name: "Bosch Professional", file: "bosch.jpg" },
-  { name: "PB Swiss Tools", file: "pb-swiss-tools.jpg" },
-  { name: "Stanley", file: "stanley.jpg" },
-  { name: "Fischer", file: "fischer.jpg" },
-  { name: "Strauss", file: "strauss.jpg" },
-  { name: "WAGO", file: "wago.jpg" },
-  { name: "Laserliner", file: "laserliner.jpg" },
-  { name: "3M", file: "3m.jpg" },
-  { name: "Tesa", file: "tesa.jpg" },
+  { name: "Bosch Professional", file: "bosch.webp" },
+  { name: "PB Swiss Tools", file: "pb-swiss-tools.webp" },
+  { name: "Stanley", file: "stanley.webp" },
+  { name: "Fischer", file: "fischer.webp" },
+  { name: "Strauss", file: "strauss.webp" },
+  { name: "WAGO", file: "wago.webp" },
+  { name: "Laserliner", file: "laserliner.webp" },
+  { name: "3M", file: "3m.webp" },
+  { name: "Tesa", file: "tesa.webp" },
 ];
 
 // Duplicate list for seamless infinite scroll

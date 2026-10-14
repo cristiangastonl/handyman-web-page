@@ -47,10 +47,11 @@ export default function Hero({ siteConfig = {} }) {
           notaba, así que se cambió el efecto por un encuadre exacto.
           La Y va por custom property para que el CSS pueda fijarla al 50% en desktop —
           centro de la fila del medio— sin pisar el reposicionado del admin en mobile. */}
-      {/* En mobile va un recorte de dos filas del collage (hero-mobile.jpeg). Con la imagen
+      {/* En mobile va un recorte de dos filas del collage (hero-mobile.webp). Con la imagen
           entera, para que entraran dos filas el hero tenía que medir 139 px y el texto no
           dejaba ver nada de foto. Recortada, cualquier altura muestra las dos filas completas
-          y sólo se recorta a los costados. Pesa 94 KB contra los 381 del original. */}
+          y sólo se recorta a los costados. En WebP pesa 64 KB contra los 260 del hero de la compu (los
+          JPEG originales quedan en public/ como fuente). */}
       <picture style={{ display: "contents" }}>
         <source media="(max-width: 640px)" srcSet={HERO_IMG_MOBILE}/>
         <img className="hero-image" src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchpriority="high" width={1200} height={800} draggable={false}

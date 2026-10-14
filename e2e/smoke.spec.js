@@ -380,6 +380,13 @@ test.describe('velocidad de los carruseles', () => {
 
     await page.waitForFunction(() => document.querySelectorAll('.review-card').length > 1,
       null, { timeout: 20_000 });
+    // Fuera de pantalla el carrusel no se mueve a propósito (14/10/2026: animarlo
+    // sin que nadie lo vea le costaba frames al scroll de la página), así que se
+    // lo trae a la vista antes de medir. Con JS y no con scrollIntoViewIfNeeded,
+    // que espera a que el elemento esté quieto y éste no lo está nunca.
+    await page.evaluate(() => document.querySelector('.review-card').parentElement
+      .scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await page.mouse.move(0, 0);
 
     const medir = () => page.evaluate(async () => {
       const riel = document.querySelector('.review-card')?.parentElement;
@@ -512,8 +519,8 @@ test.describe('velocidad de los carruseles', () => {
       { timeout: 20_000 },
     );
     // No hace falta esperar a que las fotos decodifiquen: la caja la define el
-    // padding-top del contenedor, no la imagen. Y esperarlas colgaba el test,
-    // porque las que quedan fuera de pantalla son loading="lazy" y no cargan nunca.
+    // padding-top del contenedor, no la imagen. Y esperarlas colgaría el test,
+    // porque las tarjetas lejos de la parte visible todavía no la pidieron.
 
     const medidas = await page.evaluate(() => {
       const tracks = [...document.querySelectorAll('div')]
@@ -523,7 +530,10 @@ test.describe('velocidad de los carruseles', () => {
         const uno = (xs) => [...new Set(xs.map((n) => Math.round(n)))];
         return {
           anchos: uno(cards.map((c) => c.getBoundingClientRect().width)),
-          altosFoto: uno(cards.map((c) => c.querySelector('img').getBoundingClientRect().height)),
+          // La caja de la foto y no el <img>: desde el 14/10/2026 la foto se pide
+          // recién cuando la tarjeta se acerca a la parte visible, y hasta entonces
+          // la tarjeta no tiene <img>. La caja (padding-top) es la que define el alto.
+          altosFoto: uno(cards.map((c) => c.firstElementChild.getBoundingClientRect().height)),
           altosTarjeta: uno(cards.map((c) => c.getBoundingClientRect().height)),
         };
       });
@@ -610,11 +620,16 @@ test.describe('velocidad de los carruseles', () => {
         .filter((d) => d.style.willChange === 'transform')
         .sort((a, b) => b.children.length - a.children.length)[0];
       if (!track) return -1;
+      // Fuera de pantalla no se anima (ver el test de reseñas): se lo trae a la vista.
+      track.scrollIntoView({ block: 'center', behavior: 'instant' });
       const leer = () => {
         const m = /translateX\((-?[0-9.]+)px\)/.exec(track.style.transform);
         return m ? parseFloat(m[1]) : 0;
       };
       const frame = () => new Promise(requestAnimationFrame);
+      // Espera a que el IntersectionObserver lo dé por visible y arranque.
+      const quieto = leer();
+      for (let i = 0; i < 120 && leer() === quieto; i++) await frame();
 
       const deltas = [];
       let anterior = leer();
@@ -752,6 +767,11 @@ test.describe('orden de la home', () => {
     // Anibal, 13/10/2026: "quedó muy ancho" entre las tarjetas y "Meet your
     // handyman" (20 px arriba contra 68 abajo en la compu).
     await visit(page, '/');
+    // Que la home esté montada y la presentación quieta: medía apenas la red se
+    // calmaba, y con la home más liviana (14/10/2026) eso a veces pasaba antes de
+    // que existiera .stats-section, o con "Meet your handyman" a mitad del FadeIn.
+    await page.locator('.social-card').first().waitFor();
+    await esperarPresentacionAsentada(page);
     const r = await page.evaluate(() => {
       const franja = document.querySelector('.stats-section').getBoundingClientRect();
       const cards = [...document.querySelectorAll('.social-card')].map((c) => c.getBoundingClientRect());
@@ -1293,5 +1313,39 @@ test.describe('resumen de /reviews', () => {
     // Y que no quede texto crudo de i18n: la clave nueva tiene que existir en el
     // idioma activo.
     await expect(page.getByText(/reviews\.basedGoogle/)).toHaveCount(0);
+  });
+});
+
+test.describe('peso de la home', () => {
+  // El 14/10/2026 la home bajaba ~127 MB: los carruseles pedían las 120 fotos
+  // originales (~3700 px, ~1 MB cada una) apenas cargaba, aunque estuvieran fuera
+  // de pantalla hacia los costados — el loading="lazy" del navegador no las frenaba.
+  // Ahora cada tarjeta pide su foto cuando se acerca a la parte visible
+  // (Carousel.jsx), y las imágenes fijas van en WebP al tamaño en que se muestran.
+  test('al abrir no baja las fotos de todos los carruseles ni imágenes fijas pesadas', async ({ page, isMobile }) => {
+    const fotos = new Set();
+    const fijas = [];
+    page.on('response', async (res) => {
+      if (res.request().resourceType() !== 'image') return;
+      const url = res.url();
+      if (url.includes('/storage/v1/')) { fotos.add(url); return; }
+      if (new URL(url).origin !== new URL(page.url()).origin) return;
+      const body = await res.body().catch(() => null);
+      if (body) fijas.push({ path: new URL(url).pathname, kb: Math.round(body.length / 1024) });
+    });
+    await visit(page, '/');
+
+    // Antes eran 120. Con las tarjetas visibles más el margen de los tres
+    // carruseles de arriba quedan 9 en la compu y 16 en el celu.
+    expect(fotos.size, `bajó ${fotos.size} fotos de Supabase sin scrollear`).toBeLessThanOrEqual(40);
+
+    // Ninguna fija pasa los 300 KB (el hero de la compu, la más grande, pesa 258).
+    const pesadas = fijas.filter((f) => f.kb > 300);
+    expect(pesadas, 'imágenes fijas de más de 300 KB').toEqual([]);
+
+    // Cada pantalla baja sólo su hero: el preload sin media le hacía bajar al celu
+    // también el de la compu, que no usa.
+    const heros = fijas.map((f) => f.path).filter((p) => /\/anibal\/hero/.test(p));
+    expect(heros).toEqual([isMobile ? '/anibal/hero-mobile.webp' : '/anibal/hero.webp']);
   });
 });

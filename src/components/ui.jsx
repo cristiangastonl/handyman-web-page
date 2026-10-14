@@ -40,7 +40,7 @@ export const Socials = ({ sz = 14, siteConfig = {} }) => {
 };
 
 export const Logo = () => (
-  <img className="logo-desktop" src="/anibal/logo-horizontal.jpeg" alt="Handyman Services in Zurich"
+  <img className="logo-desktop" src="/anibal/logo-horizontal.webp" alt="Handyman Services in Zurich"
     style={{ height: 30, width: "auto", objectFit: "contain", display: "block" }}/>
 );
 
