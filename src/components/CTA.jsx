@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, svgP, SERVICE_AREAS, getStyleConfig, SECTION_PAD, SECTION_PAD_TIGHT } from "../lib/constants";
+import { R, G, getSocialUrls, svgP, SERVICE_AREAS, getStyleConfig, pesoLetra, SECTION_PAD, SECTION_PAD_TIGHT } from "../lib/constants";
 import { MapPin } from "./ui";
 import { FadeIn } from "./FadeIn";
 import BandaCentrada from "./BandaCentrada";
@@ -20,8 +20,8 @@ export function TailoringCTA({ nav, siteConfig = {} }) {
         color: "#fff",
         boxShadow: "0 8px 32px rgba(212,120,31,0.25)",
       }}>
-        <h3 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 12 }}>{t("tailoring.title")}</h3>
-        <p style={{ fontSize: tTextStyle.fontSize, fontFamily: `'${tTextStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, maxWidth: 460, margin: "0 auto 20px" }}>{t("tailoring.text")}</p>
+        <h3 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(tTitleStyle, 800), marginBottom: 12 }}>{t("tailoring.title")}</h3>
+        <p style={{ fontSize: tTextStyle.fontSize, fontFamily: `'${tTextStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(tTextStyle), color: "rgba(255,255,255,0.85)", lineHeight: 1.6, maxWidth: 460, margin: "0 auto 20px" }}>{t("tailoring.text")}</p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
             style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", color: R, padding: "11px 26px", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.15)", transition: "transform .2s" }}
@@ -62,8 +62,8 @@ export function ServiceAreasCTA({ siteConfig = {} }) {
             otra banda naranja), incluido lo que se cambie en el admin para esa. Pedido
             de Anibal, 13/10/2026: "Service Areas quedó más chiquito y en gris el
             subtítulo; debería coincidir en color y tamaño". */}
-        <h4 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 12 }}>{t("serviceAreas.title")}</h4>
-        <p style={{ fontSize: tTextStyle.fontSize, fontFamily: `'${tTextStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.85)", marginBottom: 18 }}>{t("serviceAreas.subtitle")}</p>
+        <h4 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(tTitleStyle, 800), marginBottom: 12 }}>{t("serviceAreas.title")}</h4>
+        <p style={{ fontSize: tTextStyle.fontSize, fontFamily: `'${tTextStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(tTextStyle), color: "rgba(255,255,255,0.85)", marginBottom: 18 }}>{t("serviceAreas.subtitle")}</p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
           {areaNames.map(name => (
             <div key={name} style={{
@@ -96,8 +96,8 @@ export function BottomCTA({ siteConfig = {} }) {
         mismo aire de los dos lados (14/10/2026). */}
     <section style={{ padding: SECTION_PAD_TIGHT, textAlign: "center" }}>
       <BandaCentrada py={40} px={32} style={{ maxWidth: 600, margin: "0 auto", background: `linear-gradient(135deg, ${G} 0%, #3a3a3a 100%)`, borderRadius: 16, color: "#fff" }}>
-        <h3 style={{ fontSize: bTitleStyle.fontSize, fontFamily: `'${bTitleStyle.fontFamily}', sans-serif`, fontWeight: 800, marginBottom: 12 }}>{t("cta.title")}</h3>
-        <p style={{ fontSize: bSubStyle.fontSize, fontFamily: `'${bSubStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>{t("cta.subtitle")}</p>
+        <h3 style={{ fontSize: bTitleStyle.fontSize, fontFamily: `'${bTitleStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(bTitleStyle, 800), marginBottom: 12 }}>{t("cta.title")}</h3>
+        <p style={{ fontSize: bSubStyle.fontSize, fontFamily: `'${bSubStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(bSubStyle), color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>{t("cta.subtitle")}</p>
         <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "12px 28px", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,211,102,0.3)" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
           {t("cta.button")}

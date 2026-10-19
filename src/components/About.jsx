@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, PROFILE_IMG, parseSiteText, getHighlightField, SECTION_X, SECTION_Y, ABOUT_TOP } from "../lib/constants";
+import { R, PROFILE_IMG, parseSiteText, getHighlightField, pesoLetra, SECTION_X, SECTION_Y, ABOUT_TOP } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
 // Fallback skill tags for when no categories exist yet (fresh install / Supabase down).
@@ -46,12 +46,13 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           <h2 style={{
             fontSize: titulo?.fontSize ? `${titulo.fontSize}px` : 20,
             fontFamily: `'${titulo?.fontFamily || "DM Sans"}', sans-serif`,
-            fontWeight: 700, marginBottom: 6,
+            fontWeight: pesoLetra(titulo, 700), marginBottom: 6,
           }}>{titulo?.text || t("about.title")}</h2>); })()}
           {(() => { const bio = parseSiteText(siteConfig.bio_text); return (
           <p style={{
             fontSize: bio?.fontSize ? `${bio.fontSize}px` : 14,
             fontFamily: bio?.fontFamily ? `'${bio.fontFamily}', sans-serif` : undefined,
+            fontWeight: pesoLetra(bio),
             color: "#555", lineHeight: 1.6, marginBottom: 6
           }}>
             {bio?.text || t("about.bio")}
@@ -82,8 +83,8 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           const body = getHighlightField(siteConfig, `about_highlight${n}_text`, t(`about.highlight${n}.text`));
           return (
           <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", borderLeft: "3px solid #D4781F" }}>
-            <div style={{ fontSize: title.fontSize, fontFamily: `'${title.fontFamily}', sans-serif`, fontWeight: 700, color: "#333", marginBottom: 4, whiteSpace: "pre-line" }}>{title.text}</div>
-            <div style={{ fontSize: body.fontSize, fontFamily: `'${body.fontFamily}', sans-serif`, color: "#555", lineHeight: 1.55, whiteSpace: "pre-line" }}>{body.text}</div>
+            <div style={{ fontSize: title.fontSize, fontFamily: `'${title.fontFamily}', sans-serif`, fontWeight: pesoLetra(title, 700), color: "#333", marginBottom: 4, whiteSpace: "pre-line" }}>{title.text}</div>
+            <div style={{ fontSize: body.fontSize, fontFamily: `'${body.fontFamily}', sans-serif`, fontWeight: pesoLetra(body), color: "#555", lineHeight: 1.55, whiteSpace: "pre-line" }}>{body.text}</div>
           </div>
           );
         })}

@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_AREAS,
   getSocialUrls, WA_NUMBER, buildWALink, parseWALink,
-  STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix } from "../../lib/constants";
+  STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix, pesoLetra } from "../../lib/constants";
 import { textoVigente, payloadSiteText, tamanoCelu } from "../../lib/siteText";
 import { estiloResumen } from "../../lib/resumenResenas";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
@@ -13,6 +13,23 @@ import { AdminButton, AdminInput, AdminCard } from "./adminUI";
 
 // ── Font options for text editing ──
 const FONT_OPTIONS = ["DM Sans", "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Playfair Display", "Dancing Script", "Georgia", "Arial", "Comic Sans MS", "Comic Neue", "Patrick Hand", "Caveat", "Indie Flower"];
+
+// ── Grosor de la letra ──
+// "" = el de siempre de ese texto (no se guarda nada), si no true/false en `bold`.
+// Ver pesoLetra en constants.js.
+const boldAOpcion = (bold) => bold === true ? "bold" : bold === false ? "normal" : "";
+const opcionABold = (op) => op === "bold" ? true : op === "normal" ? false : undefined;
+
+function GrosorSelect({ value, onChange, style }) {
+  return (
+    <select value={value} onChange={e => onChange(e.target.value)}
+      className="admin-input" style={{ ...A.input, marginTop: 2, color: value ? colors.gray900 : colors.gray400, ...style }}>
+      <option value="">De siempre</option>
+      <option value="bold">Negrita</option>
+      <option value="normal">Normal</option>
+    </select>
+  );
+}
 
 // ── Keys that are handled by named sections (not shown in "Other Settings") ──
 const KNOWN_KEYS = new Set([
@@ -188,15 +205,18 @@ function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
   const current = getStyleConfig(siteConfig, configKey);
   const [fontSize, setFontSize] = useState(current.fontSize);
   const [fontFamily, setFontFamily] = useState(current.fontFamily);
+  const [grosor, setGrosor] = useState(boldAOpcion(current.bold));
 
   useEffect(() => {
     const c = getStyleConfig(siteConfig, configKey);
     setFontSize(c.fontSize);
     setFontFamily(c.fontFamily);
+    setGrosor(boldAOpcion(c.bold));
   }, [siteConfig[configKey]]);
 
   const handleSave = () => {
-    onSave(configKey, JSON.stringify({ fontSize: Number(fontSize), fontFamily }));
+    const bold = opcionABold(grosor);
+    onSave(configKey, JSON.stringify({ fontSize: Number(fontSize), fontFamily, ...(bold !== undefined && { bold }) }));
   };
 
   return (
@@ -208,6 +228,7 @@ function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
         <div style={{
           fontSize: Number(fontSize) > 18 ? 14 : Number(fontSize) || defaults.fontSize,
           fontFamily: `'${fontFamily || defaults.fontFamily}', sans-serif`,
+          fontWeight: grosor === "bold" ? 700 : grosor === "normal" ? 400 : undefined,
           color: colors.gray600,
           marginBottom: spacing.sm,
           lineHeight: 1.4,
@@ -231,6 +252,10 @@ function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
             className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}>
             {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
+        </div>
+        <div style={{ width: 110 }}>
+          <label style={typography.caption}>Grosor</label>
+          <GrosorSelect value={grosor} onChange={setGrosor} style={{ height: 32, fontSize: 12 }}/>
         </div>
         <AdminButton size="small" loading={loading} onClick={handleSave}>Save</AdminButton>
       </div>
@@ -260,6 +285,7 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
   const [fontSize, setFontSize] = useState(parsed.fontSize || "");
   const [fontFamily, setFontFamily] = useState(parsed.fontFamily || "");
   const [mobileFontSize, setMobileFontSize] = useState(parsed.mobileFontSize || "");
+  const [grosor, setGrosor] = useState(boldAOpcion(parsed.bold));
   // Sólo los textos que en el celu se ven con otro tamaño traen el campo del celu.
   const tieneCelu = def && "defaultMobileFontSize" in def;
 
@@ -269,12 +295,13 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
     setFontSize(p.fontSize || "");
     setFontFamily(p.fontFamily || "");
     setMobileFontSize(p.mobileFontSize || "");
+    setGrosor(boldAOpcion(p.bold));
   }, [currentValue]);
 
   const sinTocar = !payloadSiteText({ text }, def).text;
 
   const handleSave = () =>
-    onSave(configKey, JSON.stringify(payloadSiteText({ text, fontSize, fontFamily, mobileFontSize }, def)));
+    onSave(configKey, JSON.stringify(payloadSiteText({ text, fontSize, fontFamily, mobileFontSize, bold: opcionABold(grosor) }, def)));
 
   return (
     <div style={{ ...A.card, marginBottom: spacing.md }}>
@@ -319,6 +346,10 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
             {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
         </div>
+        <div style={{ flex: 1, minWidth: 110 }}>
+          <label style={typography.caption}>Grosor</label>
+          <GrosorSelect value={grosor} onChange={setGrosor}/>
+        </div>
       </div>
       <AdminButton loading={loading} onClick={handleSave}
         style={{ marginTop: spacing.sm }}>
@@ -336,13 +367,15 @@ function getTextValue(siteConfig, key) {
 }
 
 // celu: el tamaño con que se ve en el celu, no el de la compu (ver tamanoCelu).
-function getTextStyle(siteConfig, key, celu = false) {
+// peso: el grosor de siempre de ese texto en la página (ver pesoLetra).
+function getTextStyle(siteConfig, key, celu = false, peso = 400) {
   const parsed = parseSiteText(siteConfig[key]) || {};
   const def = SITE_TEXTS[key] || {};
   return {
     fontSize: celu ? `${tamanoCelu(siteConfig[key], def)}px`
       : parsed.fontSize ? `${parsed.fontSize}px` : `${def.defaultFontSize || 14}px`,
     fontFamily: parsed.fontFamily ? `'${parsed.fontFamily}', sans-serif` : `'${def.defaultFontFamily || "DM Sans"}', sans-serif`,
+    fontWeight: pesoLetra(parsed, peso),
   };
 }
 
@@ -430,9 +463,8 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
             <PreviewBox dark key={label} label={label} style={style}>
               <div className="preview-hero" data-celu={celu ? "1" : "0"} style={{ textAlign: "center", padding: `${spacing.lg}px 0` }}>
                 <div style={{
-                  ...getTextStyle(siteConfig, "hero_title", celu),
+                  ...getTextStyle(siteConfig, "hero_title", celu, 800),
                   color: "#fff",
-                  fontWeight: 700,
                   lineHeight: 1.2,
                   marginBottom: spacing.sm,
                   whiteSpace: "pre-line",
@@ -454,9 +486,8 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
                   {getTextValue(siteConfig, "hero_subtitle")}
                 </div>
                 <div style={{
-                  ...getTextStyle(siteConfig, "hero_trust", celu),
+                  ...getTextStyle(siteConfig, "hero_trust", celu, 700),
                   color: colors.brand,
-                  fontWeight: 700,
                   whiteSpace: "pre-line",
                 }}>
                   ✓ {getTextValue(siteConfig, "hero_trust")}
@@ -482,8 +513,8 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
               const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
               return (
                 <div key={stat.key} style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 700, color: colors.brand }}>{val}{formatStatSuffix(getStatUnit(siteConfig, stat.key, stat.defaultUnit))}</div>
-                  <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
+                  <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(numStyle, 800), color: colors.brand }}>{val}{formatStatSuffix(getStatUnit(siteConfig, stat.key, stat.defaultUnit))}</div>
+                  <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(lblStyle, 600), color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
                 </div>
               );
             })}
@@ -535,7 +566,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: spacing.sm }}>
             {[1, 2, 3].map(n => (
               <div key={n} style={{ padding: `${spacing.md}px`, borderRadius: radii.md, background: colors.white, border: `1px solid ${colors.gray200}`, borderLeft: `3px solid ${colors.brand}` }}>
-                <div style={{ ...getTextStyle(siteConfig, `about_highlight${n}_title`), fontWeight: 700, color: colors.gray900, marginBottom: 4, whiteSpace: "pre-line" }}>
+                <div style={{ ...getTextStyle(siteConfig, `about_highlight${n}_title`, false, 700), color: colors.gray900, marginBottom: 4, whiteSpace: "pre-line" }}>
                   {getTextValue(siteConfig, `about_highlight${n}_title`)}
                 </div>
                 <div style={{ ...getTextStyle(siteConfig, `about_highlight${n}_text`), color: colors.gray700, lineHeight: 1.5, whiteSpace: "pre-line" }}>

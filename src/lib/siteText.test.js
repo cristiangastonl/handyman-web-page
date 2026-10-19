@@ -50,6 +50,14 @@ describe("payloadSiteText", () => {
   it("un campo vaciado a mano tampoco guarda texto: vuelve a la traducción", () => {
     expect(payloadSiteText({ text: "", fontSize: 12 }, DEF)).toEqual({ fontSize: 12 });
   });
+  it("guarda el grosor elegido, y normal también (false no es 'nada')", () => {
+    expect(payloadSiteText({ bold: true }, DEF)).toEqual({ bold: true });
+    expect(payloadSiteText({ bold: false }, DEF)).toEqual({ bold: false });
+  });
+
+  it("'De siempre' no guarda grosor: el texto sigue con el suyo", () => {
+    expect(payloadSiteText({ fontSize: 12, bold: undefined }, DEF)).toEqual({ fontSize: 12 });
+  });
 });
 
 describe("tamaño en el celu", () => {

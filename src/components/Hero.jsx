@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText, mobileFontVar } from "../lib/constants";
+import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText, mobileFontVar, pesoLetra } from "../lib/constants";
 
 // El título va entero en el naranja de la marca. Antes era a dos tonos —"Handyman"
 // naranja, el resto blanco— pero el cliente lo quiso todo del mismo color, así que
@@ -66,7 +66,7 @@ export default function Hero({ siteConfig = {} }) {
               fontSize: title?.fontSize ? `${title.fontSize}px` : "clamp(24px, 4vw, 36px)",
               fontFamily: title?.fontFamily ? `'${title.fontFamily}', sans-serif` : undefined,
               ...mobileFontVar(title),
-              fontWeight: 800, color: R, lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line"
+              fontWeight: pesoLetra(title, 800), color: R, lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line"
             }}>
               {title?.text || t("hero.title")}
             </h1>
@@ -74,6 +74,7 @@ export default function Hero({ siteConfig = {} }) {
               fontSize: brandSubtitle?.fontSize ? `${brandSubtitle.fontSize}px` : 15,
               fontFamily: brandSubtitle?.fontFamily ? `'${brandSubtitle.fontFamily}', cursive` : "'Dancing Script', cursive",
               ...mobileFontVar(brandSubtitle),
+              fontWeight: pesoLetra(brandSubtitle),
               color: "rgba(255,255,255,0.9)", marginBottom: 3, letterSpacing: "0.02em",
               // La cursiva forzada sólo va con la Dancing Script de siempre. Con otra
               // fuente elegida en el admin, el navegador inclinaba la letra a mano
@@ -87,6 +88,7 @@ export default function Hero({ siteConfig = {} }) {
               fontSize: subtitle?.fontSize ? `${subtitle.fontSize}px` : 14,
               fontFamily: subtitle?.fontFamily ? `'${subtitle.fontFamily}', sans-serif` : undefined,
               ...mobileFontVar(subtitle),
+              fontWeight: pesoLetra(subtitle),
               color: "rgba(255,255,255,0.9)", marginBottom: 3
             }}>
               {subtitle?.text || t("hero.subtitle")}
@@ -100,7 +102,7 @@ export default function Hero({ siteConfig = {} }) {
                 fontSize: trust?.fontSize ? `${trust.fontSize}px` : 13,
                 fontFamily: trust?.fontFamily ? `'${trust.fontFamily}', sans-serif` : undefined,
                 ...mobileFontVar(trust),
-                fontWeight: 700,
+                fontWeight: pesoLetra(trust, 700),
               }}>✓ {trust?.text || t("hero.trust")}</span>
             </div>
         </div>

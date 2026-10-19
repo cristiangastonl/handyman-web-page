@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl, mobileFontVar } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, pesoLetra, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl, mobileFontVar } from "./constants";
 import en from "../locales/en.json";
 
 describe("itemThumb", () => {
@@ -365,5 +365,40 @@ describe("tamaño en el celu (mobileFontSize)", () => {
     expect(SITE_TEXTS.hero_brand_subtitle.defaultMobileFontSize).toBe(20);
     expect(SITE_TEXTS.hero_subtitle.defaultMobileFontSize).toBe(18);
     expect(SITE_TEXTS.social_card_fb.defaultMobileFontSize).toBe(9);
+  });
+});
+
+// Anibal, 19/10/2026: Caveat parecía dos tipografías. Era la misma en dos grosores:
+// el subtítulo del hero en 400 y los títulos en 700/800, y en Caveat la negrita
+// cambia la forma de la letra. Ahora el grosor se elige por texto en el admin.
+describe("grosor de la letra elegido en el admin", () => {
+  it("sin elegir nada, cada texto queda con el de siempre", () => {
+    expect(pesoLetra(undefined, 800)).toBe(800);
+    expect(pesoLetra({ fontFamily: "Caveat" }, 700)).toBe(700);
+    expect(pesoLetra({})).toBe(400);
+  });
+
+  it("normal es 400 aunque el texto fuera un título en negrita", () => {
+    expect(pesoLetra({ bold: false }, 800)).toBe(400);
+  });
+
+  it("negrita pone en negrita un texto normal y no le baja el peso a un título", () => {
+    expect(pesoLetra({ bold: true }, 400)).toBe(700);
+    expect(pesoLetra({ bold: true }, 800)).toBe(800);
+  });
+
+  it("el grosor guardado llega por los dos caminos de configuración", () => {
+    expect(getStyleConfig({ footer_heading_style: '{"fontSize":12,"fontFamily":"Caveat","bold":false}' },
+      "footer_heading_style").bold).toBe(false);
+    expect(parseSiteText('{"bold":false}')).toEqual({ bold: false });
+    expect(getHighlightField({ about_highlight1_title: '{"bold":false}' }, "about_highlight1_title", "x").bold).toBe(false);
+  });
+
+  it("el grosor viejo de los *_style sigue valiendo para las tarjetas de About", () => {
+    expect(getHighlightField({ about_highlight1_title_style: '{"bold":true}' }, "about_highlight1_title", "x").bold).toBe(true);
+  });
+
+  it("sin grosor guardado, getStyleConfig no inventa uno", () => {
+    expect(getStyleConfig({ footer_heading_style: '{"fontSize":12}' }, "footer_heading_style")).not.toHaveProperty("bold");
   });
 });

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { parseSiteText, getStyleConfig, SECTION_PAD_TIGHT, SECTION_TITLE_MB } from "../lib/constants";
+import { parseSiteText, getStyleConfig, pesoLetra, SECTION_PAD_TIGHT, SECTION_TITLE_MB } from "../lib/constants";
 import Carousel from "./Carousel";
 import { FadeIn } from "./FadeIn";
 
@@ -24,7 +24,7 @@ export default function Highlights({ highlights, curatedItems = [], setLb, siteC
         <h2 style={{
           fontSize: titleStyle.fontSize,
           fontFamily: `'${titleStyle.fontFamily}', sans-serif`,
-          fontWeight: 700
+          fontWeight: pesoLetra(titleStyle, 700)
         }}>{titleCfg?.text || t("highlights.title")}</h2>
       </div>
       <Carousel

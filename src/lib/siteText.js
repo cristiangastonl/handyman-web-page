@@ -34,13 +34,14 @@ export function textoVigente(currentValue, def) {
  * borraría igual, pero así el objeto que se devuelve es el que se guarda y se
  * puede afirmar sobre él en un test.
  */
-export function payloadSiteText({ text, fontSize, fontFamily, mobileFontSize }, def) {
+export function payloadSiteText({ text, fontSize, fontFamily, mobileFontSize, bold }, def) {
   const igualAlDefault = (text || "").trim() === (def?.defaultText || "").trim();
   const val = {};
   if (!igualAlDefault && text) val.text = text;
   if (fontSize) val.fontSize = Number(fontSize);
   if (fontFamily) val.fontFamily = fontFamily;
   if (mobileFontSize) val.mobileFontSize = Number(mobileFontSize);
+  if (typeof bold === "boolean") val.bold = bold;
   return val;
 }
 

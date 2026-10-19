@@ -2,7 +2,7 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { estiloResumen } from "../lib/resumenResenas";
-import { R, svgP, ab, getStyleConfig, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD, SECTION_Y } from "../lib/constants";
+import { R, svgP, ab, getStyleConfig, pesoLetra, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD, SECTION_Y } from "../lib/constants";
 import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
@@ -181,7 +181,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
             {googleOnly.length > 0 && <>
               <div data-testid="home-google" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <GoogleG size={18}/>
-                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
+                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(revScoreStyle, 800), color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
                 {/* textAlign center: el conteo es más angosto que la fila de estrellas,
                     así que sin esto arrancaba pegado al borde izquierdo de ellas y se
                     leía descolgado. Anibal: "lo de 158 reviews deberia centrarse"
@@ -205,7 +205,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
                   ambos". El número sale de las reseñas cargadas y sube solo. */}
               <div data-testid="home-facebook" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <SocialIcon type="fb" size={18}/>
-                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(revScoreStyle, 800), color: "#1a1a1a", lineHeight: 1 }}>
                   <AnimatedCounter target={100} duration={1400} decimals={0}/>%
                 </span>
                 <div data-testid="home-facebook-conteo" style={{ fontSize: 11, color: "#777" }}>{t("reviews.count", { count: fbOnly.length })}</div>
