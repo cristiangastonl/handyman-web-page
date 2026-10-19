@@ -16,6 +16,12 @@ import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText, mobileFontVar, pesoLetra }
 // apagar las fotos, que son el argumento de venta.
 const SCRIM = "linear-gradient(to top, rgba(15,15,15,0.92) 0%, rgba(15,15,15,0.72) 28%, rgba(15,15,15,0.35) 55%, rgba(15,15,15,0.10) 80%, transparent 100%)";
 
+// El espaciado fijo de cada línea está calibrado para su fuente de siempre (DM Sans
+// apretada, Dancing Script abierta). Con una fuente elegida en el admin va el de la
+// fuente: con las tres líneas en Caveat, Anibal veía las "t" distintas en cada una
+// (19/10/2026). Misma idea que la cursiva de hero-brand.
+const espaciado = (estilo, deSiempre) => (estilo?.fontFamily ? "normal" : deSiempre);
+
 // El encuadre de la foto (hero_img_x/y) se edita desde el admin: Site Texts →
 // Hero Section → Image Position, que tiene la misma vista previa con drag más un
 // "Reset to Center". Acá el hero es sólo de lectura.
@@ -66,7 +72,7 @@ export default function Hero({ siteConfig = {} }) {
               fontSize: title?.fontSize ? `${title.fontSize}px` : "clamp(24px, 4vw, 36px)",
               fontFamily: title?.fontFamily ? `'${title.fontFamily}', sans-serif` : undefined,
               ...mobileFontVar(title),
-              fontWeight: pesoLetra(title, 800), color: R, lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "pre-line"
+              fontWeight: pesoLetra(title, 800), color: R, lineHeight: 1.15, textShadow: "0 2px 10px rgba(0,0,0,0.7)", marginBottom: 4, letterSpacing: espaciado(title, "-0.02em"), whiteSpace: "pre-line"
             }}>
               {title?.text || t("hero.title")}
             </h1>
@@ -75,7 +81,7 @@ export default function Hero({ siteConfig = {} }) {
               fontFamily: brandSubtitle?.fontFamily ? `'${brandSubtitle.fontFamily}', cursive` : "'Dancing Script', cursive",
               ...mobileFontVar(brandSubtitle),
               fontWeight: pesoLetra(brandSubtitle),
-              color: "rgba(255,255,255,0.9)", marginBottom: 3, letterSpacing: "0.02em",
+              color: "rgba(255,255,255,0.9)", marginBottom: 3, letterSpacing: espaciado(brandSubtitle, "0.02em"),
               // La cursiva forzada sólo va con la Dancing Script de siempre. Con otra
               // fuente elegida en el admin, el navegador inclinaba la letra a mano
               // (Caveat no tiene cursiva) y las "t" y las "m" no coincidían con las del

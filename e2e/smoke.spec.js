@@ -766,6 +766,39 @@ test.describe('cabecera de reseñas de la home', () => {
   });
 });
 
+/**
+ * Simula valores guardados en el admin pisando la respuesta de site_config, sin tocar
+ * la base. Cada clave se mezcla con lo que ya tenga guardado; si no hay fila, se crea.
+ *
+ * Lo pisado aparece recién cuando el sitio termina de pedir todo (App aplica los datos
+ * juntos), y en la home eso compite con las fotos del mismo servidor de Supabase: hay
+ * que esperar DATOS_MS, el mismo tope que el resto del suite usa para datos. Al
+ * visitante no le pasa porque el prerender ya trae site_config en el HTML.
+ *
+ * El test que lo use termina con `page.unrouteAll({ behavior: 'wait' })`: el sitio
+ * vuelve a pedir site_config y, si el test cierra la página con ese pedido a medio
+ * leer, Playwright falla con "Response has been disposed".
+ */
+const DATOS_MS = 20_000;
+
+async function pisarSiteConfig(page, cambios) {
+  await page.route('**/rest/v1/site_config*', async (route) => {
+    const res = await route.fetch();
+    const filas = await res.json();
+    for (const [key, extra] of Object.entries(cambios)) {
+      let fila = filas.find((f) => f.key === key);
+      if (!fila) filas.push(fila = { key, value: '{}' });
+      const enTexto = typeof fila.value === 'string';
+      let valor;
+      try { valor = enTexto ? JSON.parse(fila.value) : { ...fila.value }; } catch { valor = null; }
+      if (!valor || typeof valor !== 'object') valor = { text: fila.value };
+      Object.assign(valor, extra);
+      fila.value = enTexto ? JSON.stringify(valor) : valor;
+    }
+    await route.fulfill({ response: res, json: filas });
+  });
+}
+
 test.describe('orden de la home', () => {
   test('las tarjetas de redes tienen el mismo aire arriba y abajo', async ({ page }) => {
     // Anibal, 13/10/2026: "quedó muy ancho" entre las tarjetas y "Meet your
@@ -1017,27 +1050,34 @@ test.describe('orden de la home', () => {
     // Anibal, 19/10/2026: Caveat parecía dos tipografías porque el subtítulo del hero
     // iba en 400 y los títulos en 700/800. Ahora cada texto tiene "Grosor" en el
     // admin. Se simula lo guardado pisando la respuesta de site_config, sin tocar la base.
-    const elegido = { hero_title: false, hero_subtitle: true, footer_heading_style: false };
-    await page.route('**/rest/v1/site_config*', async (route) => {
-      const res = await route.fetch();
-      const filas = await res.json();
-      for (const [key, bold] of Object.entries(elegido)) {
-        let fila = filas.find((f) => f.key === key);
-        if (!fila) filas.push(fila = { key, value: '{}' });
-        const enTexto = typeof fila.value === 'string';
-        let valor = {};
-        try { valor = enTexto ? JSON.parse(fila.value) : { ...fila.value }; } catch { valor = { text: fila.value }; }
-        if (!valor || typeof valor !== 'object') valor = { text: fila.value };
-        valor.bold = bold;
-        fila.value = enTexto ? JSON.stringify(valor) : valor;
-      }
-      await route.fulfill({ response: res, json: filas });
-    });
+    await pisarSiteConfig(page, { hero_title: { bold: false }, hero_subtitle: { bold: true }, footer_heading_style: { bold: false } });
     await visit(page, '/');
     const peso = (sel) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).fontWeight);
-    await expect.poll(() => peso('.hero-section h1'), 'el título sigue en negrita con "Normal"').toBe('400');
+    await expect.poll(() => peso('.hero-section h1'), { message: 'el título sigue en negrita con "Normal"', timeout: DATOS_MS }).toBe('400');
     await expect.poll(() => peso('.hero-section .hero-subtitle'), 'el subtítulo no pasó a negrita').toBe('700');
     await expect.poll(() => peso('footer >> text=/^Contact$/'), 'los títulos del footer siguen en negrita con "Normal"').toBe('400');
+    await page.unrouteAll({ behavior: 'wait' });
+  });
+
+  test('las tres líneas del hero en la misma fuente tienen el mismo espaciado', async ({ page }) => {
+    // Anibal, 19/10/2026: título, marca y subtítulo en Caveat desde el admin y las "t"
+    // se veían distintas en cada uno. Cada línea traía un espaciado fijo pensado para
+    // su fuente de siempre (-0.02em el título, +0.02em la marca).
+    const caveat = { fontFamily: 'Caveat' };
+    await pisarSiteConfig(page, { hero_title: caveat, hero_brand_subtitle: caveat, hero_subtitle: caveat });
+    await visit(page, '/');
+    const medir = () => page.evaluate(() => ['.hero-section h1', '.hero-section .hero-brand', '.hero-section .hero-subtitle'].map((sel) => {
+      const c = getComputedStyle(document.querySelector(sel));
+      return { familia: c.fontFamily.split(',')[0].trim(), espaciado: c.letterSpacing, estilo: c.fontStyle };
+    }));
+    // Lo prerenderizado trae las fuentes de siempre; se mide cuando ya llegó lo del admin.
+    await expect.poll(async () => (await medir()).map((l) => l.familia).join(), { message: 'no se aplicó Caveat en las tres líneas', timeout: DATOS_MS }).toBe('Caveat,Caveat,Caveat');
+    const lineas = await medir();
+    for (const l of lineas) {
+      expect(l.espaciado, 'una línea conserva el espaciado de su fuente de siempre').toBe(lineas[0].espaciado);
+      expect(l.estilo, 'una línea sale inclinada y las otras no').toBe(lineas[0].estilo);
+    }
+    await page.unrouteAll({ behavior: 'wait' });
   });
 
   test('en el celu el título del hero tiene sombra atrás aunque el texto sea más grande', async ({ page, isMobile }) => {
