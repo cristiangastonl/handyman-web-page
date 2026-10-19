@@ -295,7 +295,10 @@ export const SITE_TEXTS = {
 // CSS fijaba los tamaños del hero con !important y lo que Anibal elegía en el admin
 // sólo se veía en la compu ("cuando edito los headlines, en la compu veo los
 // cambios, pero no en el celu"). Vacío = el tamaño de siempre en el celu.
-const CLAVES_SITE_TEXT = ["text", "fontSize", "fontFamily", "mobileFontSize"];
+//
+// bold es el grosor elegido en el admin: true = negrita, false = normal, sin la
+// clave = el de siempre de ese texto (ver pesoLetra).
+const CLAVES_SITE_TEXT = ["text", "fontSize", "fontFamily", "mobileFontSize", "bold"];
 
 /**
  * Estilo inline para el tamaño en el celu: una custom property que el CSS de mobile
@@ -362,10 +365,26 @@ export const getStyleConfig = (siteConfig, key) => {
     return {
       fontSize: parsed.fontSize || defaults.fontSize,
       fontFamily: parsed.fontFamily || defaults.fontFamily,
+      ...(typeof parsed.bold === "boolean" && { bold: parsed.bold }),
     };
   } catch {
     return defaults;
   }
+};
+
+/**
+ * El font-weight de un texto editable: el que eligió en el admin, y si no eligió
+ * nada, el de siempre de ese texto (`deSiempre`). Negrita no baja un título que
+ * ya era 800; normal es siempre 400.
+ *
+ * Existe porque Caveat parecía "otra tipografía" según el texto (Anibal,
+ * 19/10/2026): el subtítulo del hero sale en 400 y los títulos en 700/800, y en
+ * Caveat la negrita cambia la forma de la letra. Con esto él decide en cada texto.
+ */
+export const pesoLetra = (estilo, deSiempre = 400) => {
+  if (estilo?.bold === true) return Math.max(deSiempre, 700);
+  if (estilo?.bold === false) return 400;
+  return deSiempre;
 };
 
 /**
@@ -415,6 +434,7 @@ export const getHighlightField = (siteConfig, key, fallbackText) => {
     text: parsed.text || fallbackText,
     fontSize: parsed.fontSize || legacy.fontSize,
     fontFamily: parsed.fontFamily || legacy.fontFamily,
+    bold: typeof parsed.bold === "boolean" ? parsed.bold : legacy.bold,
   };
 };
 
@@ -687,14 +707,17 @@ export const css = `
     .skill-tags { justify-content: center !important; }
     .admin-container { padding: 20px 16px !important; }
     .admin-container input, .admin-container textarea, .admin-container select { font-size: 16px !important; }
-    /* 11.5 y no 7: con los renglones recortados a la letra visible (.banda-centrada) la
-       franja perdía alto y corría todo lo de abajo hacia el fold; con esto mide lo mismo
-       que antes (53 px). */
-    .stats-section { padding: 11.5px 12px !important; }
+    /* Mide 53 px como antes, para no correr lo de abajo hacia el fold: con las
+       etiquetas en un solo renglón el contenido mide 20, y el resto se reparte igual
+       arriba y abajo. */
+    .stats-section { padding: 16.5px 12px !important; }
     .stats-grid { display: flex !important; flex-wrap: nowrap !important; justify-content: space-evenly !important; gap: 0 !important; }
-    .stats-grid > div { min-width: unset !important; text-align: center !important; flex: 1 !important; }
-    .stats-grid > div > div:first-child { font-size: 14px !important; font-weight: 800 !important; }
-    .stats-grid > div > div:last-child { font-size: 8px !important; margin-top: 4px !important; letter-spacing: 0 !important; }
+    /* Cada columna mide lo que su texto, no un cuarto fijo: con cuatro iguales
+       "Facebook Followers" no entraba y se partía en dos renglones, y las otras tres
+       quedaban pegadas arriba. Así las cuatro van en un renglón hasta 320 px. */
+    .stats-grid > div { min-width: unset !important; text-align: center !important; flex: 1 1 auto !important; }
+    .stats-grid > div > div:first-child { font-size: 14px !important; }
+    .stats-grid > div > div:last-child { font-size: 8px !important; margin-top: 4px !important; letter-spacing: 0 !important; white-space: nowrap; }
     /* 14 arriba de las tarjetas y 14 abajo (lo pone About): parejo. Suma lo mismo que
        antes (8 + 10 + 10 = 28), así no cambia lo que entra en la primera pantalla. */
     .social-cards { padding: 14px 16px 0 !important; }

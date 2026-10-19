@@ -852,7 +852,7 @@ test.describe('orden de la home', () => {
   // entrar (ella y todo lo que la contiene, con opacidad 1 y sin desplazamiento):
   // medir a mitad de la entrada daba números falsos. Es la condición real, no un
   // tiempo fijo.
-  const bandaCentrada = async (page, nombre, banda) => {
+  const bandaQuieta = async (banda) => {
     await banda.scrollIntoViewIfNeeded();
     await expect.poll(() => banda.evaluate((el) => {
       for (let n = el; n; n = n.parentElement) {
@@ -861,6 +861,9 @@ test.describe('orden de la home', () => {
       }
       return true;
     }), { timeout: 10_000 }).toBe(true);
+  };
+  const bandaCentrada = async (page, nombre, banda) => {
+    await bandaQuieta(banda);
     const { arriba, abajo } = await aireVisible(page, banda);
     expect(Math.abs(arriba - abajo), `${nombre}: ${arriba}px arriba contra ${abajo}px abajo`).toBeLessThanOrEqual(3);
   };
@@ -869,6 +872,15 @@ test.describe('orden de la home', () => {
   // moviéndose) no entraban en el timeout con la máquina cargada. La home se mide
   // con las reseñas ya en pantalla: antes React reemplaza el HTML prerenderizado y
   // la caja que se estaba midiendo se desprendía del DOM.
+  // En el celu ninguna etiqueta de la franja gris se parte: "Facebook Followers" en
+  // dos renglones dejaba las otras tres pegadas arriba (19/10/2026).
+  test('home: las etiquetas de la franja gris van en un solo renglón', async ({ page }) => {
+    await visit(page, '/');
+    const renglones = await page.locator('.stats-section').evaluate((el) => [...el.querySelectorAll('.stats-grid > div > div:last-child')]
+      .map((d) => d.getClientRects().length === 1 && d.getBoundingClientRect().height < parseFloat(getComputedStyle(d).fontSize) * 1.6));
+    expect(renglones, 'alguna etiqueta de la franja gris se partió en dos renglones').not.toContain(false);
+  });
+
   for (const [nombre, banda] of [
     ['franja gris', (page) => page.locator('.stats-section')],
     ['Service Areas', (page) => page.locator('section h4', { hasText: 'Service Areas' }).locator('xpath=..')],
@@ -999,6 +1011,33 @@ test.describe('orden de la home', () => {
     if (brand.familia === sub.familia) {
       expect(brand.estilo, 'misma fuente pero uno inclinado y el otro no').toBe(sub.estilo);
     }
+  });
+
+  test('el grosor elegido en el admin manda sobre el de siempre', async ({ page }) => {
+    // Anibal, 19/10/2026: Caveat parecía dos tipografías porque el subtítulo del hero
+    // iba en 400 y los títulos en 700/800. Ahora cada texto tiene "Grosor" en el
+    // admin. Se simula lo guardado pisando la respuesta de site_config, sin tocar la base.
+    const elegido = { hero_title: false, hero_subtitle: true, footer_heading_style: false };
+    await page.route('**/rest/v1/site_config*', async (route) => {
+      const res = await route.fetch();
+      const filas = await res.json();
+      for (const [key, bold] of Object.entries(elegido)) {
+        let fila = filas.find((f) => f.key === key);
+        if (!fila) filas.push(fila = { key, value: '{}' });
+        const enTexto = typeof fila.value === 'string';
+        let valor = {};
+        try { valor = enTexto ? JSON.parse(fila.value) : { ...fila.value }; } catch { valor = { text: fila.value }; }
+        if (!valor || typeof valor !== 'object') valor = { text: fila.value };
+        valor.bold = bold;
+        fila.value = enTexto ? JSON.stringify(valor) : valor;
+      }
+      await route.fulfill({ response: res, json: filas });
+    });
+    await visit(page, '/');
+    const peso = (sel) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).fontWeight);
+    await expect.poll(() => peso('.hero-section h1'), 'el título sigue en negrita con "Normal"').toBe('400');
+    await expect.poll(() => peso('.hero-section .hero-subtitle'), 'el subtítulo no pasó a negrita').toBe('700');
+    await expect.poll(() => peso('footer >> text=/^Contact$/'), 'los títulos del footer siguen en negrita con "Normal"').toBe('400');
   });
 
   test('en el celu el título del hero tiene sombra atrás aunque el texto sea más grande', async ({ page, isMobile }) => {

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, parseSiteText, mobileFontVar, getStyleConfig, STATS, getStatValue, getStatUnit, formatStatSuffix, ABOUT_TOP } from "../lib/constants";
+import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, parseSiteText, mobileFontVar, getStyleConfig, pesoLetra, STATS, getStatValue, getStatUnit, formatStatSuffix, ABOUT_TOP } from "../lib/constants";
 import { SocialIcon, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
@@ -13,15 +13,18 @@ export default function StatsBar({ siteConfig = {} }) {
 
       {/* Stats counters */}
       <FadeIn>
+      {/* El mismo aire arriba y abajo, medido a la tinta. Se probó compensarlo a ojo
+          (subir el bloque porque las etiquetas blancas pesan más que el número) y
+          Gastón eligió quedarse con el centrado exacto (19/10/2026). */}
       <section className="stats-section banda-centrada" style={{ padding: "33px 24px", background: G }}>
         <div className="stats-grid" style={{ maxWidth: 940, margin: "0 auto", display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
           {STATS.map(s => (
             <div key={s.key} style={{ textAlign: "center", minWidth: 100 }}>
-              <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: 800, color: R }}>
+              <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(numStyle, 800), color: R }}>
                 <AnimatedCounter target={getStatValue(siteConfig, s)} decimals={s.decimals}/>
                 {formatStatSuffix(getStatUnit(siteConfig, s.key, s.defaultUnit))}
               </div>
-              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 7 }}>{t(s.i18nKey)}</div>
+              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: pesoLetra(lblStyle, 600), textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 7 }}>{t(s.i18nKey)}</div>
             </div>
           ))}
         </div>
@@ -53,7 +56,7 @@ export default function StatsBar({ siteConfig = {} }) {
               onMouseEnter={e => e.currentTarget.style.borderColor = R}
               onMouseLeave={e => e.currentTarget.style.borderColor = "#f0f0f0"}>
               {s.type === "google" ? <GoogleG size={28}/> : <SocialIcon type={s.type} size={28}/>}
-              <span data-social-card={s.type} style={{ fontSize: s.text.fontSize || 11, fontFamily: s.text.fontFamily ? `'${s.text.fontFamily}', sans-serif` : undefined, ...s.celu, color: "#555", lineHeight: 1.5 }}>{s.text.text}</span>
+              <span data-social-card={s.type} style={{ fontSize: s.text.fontSize || 11, fontFamily: s.text.fontFamily ? `'${s.text.fontFamily}', sans-serif` : undefined, fontWeight: pesoLetra(s.text), ...s.celu, color: "#555", lineHeight: 1.5 }}>{s.text.text}</span>
             </a>
           ))}
         </div>
