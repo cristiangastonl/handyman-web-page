@@ -496,6 +496,12 @@ export const ab = (s) => ({
 export const css = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   .hs::-webkit-scrollbar { display: none; }
+  /* Caveat trae varias versiones de algunas letras y elige una según la vecina
+     (contextual alternates), para parecer escrita a mano: la "t" de "Satisfaction"
+     no era la de "Matters". Anibal lo vio en el hero el 19/10/2026 y eligió la letra
+     pareja. La fuente se elige en el admin y llega como estilo inline, por eso el
+     selector mira el atributo; los hijos la heredan. */
+  [style*="Caveat"] { font-feature-settings: "calt" 0; }
   /* Bandas con el contenido centrado arriba-abajo: la franja gris de los números,
      Service Areas, "Need something specific?" y "Ready to get started?". Anibal marcó
      las cuatro el 13/10/2026 ("eso lo tenés que centrar… deberías tener la línea que
