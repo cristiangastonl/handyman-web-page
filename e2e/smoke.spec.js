@@ -1090,8 +1090,9 @@ test.describe('orden de la home', () => {
     for (const l of lineas) {
       expect(l.espaciado, 'una línea conserva el espaciado de su fuente de siempre').toBe(lineas[0].espaciado);
       expect(l.estilo, 'una línea sale inclinada y las otras no').toBe(lineas[0].estilo);
-      // Sin esto Caveat dibuja la misma letra distinto según la vecina (19/10/2026).
-      expect(l.variantes, 'Caveat cambia la forma de la letra según la vecina').toBe('"calt" 0');
+      // Caveat va con sus variantes de letra, como viene: Anibal la eligió así (20/10/2026)
+      // comparando con y sin ellas. Apagarlas cambia el dibujo de la "t" que le gusta.
+      expect(l.variantes, 'Caveat perdió sus variantes de letra').toBe('normal');
     }
     await page.unrouteAll({ behavior: 'wait' });
   });
