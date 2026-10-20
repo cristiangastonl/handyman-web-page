@@ -1059,6 +1059,20 @@ test.describe('orden de la home', () => {
     await page.unrouteAll({ behavior: 'wait' });
   });
 
+  test('Caveat sin grosor elegido sale como el subtítulo del hero: normal y sin espaciado extra', async ({ page }) => {
+    // Anibal, 19/10/2026: "todos los caveats deberían ser como este". Los títulos del
+    // footer traen negrita y espaciado fijos pensados para DM Sans.
+    await pisarSiteConfig(page, { footer_heading_style: { fontFamily: 'Caveat' }, hero_title: { fontFamily: 'Caveat' } });
+    await visit(page, '/');
+    const medir = (sel) => page.locator(sel).first().evaluate((el) => {
+      const c = getComputedStyle(el);
+      return `${c.fontFamily.split(',')[0].trim()} ${c.fontWeight} ${c.letterSpacing}`;
+    });
+    await expect.poll(() => medir('footer >> text=/^Contact$/'), { message: 'el título del footer en Caveat no sale como el subtítulo', timeout: DATOS_MS }).toBe('Caveat 400 normal');
+    await expect.poll(() => medir('.hero-section h1'), { message: 'el título del hero en Caveat no sale normal', timeout: DATOS_MS }).toBe('Caveat 400 normal');
+    await page.unrouteAll({ behavior: 'wait' });
+  });
+
   test('las tres líneas del hero en la misma fuente tienen el mismo espaciado', async ({ page }) => {
     // Anibal, 19/10/2026: título, marca y subtítulo en Caveat desde el admin y las "t"
     // se veían distintas en cada uno. Cada línea traía un espaciado fijo pensado para

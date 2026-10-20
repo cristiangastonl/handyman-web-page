@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, pesoLetra, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl, mobileFontVar } from "./constants";
+import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, pesoLetra, espaciadoLetra, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl, mobileFontVar } from "./constants";
 import en from "../locales/en.json";
 
 describe("itemThumb", () => {
@@ -374,7 +374,7 @@ describe("tamaño en el celu (mobileFontSize)", () => {
 describe("grosor de la letra elegido en el admin", () => {
   it("sin elegir nada, cada texto queda con el de siempre", () => {
     expect(pesoLetra(undefined, 800)).toBe(800);
-    expect(pesoLetra({ fontFamily: "Caveat" }, 700)).toBe(700);
+    expect(pesoLetra({ fontFamily: "Inter" }, 700)).toBe(700);
     expect(pesoLetra({})).toBe(400);
   });
 
@@ -400,5 +400,29 @@ describe("grosor de la letra elegido en el admin", () => {
 
   it("sin grosor guardado, getStyleConfig no inventa uno", () => {
     expect(getStyleConfig({ footer_heading_style: '{"fontSize":12}' }, "footer_heading_style")).not.toHaveProperty("bold");
+  });
+});
+
+// Anibal, 19/10/2026: "todos los caveats deberían ser como este" (el subtítulo del
+// hero: Caveat normal, con el espaciado de la fuente).
+describe("Caveat por defecto", () => {
+  it("sin grosor elegido sale normal aunque el texto fuera un título en negrita", () => {
+    expect(pesoLetra({ fontFamily: "Caveat" }, 800)).toBe(400);
+    expect(pesoLetra({ fontFamily: "Caveat" }, 700)).toBe(400);
+  });
+
+  it("si en el admin eligió negrita, la negrita manda", () => {
+    expect(pesoLetra({ fontFamily: "Caveat", bold: true }, 800)).toBe(800);
+    expect(pesoLetra({ fontFamily: "Caveat", bold: true }, 400)).toBe(700);
+  });
+
+  it("las demás fuentes siguen con su grosor de siempre", () => {
+    expect(pesoLetra({ fontFamily: "DM Sans" }, 800)).toBe(800);
+  });
+
+  it("Caveat va con el espaciado de la fuente; las demás, con el de siempre", () => {
+    expect(espaciadoLetra({ fontFamily: "Caveat" }, 1)).toBe("normal");
+    expect(espaciadoLetra({ fontFamily: "DM Sans" }, 1)).toBe(1);
+    expect(espaciadoLetra(undefined, "0.05em")).toBe("0.05em");
   });
 });

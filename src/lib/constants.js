@@ -384,8 +384,20 @@ export const getStyleConfig = (siteConfig, key) => {
 export const pesoLetra = (estilo, deSiempre = 400) => {
   if (estilo?.bold === true) return Math.max(deSiempre, 700);
   if (estilo?.bold === false) return 400;
+  // Con Caveat el "de siempre" es normal: Anibal quiere toda Caveat como el
+  // subtítulo del hero (19/10/2026). Si quiere negrita en un texto, la elige.
+  if (esCaveat(estilo)) return 400;
   return deSiempre;
 };
+
+const esCaveat = (estilo) => /caveat/i.test(estilo?.fontFamily || "");
+
+/**
+ * El letter-spacing de un texto editable: el de siempre, salvo en Caveat, que va
+ * con el de la fuente. Los espaciados fijos (títulos del footer, etiquetas de la
+ * franja gris) están pensados para DM Sans y abrían la letra a mano.
+ */
+export const espaciadoLetra = (estilo, deSiempre) => (esCaveat(estilo) ? "normal" : deSiempre);
 
 /**
  * Reviews carry dates loosely: Google rows have an optional ISO `review_date` plus a

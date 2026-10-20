@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, parseSiteText, mobileFontVar, getStyleConfig, pesoLetra, STATS, getStatValue, getStatUnit, formatStatSuffix, ABOUT_TOP } from "../lib/constants";
+import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, parseSiteText, mobileFontVar, getStyleConfig, pesoLetra, espaciadoLetra, STATS, getStatValue, getStatUnit, formatStatSuffix, ABOUT_TOP } from "../lib/constants";
 import { SocialIcon, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
 
@@ -24,7 +24,7 @@ export default function StatsBar({ siteConfig = {} }) {
                 <AnimatedCounter target={getStatValue(siteConfig, s)} decimals={s.decimals}/>
                 {formatStatSuffix(getStatUnit(siteConfig, s.key, s.defaultUnit))}
               </div>
-              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: pesoLetra(lblStyle, 600), textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 7 }}>{t(s.i18nKey)}</div>
+              <div style={{ fontSize: lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, color: "rgba(255,255,255,0.7)", fontWeight: pesoLetra(lblStyle, 600), textTransform: "uppercase", letterSpacing: espaciadoLetra(lblStyle, "0.05em"), marginTop: 7 }}>{t(s.i18nKey)}</div>
             </div>
           ))}
         </div>
