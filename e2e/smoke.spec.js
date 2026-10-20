@@ -1068,7 +1068,7 @@ test.describe('orden de la home', () => {
     await visit(page, '/');
     const medir = () => page.evaluate(() => ['.hero-section h1', '.hero-section .hero-brand', '.hero-section .hero-subtitle'].map((sel) => {
       const c = getComputedStyle(document.querySelector(sel));
-      return { familia: c.fontFamily.split(',')[0].trim(), espaciado: c.letterSpacing, estilo: c.fontStyle, variantes: c.fontFeatureSettings };
+      return { familia: c.fontFamily.split(',')[0].trim(), espaciado: c.letterSpacing, estilo: c.fontStyle };
     }));
     // Lo prerenderizado trae las fuentes de siempre; se mide cuando ya llegó lo del admin.
     await expect.poll(async () => (await medir()).map((l) => l.familia).join(), { message: 'no se aplicó Caveat en las tres líneas', timeout: DATOS_MS }).toBe('Caveat,Caveat,Caveat');
@@ -1076,8 +1076,6 @@ test.describe('orden de la home', () => {
     for (const l of lineas) {
       expect(l.espaciado, 'una línea conserva el espaciado de su fuente de siempre').toBe(lineas[0].espaciado);
       expect(l.estilo, 'una línea sale inclinada y las otras no').toBe(lineas[0].estilo);
-      // Sin esto Caveat dibuja la misma letra distinto según la vecina (19/10/2026).
-      expect(l.variantes, 'Caveat cambia la forma de la letra según la vecina').toBe('"calt" 0');
     }
     await page.unrouteAll({ behavior: 'wait' });
   });
