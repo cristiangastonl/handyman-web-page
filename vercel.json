@@ -1,4 +1,10 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "**": false
+    }
+  },
   "buildCommand": "dnf install -y nss nspr atk at-spi2-atk at-spi2-core cups-libs libdrm libX11 libXcomposite libXdamage libXext libXfixes libXrandr libxkbcommon libxshmfence mesa-libgbm pango alsa-lib >/dev/null && npx puppeteer browsers install chrome && npm run build",
   "redirects": [
     {
