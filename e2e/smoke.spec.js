@@ -882,6 +882,9 @@ test.describe('orden de la home', () => {
     await visit(page, '/');
     await expect(page.locator('.stats-section')).toContainText('Works in CH');
     await expect(page.locator('.stats-section')).not.toContainText('Video Shows');
+    // "Years of Experience" y no "Years Experience" (Anibal, 21/10/2026). La franja
+    // va en mayúsculas por CSS, así que se compara sin distinguirlas.
+    await expect(page.locator('.stats-section')).toContainText(/years of experience/i);
   });
 
   test('/faq cierra igual que /portfolio: título y botón verde de WhatsApp', async ({ page }) => {

@@ -215,7 +215,7 @@ export const STAT_UNITS = ["", "K", "M"];
 // existed (views K->M, followers none->K). A number stored back then is ambiguous — 950
 // could mean 950K or 950M — so it is only trusted once a unit is stored alongside it.
 export const STATS = [
-  { key: "stat_experience", label: "Years Experience", i18nKey: "stats.experience", defaultVal: "20", defaultUnit: "", decimals: 0 },
+  { key: "stat_experience", label: "Years of Experience", i18nKey: "stats.experience", defaultVal: "20", defaultUnit: "", decimals: 0 },
   // El rótulo era "Video Shows"; desde el 13/10/2026 dice "Works in CH" (pedido de
   // Anibal). La clave sigue siendo stat_videos para no perder el número guardado.
   { key: "stat_videos", label: "Works in CH", i18nKey: "stats.videos", defaultVal: "400", defaultUnit: "", decimals: 0 },
