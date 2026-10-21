@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, svgP, SECTION_PAD, SECTION_Y } from "../lib/constants";
+import { R, G, getSocialUrls, svgP, SECTION_PAD, SECTION_Y, TITLE_COLOR } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 import BandaCentrada from "./BandaCentrada";
 
@@ -20,7 +20,7 @@ export function FAQHome({ faqs, nav, siteConfig = {} }) {
     <FadeIn>
     <section style={{ padding: SECTION_PAD }}>
       <div style={{ maxWidth: 600, margin: "0 auto", background: "#fafafa", borderRadius: 14, padding: "28px 24px", border: "1px solid #f0f0f0" }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 18, textAlign: "center", color: "#222" }}>{t("faq.common")}</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 18, textAlign: "center", color: TITLE_COLOR }}>{t("faq.common")}</h2>
         {faqs.slice(0, 3).map((f, i) => (
           <div key={f.id || i} style={{ borderBottom: i < 2 ? "1px solid #e8e8e8" : "none", padding: "14px 0", borderLeft: `3px solid ${R}`, paddingLeft: 14, marginBottom: i < 2 ? 0 : 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: "#333" }}>{faqText(f, "question", lang)}</div>
@@ -48,7 +48,7 @@ export function FAQPage({ faqs, siteConfig = {} }) {
     // Cierra con SECTION_Y y no con 80: la caja de "Have another question?" tiene
     // SECTION_Y arriba, y Anibal pidió el mismo aire arriba y abajo (14/10/2026).
     <div style={{ maxWidth: 600, margin: "0 auto", padding: `32px 24px ${SECTION_Y}px` }}>
-      <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>{t("faq.title")}</h1>
+      <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: TITLE_COLOR }}>{t("faq.title")}</h1>
       {faqs.map((f, i) => {
         const isOpen = fq === i;
         return (

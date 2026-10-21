@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, PROFILE_IMG, parseSiteText, getHighlightField, pesoLetra, SECTION_X, SECTION_Y, ABOUT_TOP } from "../lib/constants";
+import { R, PROFILE_IMG, parseSiteText, getHighlightField, pesoLetra, SECTION_X, SECTION_Y, ABOUT_TOP, TITLE_COLOR } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 
 // Fallback skill tags for when no categories exist yet (fresh install / Supabase down).
@@ -36,7 +36,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           el order la manda de vuelta a la derecha, así que se sigue leyendo el
           título antes que la cara, que es como lo quería Anibal. */}
       <div className="about-row" style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
-        <img src={PROFILE_IMG} alt="Professional handyman in Zurich - specialist for home repairs" width={150} height={150} decoding="async" style={{ order: 2, width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
+        <img src={PROFILE_IMG} alt={t("alt.profile")} width={150} height={150} decoding="async" style={{ order: 2, width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
         <div style={{ order: 1, flex: 1, minWidth: 240 }}>
           {/* El fontFamily va explícito y no heredado del root: Anibal lo quiere
               atado a la misma familia que los títulos de las 3 tarjetas de abajo
@@ -46,7 +46,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           <h2 style={{
             fontSize: titulo?.fontSize ? `${titulo.fontSize}px` : 20,
             fontFamily: `'${titulo?.fontFamily || "DM Sans"}', sans-serif`,
-            fontWeight: pesoLetra(titulo, 700), marginBottom: 6,
+            fontWeight: pesoLetra(titulo, 700), marginBottom: 6, color: TITLE_COLOR,
           }}>{titulo?.text || t("about.title")}</h2>); })()}
           {(() => { const bio = parseSiteText(siteConfig.bio_text); return (
           <p style={{
@@ -83,7 +83,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           const body = getHighlightField(siteConfig, `about_highlight${n}_text`, t(`about.highlight${n}.text`));
           return (
           <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", borderLeft: "3px solid #D4781F" }}>
-            <div style={{ fontSize: title.fontSize, fontFamily: `'${title.fontFamily}', sans-serif`, fontWeight: pesoLetra(title, 700), color: "#333", marginBottom: 4, whiteSpace: "pre-line" }}>{title.text}</div>
+            <div style={{ fontSize: title.fontSize, fontFamily: `'${title.fontFamily}', sans-serif`, fontWeight: pesoLetra(title, 700), color: TITLE_COLOR, marginBottom: 4, whiteSpace: "pre-line" }}>{title.text}</div>
             <div style={{ fontSize: body.fontSize, fontFamily: `'${body.fontFamily}', sans-serif`, fontWeight: pesoLetra(body), color: "#555", lineHeight: 1.55, whiteSpace: "pre-line" }}>{body.text}</div>
           </div>
           );

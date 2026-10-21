@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { watchConsole, visit, ROUTES, LANGS, esperarPresentacionAsentada } from './helpers.js';
+import { test, expect, watchConsole, visit, ROUTES, LANGS, esperarPresentacionAsentada } from './helpers.js';
 
 test.describe('rutas públicas', () => {
   for (const route of ROUTES) {
@@ -88,6 +87,28 @@ test.describe('i18n', () => {
       const text = await page.locator('#root').innerText();
       expect(text).not.toMatch(/\b(nav|hero|about|stats)\.[a-zA-Z]+\b/);
       expect(text).toContain('Handyman');
+    });
+  }
+
+  // "Algunas cosas se traducen y otras no" (Anibal, 21/10). Lo que escribe el
+  // código —no la base ni el admin— no puede quedar en inglés en otro idioma.
+  // Son todas piezas que no dependen de Supabase.
+  for (const lang of LANGS.filter((l) => l.code !== 'en')) {
+    test(`en ${lang.label} los textos del código no quedan en inglés`, async ({ page }) => {
+      await visit(page, `/?lang=${lang.code}`);
+      const ingles = await page.evaluate(() => ({
+        saltar: document.querySelector('a[href="#main-content"]')?.textContent,
+        menu: document.querySelector('.mobile-hamburger')?.getAttribute('aria-label'),
+        hero: document.querySelector('.hero-image')?.getAttribute('alt'),
+        perfil: document.querySelector('.about-row img')?.getAttribute('alt'),
+        zonas: document.body.innerText.includes('All around Zurich') ? 'All around Zurich' : null,
+      }));
+      expect(ingles.saltar).toBeTruthy();
+      expect(ingles.saltar).not.toBe('Skip to main content');
+      expect(ingles.menu).not.toBe('Toggle menu');
+      expect(ingles.hero).not.toMatch(/^Professional handyman services/i);
+      expect(ingles.perfil).not.toMatch(/^Professional handyman in Zurich/i);
+      expect(ingles.zonas, 'el subtítulo de Service Areas sigue en inglés').toBeNull();
     });
   }
 });
@@ -202,6 +223,9 @@ test.describe('admin', () => {
 });
 
 test.describe('happy customers', () => {
+  // Miden la proporción de la foto contra su caja: necesitan la imagen de verdad.
+  // Son pocas fotos; el resto del harness no baja ninguna (ver helpers.js).
+  test.use({ fotosReales: true });
   // El chequeo es el que motivó el diseño: las fotos tienen que acompañar TODO
   // el scroll, no verse sólo arriba. En desktop ancho viven en los márgenes
   // (fixed) y en mobile intercaladas entre las reviews, así que se verifica
@@ -222,7 +246,11 @@ test.describe('happy customers', () => {
     // null con la lista vacía, así que .hc-edges existe exactamente cuando hay
     // fotos, en los dos viewports (en mobile el CSS los oculta, pero están en el
     // DOM). Los tiles no sirven para esto — ver el comentario de abajo.
-    if (await page.locator('.hc-edges').count() === 0) {
+    // Se espera a que monte: un count() al toque a veces caía sobre el HTML
+    // prerenderizado, que ya trae los tiles pero todavía no los rieles.
+    const hayRieles = await page.locator('.hc-edges').first()
+      .waitFor({ state: 'attached', timeout: DATOS_MS }).then(() => true, () => false);
+    if (!hayRieles) {
       await expect(page.locator('.hc-inline-tile')).toHaveCount(0);
       return;
     }
@@ -798,6 +826,33 @@ async function pisarSiteConfig(page, cambios) {
     await route.fulfill({ response: res, json: filas });
   });
 }
+
+test.describe('color de los títulos', () => {
+  test('los títulos oscuros son gris oscuro, no negro', async ({ page }) => {
+    // "que no sean oscuros oscuros, sino gris oscuro, lo más oscuro que se pueda
+    // pero no negro" (Anibal, 21/10). Heredaban el #1a1a1a del root. Se mira todo
+    // título oscuro de las 4 rutas: los blancos de las bandas de color no cuentan.
+    for (const ruta of ['/', '/portfolio', '/reviews', '/faq']) {
+      await visit(page, ruta);
+      // "Título" es lo que se ve como tal: negrita de 18 px para arriba con texto
+      // propio. En /reviews no hay <h*>; ahí los títulos son los números del puntaje.
+      const oscuros = await page.evaluate(() => [...document.querySelectorAll('#main-content *')]
+        .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
+        .map((el) => {
+          const cs = getComputedStyle(el);
+          return { texto: el.innerText.trim().slice(0, 40), color: cs.color, size: parseFloat(cs.fontSize), weight: Number(cs.fontWeight) };
+        })
+        .filter(({ color, size, weight }) => {
+          const [r, g, b] = color.match(/\d+/g).map(Number);
+          return size >= 18 && weight >= 700 && r + g + b < 3 * 100;
+        }));
+      // /reviews sin reseñas cargadas no muestra puntaje (igual que en los tests del
+      // resumen): ahí se mira lo que haya. Las otras tres siempre tienen títulos.
+      if (ruta !== '/reviews') expect(oscuros.length, `${ruta}: debería tener algún título`).toBeGreaterThan(0);
+      for (const t of oscuros) expect(t.color, `${ruta} «${t.texto}»`).toBe('rgb(51, 51, 51)');
+    }
+  });
+});
 
 test.describe('orden de la home', () => {
   test('las tarjetas de redes tienen el mismo aire arriba y abajo', async ({ page }) => {

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { getStyleConfig, pesoLetra, SECTION_PAD_TIGHT, SECTION_TITLE_MB } from "../lib/constants";
+import { getStyleConfig, pesoLetra, SECTION_PAD_TIGHT, SECTION_TITLE_MB, TITLE_COLOR } from "../lib/constants";
 import Carousel from "./Carousel";
 import { SPEED_FACTORS } from "../lib/carouselSpeed";
 import { FadeIn } from "./FadeIn";
@@ -12,7 +12,7 @@ export default function TailorJobs({ items, setLb, siteConfig = {} }) {
     <FadeIn delay={0.1}>
     <section style={{ padding: SECTION_PAD_TIGHT, maxWidth: 940, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: SECTION_TITLE_MB }}>
-        <h2 style={{ fontSize: titleStyle.fontSize, fontFamily: `'${titleStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(titleStyle, 700) }}>{t("tailorJobs.title")}</h2>
+        <h2 style={{ fontSize: titleStyle.fontSize, fontFamily: `'${titleStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(titleStyle, 700), color: TITLE_COLOR }}>{t("tailorJobs.title")}</h2>
       </div>
       <Carousel items={items} onClickItem={item => setLb(item, items)} speedFactor={SPEED_FACTORS.tailorJobs}/>
     </section>

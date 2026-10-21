@@ -60,7 +60,7 @@ export default function Hero({ siteConfig = {} }) {
           JPEG originales quedan en public/ como fuente). */}
       <picture style={{ display: "contents" }}>
         <source media="(max-width: 640px)" srcSet={HERO_IMG_MOBILE}/>
-        <img className="hero-image" src={HERO_IMG} alt="Professional handyman services in Zurich - home repair and maintenance" fetchpriority="high" width={1200} height={800} draggable={false}
+        <img className="hero-image" src={HERO_IMG} alt={t("alt.hero")} fetchpriority="high" width={1200} height={800} draggable={false}
           style={{ width: "100%", height: "100%", objectFit: "cover", "--hero-x": `${posX}%`, "--hero-y": `${posY}%`, objectPosition: "var(--hero-x) var(--hero-y)", pointerEvents: "none" }}/>
       </picture>
       <div className="hero-scrim" style={{ position: "absolute", inset: 0, background: SCRIM }}/>

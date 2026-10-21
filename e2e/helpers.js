@@ -1,4 +1,61 @@
-import { expect } from '@playwright/test';
+import zlib from 'node:zlib';
+import { test as base, expect } from '@playwright/test';
+
+export { expect };
+
+// La foto que reciben los tests en lugar de las del bucket: un PNG gris de 800×600
+// (~1 KB). Tiene tamaño de foto a propósito: con una de 1×1 px las columnas de
+// Happy Customers de los márgenes se encogían, entraban decenas en pantalla y la
+// home pedía 54 fotos en vez de ~9 — el layout tiene que ser el de verdad.
+function pngGris(ancho, alto) {
+  const crc = (buf) => {
+    let c = ~0;
+    for (const b of buf) { c ^= b; for (let k = 0; k < 8; k++) c = (c >>> 1) ^ (0xEDB88320 & -(c & 1)); }
+    return ~c >>> 0;
+  };
+  const bloque = (tipo, datos) => {
+    const largo = Buffer.alloc(4); largo.writeUInt32BE(datos.length);
+    const cuerpo = Buffer.concat([Buffer.from(tipo), datos]);
+    const suma = Buffer.alloc(4); suma.writeUInt32BE(crc(cuerpo));
+    return Buffer.concat([largo, cuerpo, suma]);
+  };
+  const cabecera = Buffer.alloc(13);
+  cabecera.writeUInt32BE(ancho, 0); cabecera.writeUInt32BE(alto, 4);
+  cabecera[8] = 8; cabecera[9] = 0; // 8 bits, escala de grises
+  const fila = Buffer.concat([Buffer.from([0]), Buffer.alloc(ancho, 0xcc)]);
+  const pixeles = zlib.deflateSync(Buffer.concat(Array(alto).fill(fila)));
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    bloque('IHDR', cabecera), bloque('IDAT', pixeles), bloque('IEND', Buffer.alloc(0)),
+  ]);
+}
+const FOTO_FALSA = pngGris(800, 600);
+
+/**
+ * Las fotos de Supabase Storage no se bajan en los tests: se responden con FOTO_FALSA.
+ *
+ * El 21/10/2026 Supabase cortó el proyecto (402, exceed_cached_egress_quota): se
+ * habían ido los 250 GB del plan Pro, y casi todo lo había gastado este harness.
+ * Cada verify corre ~150 tests con el navegador sin caché contra el bucket de
+ * producción, y las fotos son originales de ~1 MB: el 19/10, con 6 commits, hubo
+ * 116.000 pedidos al storage contra ~1.000 de un día sin commits.
+ *
+ * Al navegador le llega igual el pedido y una respuesta 200, así que lo que se mide
+ * de los pedidos (cuántas fotos pide la home) sigue valiendo. Un test que necesite
+ * la foto de verdad (su proporción, por ejemplo) declara `test.use({ fotosReales: true })`.
+ */
+export const test = base.extend({
+  fotosReales: [false, { option: true }],
+  page: async ({ page, fotosReales }, use) => {
+    if (!fotosReales) {
+      await page.route('**/storage/v1/object/**', (route) =>
+        route.request().resourceType() === 'image'
+          ? route.fulfill({ status: 200, contentType: 'image/png', body: FOTO_FALSA })
+          : route.continue());
+    }
+    await use(page);
+  },
+});
 
 // Ruido conocido que no queremos que rompa el harness.
 const IGNORED = [

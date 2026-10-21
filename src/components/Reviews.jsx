@@ -2,7 +2,7 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { estiloResumen } from "../lib/resumenResenas";
-import { R, svgP, ab, getStyleConfig, pesoLetra, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD, SECTION_Y } from "../lib/constants";
+import { R, svgP, ab, getStyleConfig, pesoLetra, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD, SECTION_Y, TITLE_COLOR } from "../lib/constants";
 import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
 import { Stars, GoogleG, SocialIcon } from "./ui";
@@ -24,12 +24,15 @@ const REVIEWS_DIR = -1;
 
 // Facebook no da estrellas, da recomendación. El pulgar arriba le da al badge el
 // mismo peso visual que las 5 estrellas de una card de Google al lado.
-const FbBadge = () => (
+const FbBadge = () => {
+  const { t } = useTranslation();
+  return (
   <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "#1877F2", fontWeight: 600 }}>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d={svgP.thumbsUp}/></svg>
-    Recommends
+    {t("reviews.recommends")}
   </span>
-);
+  );
+};
 
 /**
  * Merge both sources into one chronologically sortable list.
@@ -181,7 +184,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
             {googleOnly.length > 0 && <>
               <div data-testid="home-google" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <GoogleG size={18}/>
-                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(revScoreStyle, 800), color: "#1a1a1a", lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
+                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(revScoreStyle, 800), color: TITLE_COLOR, lineHeight: 1 }}><AnimatedCounter target={parseFloat(avg)} duration={1400} decimals={1}/></span>
                 {/* textAlign center: el conteo es más angosto que la fila de estrellas,
                     así que sin esto arrancaba pegado al borde izquierdo de ellas y se
                     leía descolgado. Anibal: "lo de 158 reviews deberia centrarse"
@@ -205,7 +208,7 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
                   ambos". El número sale de las reseñas cargadas y sube solo. */}
               <div data-testid="home-facebook" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <SocialIcon type="fb" size={18}/>
-                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(revScoreStyle, 800), color: "#1a1a1a", lineHeight: 1 }}>
+                <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(revScoreStyle, 800), color: TITLE_COLOR, lineHeight: 1 }}>
                   <AnimatedCounter target={100} duration={1400} decimals={0}/>%
                 </span>
                 <div data-testid="home-facebook-conteo" style={{ fontSize: 11, color: "#777" }}>{t("reviews.count", { count: fbOnly.length })}</div>
@@ -248,8 +251,8 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
               );
             })}
           </div>
-          <button onClick={() => revRef.current?.scrollBy({ left: -340, behavior: "smooth" })} style={ab("left")} aria-label="Previous">&#8249;</button>
-          <button onClick={() => revRef.current?.scrollBy({ left: 340, behavior: "smooth" })} style={ab("right")} aria-label="Next">&#8250;</button>
+          <button onClick={() => revRef.current?.scrollBy({ left: -340, behavior: "smooth" })} style={ab("left")} aria-label={t("a11y.prev")}>&#8249;</button>
+          <button onClick={() => revRef.current?.scrollBy({ left: 340, behavior: "smooth" })} style={ab("right")} aria-label={t("a11y.next")}>&#8250;</button>
         </div>
       </div>
     </section>
@@ -392,7 +395,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
             <div data-testid="resumen-google" style={columna}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
                 <GoogleG size={num.icono}/>
-                <span style={{ fontSize: num.google, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                <span style={{ fontSize: num.google, fontWeight: 800, color: TITLE_COLOR, lineHeight: 1 }}>
                   <AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/>
                 </span>
               </div>
@@ -435,7 +438,7 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
                 <SocialIcon type="fb" size={num.icono}/>
                 {/* Al 90% del 5.0: "bajalo al 90%, está muy agresivo… al estar más
                     solo" (Anibal, 13/10/2026). Sin estrellas abajo pesaba más. */}
-                <span style={{ fontSize: num.facebook, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>
+                <span style={{ fontSize: num.facebook, fontWeight: 800, color: TITLE_COLOR, lineHeight: 1 }}>
                   <AnimatedCounter target={100} duration={1600} decimals={0}/>%
                 </span>
               </div>

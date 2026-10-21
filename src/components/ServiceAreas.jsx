@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, SERVICE_AREAS, SECTION_PAD } from "../lib/constants";
+import { R, SERVICE_AREAS, SECTION_PAD, TITLE_COLOR } from "../lib/constants";
 import { MapPin } from "./ui";
 import { FadeIn } from "./FadeIn";
 
@@ -8,7 +8,7 @@ export default function ServiceAreas() {
   return (
     <FadeIn>
     <section style={{ padding: SECTION_PAD, maxWidth: 940, margin: "0 auto" }}>
-      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4, textAlign: "center" }}>{t("serviceAreas.title")}</h2>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4, textAlign: "center", color: TITLE_COLOR }}>{t("serviceAreas.title")}</h2>
       <p style={{ fontSize: 12, color: "#666", marginBottom: 16, textAlign: "center" }}>{t("serviceAreas.subtitle")}</p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
         {SERVICE_AREAS.map(area => (

@@ -1,10 +1,14 @@
+import { useTranslation } from "react-i18next";
 import { R, svgP, getSocialUrls, socialColors, LANGS } from "../lib/constants";
 
-export const Stars = ({ n, sz = 12 }) => (
-  <span role="img" aria-label={`${n} out of 5 stars`} style={{ fontSize: sz, letterSpacing: 1 }}>
+export const Stars = ({ n, sz = 12 }) => {
+  const { t } = useTranslation();
+  return (
+  <span role="img" aria-label={t("a11y.stars", { n })} style={{ fontSize: sz, letterSpacing: 1 }}>
     {[1,2,3,4,5].map(i => <span key={i} style={{ color: i <= n ? "#F59E0B" : "#ddd" }}>★</span>)}
   </span>
-);
+  );
+};
 
 const socialLabels = { fb: "Facebook", yt: "YouTube", wa: "WhatsApp" };
 

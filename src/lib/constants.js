@@ -24,6 +24,10 @@ export const SITE_ORIGIN = "https://www.handymanservicesinzurich.ch";
 
 export const R = "#D4781F";
 export const G = "#4A4A4A";
+// Color de los títulos. Anibal los quería "gris oscuro, lo más oscuro posible pero no
+// negro" (21/10): el #1a1a1a que heredaban del root se leía negro. Uno solo para todos,
+// así si pide más claro u oscuro es cambiar este valor.
+export const TITLE_COLOR = "#333333";
 export const PHONE = "+41 76 594 95 81";
 // El mensaje en inglés es el que escribió Anibal (10/10/2026), tal cual: no corregirle el inglés.
 // Lo que se ve en el sitio sale de site_config.whatsapp_url; esto es el fallback.

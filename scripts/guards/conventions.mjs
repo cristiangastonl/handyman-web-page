@@ -58,6 +58,19 @@ export function checkConventions() {
         warnings.push(`${at}: URL de localhost hardcodeada`);
     });
 
+    // Atributos que lee el visitante (lector de pantalla, alt, tooltip) en duro: con
+    // DE/IT/FR/ES seguían en inglés (auditoría del 21/10). Van por t(). El alt del
+    // logo es el nombre de la marca; ShareButton no lo usa ninguna página pública.
+    if ((rel.startsWith('src/components') && !rel.includes('Admin') && !rel.endsWith('ShareButton.jsx')) || rel === 'src/App.jsx') {
+      lines.forEach((line, i) => {
+        const m = line.match(/\b(aria-label|alt|title|placeholder)="([A-Za-z][^"]*)"/);
+        if (m && m[2] !== 'Handyman Services in Zurich')
+          errors.push(`${rel}:${i + 1}: ${m[1]}="${m[2]}" en duro — pasalo por t() para que se traduzca`);
+      });
+      const skip = code.match(/>\s*Skip to main content\s*</);
+      if (skip) errors.push(`${rel}: "Skip to main content" en duro — pasalo por t()`);
+    }
+
     // Texto visible en duro en componentes (debería ir por i18n).
     if (rel.startsWith('src/components') && !rel.includes('Admin')) {
       const hardcoded = code.match(/>\s*[A-Z][a-zA-Z]{3,}(\s+[a-zA-Z]+){2,}\s*</g);
@@ -262,6 +275,18 @@ export function checkConventions() {
     }
   } else if (!existsSync(envPath)) {
     warnings.push('.env no existe — el build va a correr sin Supabase');
+  }
+
+  // Los specs toman `test` de e2e/helpers.js, que responde las fotos de Supabase con
+  // una imagen falsa. Con el `test` de @playwright/test cada corrida vuelve a bajar
+  // fotos reales del bucket: así se gastaron los 250 GB del plan (corte del 21/10/2026).
+  const e2eDir = join(root, 'e2e');
+  if (existsSync(e2eDir)) {
+    for (const f of readdirSync(e2eDir).filter((n) => n.endsWith('.spec.js'))) {
+      const code = readFileSync(join(e2eDir, f), 'utf8');
+      if (/import\s*\{[^}]*\btest\b[^}]*\}\s*from\s*['"]@playwright\/test['"]/.test(code))
+        errors.push(`e2e/${f}: importa test de @playwright/test — usá el de ./helpers.js, que no baja fotos de Supabase`);
+    }
   }
 
   return { errors, warnings };

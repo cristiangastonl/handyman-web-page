@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { useEffect, useRef, useState } from "react";
 import { itemThumb } from "../lib/constants";
 import { useAnimationDuration, SPEED_FACTORS } from "../lib/carouselSpeed";
 
@@ -99,17 +101,36 @@ export function HappyCustomerTile({ item, setLb, context }) {
  * (pedido de Anibal, 10/10/2026). Alto fijo y ancho según la foto, por lo mismo
  * que el resto: la pieza trae marco, texto y logo, y recortarla los corta.
  * El alto es el de una tarjeta de reseña cerrada, así queda pareja en el riel.
+ *
+ * La foto se pide recién cuando la tarjeta queda a menos de 600 px de la parte
+ * visible del riel, como en Carousel.jsx. El loading="lazy" del navegador no la
+ * frenaba: en un riel horizontal de 14.000 px Chrome pedía las 24 juntas al abrir
+ * la home, 16 MB sin scrollear (medido el 21/10/2026). Hasta que llega, la tarjeta
+ * guarda el lugar con el ancho de una foto apaisada típica.
  */
 export function HappyCustomerCard({ item, setLb, context, height = 210 }) {
+  const { t } = useTranslation();
   const src = itemThumb(item);
+  const ref = useRef(null);
+  const [cerca, setCerca] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || cerca) return;
+    if (typeof IntersectionObserver === "undefined") { setCerca(true); return; }
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setCerca(true); obs.disconnect(); }
+    }, { root: el.parentElement, rootMargin: "0px 600px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [cerca]);
   if (!src) return null;
   return (
-    <div className="hc-carousel-tile" onClick={() => setLb?.(item, context)}
-      style={{ flexShrink: 0, alignSelf: "center", cursor: "pointer", transition: "transform .2s" }}
+    <div ref={ref} className="hc-carousel-tile" onClick={() => setLb?.(item, context)}
+      style={{ flexShrink: 0, alignSelf: "center", cursor: "pointer", transition: "transform .2s", minWidth: cerca ? undefined : Math.round(height * 4 / 3), height: cerca ? undefined : height }}
       onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.03)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "none"; }}>
-      <img src={src} alt={item.alt_text || "Anibal with a happy customer in Zurich"} loading="lazy"
-        style={{ display: "block", height, width: "auto", maxWidth: "none" }}/>
+      {cerca && <img src={src} alt={item.alt_text || t("alt.happyCustomer")}
+        style={{ display: "block", height, width: "auto", maxWidth: "none" }}/>}
     </div>
   );
 }

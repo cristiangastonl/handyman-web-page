@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, itemThumb, svgP, playlistUrl, SECTION_Y } from "../lib/constants";
+import { R, G, getSocialUrls, itemThumb, svgP, playlistUrl, SECTION_Y, TITLE_COLOR } from "../lib/constants";
 import { fetchPortfolioSummary, fetchPortfolioItems, normalizeWorkItem } from "../lib/supabase";
 import { normalizeSummaryRow, buildPortfolioSummary, countsOf } from "../lib/portfolioSummary";
 import { SocialIcon } from "./ui";
@@ -43,13 +43,14 @@ function PlaylistLink({ playlistId, t }) {
 
 // Reusable item card
 function ItemCard({ item, setLb, contextItems }) {
+  const { t } = useTranslation();
   return (
     <div key={item.id} onClick={() => setLb(item, contextItems)}
       style={{ borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
       onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
       <div style={{ position: "relative", paddingTop: "62%" }}>
-        <img src={item.type === "image" ? item.src : itemThumb(item)} alt={item.title + " - handyman service in Zurich"} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+        <img src={item.type === "image" ? item.src : itemThumb(item)} alt={t("alt.work", { title: item.title })} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
         {(item.type === "video" || item.type === "facebook") && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.08)" }}>
             <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -173,7 +174,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
   if (!summary) {
     return (
       <div style={{ maxWidth: 940, margin: "0 auto", padding: `28px 24px ${SECTION_Y}px` }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("portfolio.title")}</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, color: TITLE_COLOR }}>{t("portfolio.title")}</h1>
         <Spinner/>
       </div>
     );
@@ -185,7 +186,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto", padding: `28px 24px ${SECTION_Y}px` }}>
-      <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("portfolio.title")}</h1>
+      <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, color: TITLE_COLOR }}>{t("portfolio.title")}</h1>
       {portfolioView === "categories" && (
         <p style={{ fontSize: 12, color: "#888", marginBottom: 18 }}>
           {activeCats.length} {t("portfolio.categories", "categories")}

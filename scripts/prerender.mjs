@@ -78,6 +78,10 @@ async function prerender() {
     for (const route of ROUTES) {
       console.log(`  Pre-rendering ${route}...`);
       const page = await browser.newPage();
+      // Las imágenes ni se piden: el HTML guarda su src igual, y bajarlas en cada
+      // build (cada verify, cada deploy) era tráfico del bucket de Supabase por nada.
+      await page.setRequestInterception(true);
+      page.on('request', (r) => (IGNORED_RESOURCES.has(r.resourceType()) ? r.abort() : r.continue()));
       const inflight = trackDataRequests(page);
       await page.goto(`http://localhost:${PORT}${route}`, {
         waitUntil: 'domcontentloaded',
@@ -103,6 +107,18 @@ async function prerender() {
         return el.textContent.length;
       });
       if (!guardados) throw new Error(`${route}: la app no dejó sus datos (window.__datosPrerender)`);
+
+      // Las fotos de Supabase quedan en el HTML como data-src, no como src. Con src,
+      // el navegador bajaba las 75 de la home apenas leía el HTML (sin lazy) y React
+      // las tiraba enseguida al montar sus propias tarjetas: tráfico del bucket por
+      // nada en cada visita (medido el 21/10/2026, cuando Supabase cortó el proyecto
+      // por egress). La URL sigue en el HTML para quien lo lea.
+      await page.evaluate(() => {
+        for (const img of document.querySelectorAll('img[src*="/storage/v1/object/"]')) {
+          img.setAttribute('data-src', img.getAttribute('src'));
+          img.removeAttribute('src');
+        }
+      });
 
       const html = await page.content();
 

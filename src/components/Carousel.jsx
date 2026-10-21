@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { R, ab, itemThumb } from "../lib/constants";
 import { useCarouselSpeed } from "../lib/carouselSpeed";
@@ -49,6 +50,7 @@ export default function Carousel({
   // sí o sí por el trabajo más nuevo.
   randomStart = true,
 }) {
+  const { t } = useTranslation();
   const trackRef = useRef(null);
   const animRef = useRef(null);
   const posRef = useRef(0);
@@ -221,8 +223,8 @@ export default function Carousel({
           </div>
         ))}
       </div>
-      <button onClick={() => scroll(-1)} style={ab("left")} aria-label="Previous">&#8249;</button>
-      <button onClick={() => scroll(1)} style={ab("right")} aria-label="Next">&#8250;</button>
+      <button onClick={() => scroll(-1)} style={ab("left")} aria-label={t("a11y.prev")}>&#8249;</button>
+      <button onClick={() => scroll(1)} style={ab("right")} aria-label={t("a11y.next")}>&#8250;</button>
     </div>
   );
 }

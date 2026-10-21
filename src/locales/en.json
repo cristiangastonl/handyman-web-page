@@ -106,5 +106,19 @@
   "returningCustomers.title": "Returning Customers",
   "tailorJobs.title": "Custom Projects",
   "brands.title": "Trusted Brands I Work With",
-  "reviews.recommendedPill": "Recommended"
+  "reviews.recommendedPill": "Recommended",
+  "reviews.recommends": "Recommends",
+  "footer.copied": "Copied!",
+  "a11y.skip": "Skip to main content",
+  "a11y.menu": "Toggle menu",
+  "a11y.prev": "Previous",
+  "a11y.next": "Next",
+  "a11y.viewer": "Image viewer",
+  "a11y.video": "Video player",
+  "a11y.stars": "{{n}} out of 5 stars",
+  "alt.hero": "Professional Handyman services in Zurich - home repair and maintenance",
+  "alt.profile": "Professional Handyman in Zurich - specialist for home repairs",
+  "alt.work": "{{title}} - Handyman service in Zurich",
+  "alt.workFallback": "Handyman project in Zurich",
+  "alt.happyCustomer": "Anibal with a happy customer in Zurich"
 }
