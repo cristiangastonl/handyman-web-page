@@ -169,10 +169,6 @@ export default function App() {
       if (dbCats?.length > 0) datos.cats = withAllCategory(dbCats);
       if (dbFaqs?.length > 0) datos.faqs = dbFaqs.map(f => ({
         id: f.id, q: f.question, a: f.answer,
-        question_de: f.question_de, answer_de: f.answer_de,
-        question_es: f.question_es, answer_es: f.answer_es,
-        question_fr: f.question_fr, answer_fr: f.answer_fr,
-        question_it: f.question_it, answer_it: f.answer_it,
       }));
       if (dbSubcats?.length > 0) datos.subcats = dbSubcats;
       if (dbFbReviews?.length > 0) datos.fbReviews = dbFbReviews;

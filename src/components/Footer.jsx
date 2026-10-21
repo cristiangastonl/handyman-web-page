@@ -4,7 +4,11 @@ import { R, PHONE, SERVICE_AREAS, svgP, getSocialUrls, getStyleConfig, pesoLetra
 import { SocialIcon } from "./ui";
 
 export default function Footer({ nav, siteConfig = {} }) {
-  const { t } = useTranslation();
+  // El pie va siempre en inglés, en todos los idiomas (Gastón, 21/10/2026): el
+  // horario es un dato que no se traduce —si Anibal lo cambia, una traducción
+  // vieja mentiría— y el resto del pie acompaña. Inglés es el idioma base del sitio.
+  const { i18n } = useTranslation();
+  const t = i18n.getFixedT("en");
   const [copied, setCopied] = useState(false);
   const headStyle = getStyleConfig(siteConfig, "footer_heading_style");
   const hoursStyle = getStyleConfig(siteConfig, "footer_hours_style");

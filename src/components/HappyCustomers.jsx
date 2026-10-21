@@ -30,6 +30,7 @@ const RAIL_SECONDS = 40;
  * la pieza funcione.
  */
 const PhotoTile = ({ item, onClick }) => {
+  const { t } = useTranslation();
   const src = itemThumb(item);
   if (!src) return null;
   return (
@@ -41,7 +42,7 @@ const PhotoTile = ({ item, onClick }) => {
     >
       <img
         src={src}
-        alt={item.alt_text || "Anibal with a happy customer in Zurich"}
+        alt={item.alt_text || t("alt.happyCustomer")}
         loading="lazy"
         style={{ display: "block", width: "100%", height: "auto" }}
       />

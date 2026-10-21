@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { R, PROFILE_IMG, parseSiteText, getHighlightField, pesoLetra, SECTION_X, SECTION_Y, ABOUT_TOP, TITLE_COLOR } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
+import { useContenido } from "../lib/contenido";
 
 // Fallback skill tags for when no categories exist yet (fresh install / Supabase down).
 const FALLBACK_SKILLS = ["electricity", "plumbing", "assembly", "fixings", "gardening", "wallMounting"];
@@ -18,6 +19,7 @@ const TAG_SOMBRA_HOVER = "0 8px 28px rgba(212,120,31,0.28)";
 
 export default function About({ nav, navToCategory, cats = [], siteConfig = {} }) {
   const { t } = useTranslation();
+  const tc = useContenido();
   // Tags mirror the real Portfolio categories the client uploads, not a hardcoded list.
   const realCats = cats.filter(c => c.id !== "all");
   const tags = realCats.length > 0
@@ -47,7 +49,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
             fontSize: titulo?.fontSize ? `${titulo.fontSize}px` : 20,
             fontFamily: `'${titulo?.fontFamily || "DM Sans"}', sans-serif`,
             fontWeight: pesoLetra(titulo, 700), marginBottom: 6, color: TITLE_COLOR,
-          }}>{titulo?.text || t("about.title")}</h2>); })()}
+          }}>{tc(titulo?.text) || t("about.title")}</h2>); })()}
           {(() => { const bio = parseSiteText(siteConfig.bio_text); return (
           <p style={{
             fontSize: bio?.fontSize ? `${bio.fontSize}px` : 14,
@@ -55,7 +57,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
             fontWeight: pesoLetra(bio),
             color: "#555", lineHeight: 1.6, marginBottom: 6
           }}>
-            {bio?.text || t("about.bio")}
+            {tc(bio?.text) || t("about.bio")}
           </p>); })()}
           <div className="skill-tags" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
             {tags.map(tag => (
@@ -70,7 +72,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
                 // y por un frame se veía el blanco de la página detrás.
                 onMouseEnter={e => { e.currentTarget.style.filter = "brightness(0.92)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = TAG_SOMBRA_HOVER; }}
                 onMouseLeave={e => { e.currentTarget.style.filter = "none"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                {tag.label}
+                {tc(tag.label)}
               </button>
             ))}
           </div>
@@ -83,8 +85,8 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           const body = getHighlightField(siteConfig, `about_highlight${n}_text`, t(`about.highlight${n}.text`));
           return (
           <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", borderLeft: "3px solid #D4781F" }}>
-            <div style={{ fontSize: title.fontSize, fontFamily: `'${title.fontFamily}', sans-serif`, fontWeight: pesoLetra(title, 700), color: TITLE_COLOR, marginBottom: 4, whiteSpace: "pre-line" }}>{title.text}</div>
-            <div style={{ fontSize: body.fontSize, fontFamily: `'${body.fontFamily}', sans-serif`, fontWeight: pesoLetra(body), color: "#555", lineHeight: 1.55, whiteSpace: "pre-line" }}>{body.text}</div>
+            <div style={{ fontSize: title.fontSize, fontFamily: `'${title.fontFamily}', sans-serif`, fontWeight: pesoLetra(title, 700), color: TITLE_COLOR, marginBottom: 4, whiteSpace: "pre-line" }}>{tc(title.text)}</div>
+            <div style={{ fontSize: body.fontSize, fontFamily: `'${body.fontFamily}', sans-serif`, fontWeight: pesoLetra(body), color: "#555", lineHeight: 1.55, whiteSpace: "pre-line" }}>{tc(body.text)}</div>
           </div>
           );
         })}

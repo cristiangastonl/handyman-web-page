@@ -3,19 +3,12 @@ import { useTranslation } from "react-i18next";
 import { R, G, getSocialUrls, svgP, SECTION_PAD, SECTION_Y, TITLE_COLOR } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
 import BandaCentrada from "./BandaCentrada";
-
-function faqText(f, field, lang) {
-  if (lang !== "en") {
-    const translated = f[`${field}_${lang}`];
-    if (translated) return translated;
-  }
-  return field === "question" ? f.q : f.a;
-}
+import { useContenido } from "../lib/contenido";
 
 // Quick FAQs on home page
 export function FAQHome({ faqs, nav, siteConfig = {} }) {
-  const { t, i18n } = useTranslation();
-  const lang = i18n.language?.slice(0, 2) || "en";
+  const { t } = useTranslation();
+  const tc = useContenido();
   return (
     <FadeIn>
     <section style={{ padding: SECTION_PAD }}>
@@ -23,8 +16,8 @@ export function FAQHome({ faqs, nav, siteConfig = {} }) {
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 18, textAlign: "center", color: TITLE_COLOR }}>{t("faq.common")}</h2>
         {faqs.slice(0, 3).map((f, i) => (
           <div key={f.id || i} style={{ borderBottom: i < 2 ? "1px solid #e8e8e8" : "none", padding: "14px 0", borderLeft: `3px solid ${R}`, paddingLeft: 14, marginBottom: i < 2 ? 0 : 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: "#333" }}>{faqText(f, "question", lang)}</div>
-            <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55 }}>{faqText(f, "answer", lang)}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: "#333" }}>{tc(f.q)}</div>
+            <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55 }}>{tc(f.a)}</div>
           </div>
         ))}
         {/* Sin el atajo verde a WhatsApp: en la home el cliente lo pidió fuera y
@@ -41,8 +34,8 @@ export function FAQHome({ faqs, nav, siteConfig = {} }) {
 
 // Full FAQ page
 export function FAQPage({ faqs, siteConfig = {} }) {
-  const { t, i18n } = useTranslation();
-  const lang = i18n.language?.slice(0, 2) || "en";
+  const { t } = useTranslation();
+  const tc = useContenido();
   const [fq, setFq] = useState(null);
   return (
     // Cierra con SECTION_Y y no con 80: la caja de "Have another question?" tiene
@@ -76,7 +69,7 @@ export function FAQPage({ faqs, siteConfig = {} }) {
               }}
               onMouseEnter={e => { if (!isOpen) e.currentTarget.style.background = "#fafafa"; }}
               onMouseLeave={e => { if (!isOpen) e.currentTarget.style.background = "none"; }}>
-              {faqText(f, "question", lang)}
+              {tc(f.q)}
               <span style={{
                 color: isOpen ? R : "#999", fontSize: 20, fontWeight: 300,
                 transform: isOpen ? "rotate(45deg)" : "none",
@@ -91,7 +84,7 @@ export function FAQPage({ faqs, siteConfig = {} }) {
             }}>
               <div style={{ overflow: "hidden" }}>
                 <p style={{ padding: "0 14px 16px", fontSize: 13, color: "#555", lineHeight: 1.65, margin: 0 }}>
-                  {faqText(f, "answer", lang)}
+                  {tc(f.a)}
                 </p>
               </div>
             </div>

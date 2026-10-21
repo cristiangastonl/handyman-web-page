@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import { test, expect, watchConsole, visit, ROUTES, LANGS, esperarPresentacionAsentada } from './helpers.js';
 
 test.describe('rutas públicas', () => {
@@ -89,6 +90,49 @@ test.describe('i18n', () => {
       expect(text).toContain('Handyman');
     });
   }
+
+  test('el título del hero es el nombre del negocio: igual en todos los idiomas', async ({ page }) => {
+    // "Handyman Services in Zurich" no se traduce (Gastón, 21/10/2026: la primera
+    // corrida lo había pasado a "Servicios de Handyman en Zúrich").
+    const titulo = () => page.locator('.hero-section h1').innerText();
+    await visit(page, '/');
+    const ingles = await titulo();
+    await visit(page, '/?lang=es');
+    await expect(page.locator('nav').first()).toContainText('Inicio');
+    expect(await titulo()).toBe(ingles);
+  });
+
+  test('el pie va en inglés aunque el sitio esté en alemán', async ({ page }) => {
+    // Decisión de Gastón (21/10/2026): el horario no se traduce —si Anibal lo cambia,
+    // una traducción vieja mentiría— y el resto del pie acompaña.
+    await visit(page, '/?lang=de');
+    await expect(page.locator('nav').first()).not.toContainText('Home'); // el resto sí está en alemán
+    const pie = page.locator('footer');
+    await expect(pie).toContainText(/contact/i);
+    await expect(pie).toContainText(/quick links/i);
+    await expect(pie).not.toContainText(/kontakt|schnellzugriff/i);
+  });
+
+  test('el contenido de la base se ve traducido: las categorías del portfolio en alemán', async ({ page }) => {
+    // Lo que Anibal escribe en el admin se traduce con los diccionarios de
+    // src/locales/contenido (la "corrida", scripts/traducciones.mjs). Se arma lo
+    // esperado desde el diccionario: si mañana agrega una categoría sin traducir,
+    // esa sale en inglés y el test sigue siendo correcto.
+    const dic = JSON.parse(readFileSync(new URL('../src/locales/contenido/de.json', import.meta.url), 'utf8'));
+    const cards = page.getByTestId('category-card');
+    // El nombre es el primer renglón de la tarjeta; el de abajo ("12 items · 3
+    // subcategories") es interfaz y lo traduce i18next, no el diccionario.
+    const textos = async () => (await cards.allInnerTexts()).map((t) => t.trim().split('\n')[0].trim());
+
+    await visit(page, '/portfolio');
+    await expect(cards.first()).toBeVisible({ timeout: DATOS_MS });
+    const ingles = await textos();
+    const esperado = ingles.map((t) => dic[t] ?? t);
+    expect(esperado, 'ninguna categoría tiene traducción en contenido/de.json').not.toEqual(ingles);
+
+    await visit(page, '/portfolio?lang=de');
+    await expect.poll(textos, { timeout: DATOS_MS }).toEqual(esperado);
+  });
 
   // "Algunas cosas se traducen y otras no" (Anibal, 21/10). Lo que escribe el
   // código —no la base ni el admin— no puede quedar en inglés en otro idioma.

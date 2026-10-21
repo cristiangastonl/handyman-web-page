@@ -5,6 +5,7 @@ import { fetchPortfolioSummary, fetchPortfolioItems, normalizeWorkItem } from ".
 import { normalizeSummaryRow, buildPortfolioSummary, countsOf } from "../lib/portfolioSummary";
 import { SocialIcon } from "./ui";
 import BandaCentrada from "./BandaCentrada";
+import { useContenido } from "../lib/contenido";
 
 function Spinner() {
   return (
@@ -128,6 +129,7 @@ function DetailHeader({ title, subtitle, thumb, onBack, backLabel }) {
 
 export default function Portfolio({ cats, subcats, portfolioView, setPortfolioView, setLb, siteConfig = {} }) {
   const { t } = useTranslation();
+  const tc = useContenido();
 
   // Conteos y miniaturas de todas las tarjetas, sin bajar las fotos: una fila
   // por (categoría, subcategoría) de la vista work_items_summary. Se pide al
@@ -211,7 +213,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
                   onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
                   <div style={{ position: "relative", paddingTop: "65%", background: G }}>
                     {thumb ? (
-                      <img src={thumb} alt={c.label} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+                      <img src={thumb} alt={tc(c.label)} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
                     ) : (
                       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -221,7 +223,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
                     )}
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }}/>
                     <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{c.label}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{tc(c.label)}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
                         {catCount.total > 0 && <>{catCount.total} {catCount.total === 1 ? t("portfolio.item") : t("portfolio.items")}</>}
                         {catCount.total > 0 && catSubcats.length > 0 && " · "}
@@ -261,10 +263,10 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
                 {t("portfolio.title")}
               </button>
               <span style={{ color: "#ccc" }}>/</span>
-              <span style={{ color: "#555", fontWeight: 600 }}>{currentCat?.label}</span>
+              <span style={{ color: "#555", fontWeight: 600 }}>{tc(currentCat?.label)}</span>
             </div>
             <DetailHeader
-              title={currentCat?.label}
+              title={tc(currentCat?.label)}
               thumb={catThumb}
               onBack={() => { setPortfolioView("categories"); window.scrollTo?.(0, 0); }}
               backLabel={t("portfolio.backToCategories")} /* the translation already carries the ← */
@@ -290,7 +292,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
                         onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
                         <div style={{ position: "relative", paddingTop: "65%", background: G }}>
                           {scThumb ? (
-                            <img src={scThumb} alt={sc.name} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+                            <img src={scThumb} alt={tc(sc.name)} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
                           ) : (
                             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -300,7 +302,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
                           )}
                           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }}/>
                           <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{sc.name}</div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{tc(sc.name)}</div>
                             {/* Counts belong on the cards you can click into, never on the
                                 banner of the level you are already looking at. */}
                             {(scCount.total > 0 || sc.playlist_id) && (
@@ -376,17 +378,17 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
               <span style={{ color: "#ccc" }}>/</span>
               <button onClick={() => { setPortfolioView({ cat: portfolioView.cat, tab: "photos" }); window.scrollTo?.(0, 0); }}
                 style={{ background: "none", border: "none", cursor: "pointer", color: R, fontWeight: 500, padding: 0, fontSize: 13 }}>
-                {currentCat?.label}
+                {tc(currentCat?.label)}
               </button>
               <span style={{ color: "#ccc" }}>/</span>
-              <span style={{ color: "#555", fontWeight: 600 }}>{currentSubcat?.name}</span>
+              <span style={{ color: "#555", fontWeight: 600 }}>{tc(currentSubcat?.name)}</span>
             </div>
             <DetailHeader
-              title={currentSubcat?.name}
+              title={tc(currentSubcat?.name)}
               /* No subtitle: the back link and the breadcrumb already name the parent category. */
               thumb={scThumb}
               onBack={() => { setPortfolioView({ cat: portfolioView.cat, tab: "photos" }); window.scrollTo?.(0, 0); }}
-              backLabel={`← ${currentCat?.label}`}
+              backLabel={`← ${tc(currentCat?.label)}`}
             />
 
             <PlaylistLink playlistId={currentSubcat?.playlist_id} t={t}/>

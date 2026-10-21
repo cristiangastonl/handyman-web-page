@@ -24,3 +24,6 @@ _incoming/
 # Copia local de Supabase (1.6 GB de fotos): nunca al repo.
 # Se regenera con: npm run backup
 backup/
+
+# Lista de trabajo de la corrida de traducciones (scripts/traducciones.mjs)
+traducciones-pendientes.json

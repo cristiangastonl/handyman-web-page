@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText, mobileFontVar, pesoLetra } from "../lib/constants";
+import { useContenido } from "../lib/contenido";
 
 // El título va entero en el naranja de la marca. Antes era a dos tonos —"Handyman"
 // naranja, el resto blanco— pero el cliente lo quiso todo del mismo color, así que
@@ -32,6 +33,7 @@ const espaciado = (estilo, deSiempre) => (estilo?.fontFamily ? "normal" : deSiem
 // visitante. Lo sacó Anibal el 29/08/2026.
 export default function Hero({ siteConfig = {} }) {
   const { t } = useTranslation();
+  const tc = useContenido();
   const title = parseSiteText(siteConfig.hero_title);
   const brandSubtitle = parseSiteText(siteConfig.hero_brand_subtitle);
   const subtitle = parseSiteText(siteConfig.hero_subtitle);
@@ -97,7 +99,7 @@ export default function Hero({ siteConfig = {} }) {
               fontWeight: pesoLetra(subtitle),
               color: "rgba(255,255,255,0.9)", marginBottom: 3
             }}>
-              {subtitle?.text || t("hero.subtitle")}
+              {tc(subtitle?.text) || t("hero.subtitle")}
             </p>
             {/* Línea de confianza. El texto sale del admin o de la traducción; el ✓
                 lo pone el componente para que no haya que escribirlo a mano en cada
@@ -109,7 +111,7 @@ export default function Hero({ siteConfig = {} }) {
                 fontFamily: trust?.fontFamily ? `'${trust.fontFamily}', sans-serif` : undefined,
                 ...mobileFontVar(trust),
                 fontWeight: pesoLetra(trust, 700),
-              }}>✓ {trust?.text || t("hero.trust")}</span>
+              }}>✓ {tc(trust?.text) || t("hero.trust")}</span>
             </div>
         </div>
       </div>

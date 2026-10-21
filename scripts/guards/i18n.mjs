@@ -12,6 +12,8 @@ const BRAND_WORDS = [
   'Handyman',
   'Highlights',
   'Specialist Technician At Domestic Matters',
+  // El nombre del negocio (21/10/2026: se había traducido el título del hero).
+  'Handyman Services in Zurich',
 ];
 
 const flatten = (obj, prefix = '') =>

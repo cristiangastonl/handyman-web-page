@@ -2,9 +2,11 @@ import { useTranslation } from "react-i18next";
 import { R, G, getSocialUrls, getYtPlaylistsUrl, getGoogleProfileUrl, getHighlightField, parseSiteText, mobileFontVar, getStyleConfig, pesoLetra, espaciadoLetra, STATS, getStatValue, getStatUnit, formatStatSuffix, ABOUT_TOP } from "../lib/constants";
 import { SocialIcon, GoogleG } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
+import { useContenido } from "../lib/contenido";
 
 export default function StatsBar({ siteConfig = {} }) {
   const { t } = useTranslation();
+  const tc = useContenido();
   const numStyle = getStyleConfig(siteConfig, "stats_number_style");
   const lblStyle = getStyleConfig(siteConfig, "stats_label_style");
   const redes = getSocialUrls(siteConfig);
@@ -48,7 +50,7 @@ export default function StatsBar({ siteConfig = {} }) {
             { type: "wa", url: redes.wa, i18n: "social.wa", label: "WhatsApp" },
             { type: "fb", url: redes.fb, i18n: "social.fb", label: "Facebook" },
           ].map(s => ({ ...s,
-            text: getHighlightField(siteConfig, `social_card_${s.type}`, t(s.i18n)),
+            text: (h => ({ ...h, text: tc(h.text) }))(getHighlightField(siteConfig, `social_card_${s.type}`, t(s.i18n))),
             celu: mobileFontVar(parseSiteText(siteConfig[`social_card_${s.type}`])),
           })).map((s, i) => (
             <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="social-card"

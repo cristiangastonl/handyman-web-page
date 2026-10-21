@@ -2,9 +2,11 @@ import { useTranslation } from "react-i18next";
 import { parseSiteText, getStyleConfig, pesoLetra, SECTION_PAD_TIGHT, SECTION_TITLE_MB, TITLE_COLOR } from "../lib/constants";
 import Carousel from "./Carousel";
 import { FadeIn } from "./FadeIn";
+import { useContenido } from "../lib/contenido";
 
 export default function Highlights({ highlights, curatedItems = [], setLb, siteConfig = {} }) {
   const { t } = useTranslation();
+  const tc = useContenido();
   // El texto sigue siendo editable (es el único de los tres que lo es), pero el
   // tamaño y la fuente salen del mismo StyleControl que Recent Work y Custom
   // Projects. Antes los sacaba del propio highlights_section_title, que tenía un
@@ -26,7 +28,7 @@ export default function Highlights({ highlights, curatedItems = [], setLb, siteC
           fontFamily: `'${titleStyle.fontFamily}', sans-serif`,
           fontWeight: pesoLetra(titleStyle, 700),
           color: TITLE_COLOR
-        }}>{titleCfg?.text || t("highlights.title")}</h2>
+        }}>{tc(titleCfg?.text) || t("highlights.title")}</h2>
       </div>
       <Carousel
         items={displayItems}

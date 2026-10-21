@@ -2,6 +2,7 @@
 // Corre todos los guards estáticos. Sale con código 1 si hay errores.
 import { checkI18n } from './i18n.mjs';
 import { checkConventions } from './conventions.mjs';
+import { checkContenido } from './contenido.mjs';
 
 const c = {
   red: (s) => `\x1b[31m${s}\x1b[0m`,
@@ -13,6 +14,7 @@ const c = {
 const guards = [
   ['i18n', checkI18n],
   ['convenciones', checkConventions],
+  ['contenido', checkContenido],
 ];
 
 let totalErrors = 0;

@@ -54,6 +54,7 @@ run, read the failure, fix the cause, run again. Converge, then report.
 | `npm run verify:prod` | prerender del sitio publicado | ~2s | Después de cada deploy |
 | `npm run verify:db` | filas por tabla contra la base real | ~3s | Cuando algo cargado no aparece |
 | `npm run verify:uso` | pedidos por día a Supabase (toda la org) | ~3s | Corre solo todos los días en GitHub; a mano si algo pesa |
+| `npm run traducciones` | qué contenido de la base falta traducir | ~3s | La "corrida" de traducciones (ver abajo) |
 
 `verify:scope` runs the full cycle when the diff touches anything that reaches
 the browser (`src/components`, `src/lib`, `src/hooks`, `App.jsx`, `i18n.js`,
@@ -137,6 +138,36 @@ To disable temporarily, rename `.claude/settings.json`.
 npm install
 npx playwright install chromium
 ```
+
+## Traducción del contenido que escribe Anibal
+
+La interfaz se traduce con `src/locales/{en,de,it,fr,es}.json` (i18next). Lo que
+Anibal escribe en el admin —textos del sitio (hero, bio, tarjetas de redes), FAQs,
+categorías y subcategorías— vive en la base **sólo en inglés** y se traduce aparte.
+
+**No se traducen, a propósito (Gastón, 21/10/2026):** lo que sube con las fotos
+(título y descripción de cada trabajo, alt de Happy Customers) —cada foto nueva
+esperaría una corrida— y **el pie entero**, que va siempre en inglés: el horario
+es un dato que, traducido y desactualizado, mentiría.
+
+- `src/locales/contenido/{de,it,fr,es}.json`: diccionarios `{ "texto en inglés tal cual": "traducción" }`.
+- `src/lib/contenido.js`: `useContenido()` devuelve `tc(texto)`; los componentes
+  lo usan **al mostrar** (el admin sigue viendo el inglés). Cada diccionario se
+  baja sólo en su idioma.
+- La clave es el texto entero: si Anibal cambia algo, se ve el inglés nuevo hasta
+  la próxima corrida. Nunca una traducción vieja.
+
+**La corrida** (cuando Gastón detecta cambios, a mano):
+1. `npm run traducciones` → lista lo nuevo o cambiado en `traducciones-pendientes.json`.
+2. Traducirlo (Claude) a un archivo `{ "de": {…}, "it": {…}, "fr": {…}, "es": {…} }`
+   con las mismas reglas que el guard: alemán suizo (ss), palabras de marca en
+   inglés, mismo estilo de letras Unicode, emojis y saltos de línea.
+3. `npm run traducciones -- --aplicar <archivo>` y, si sobran textos viejos, `-- --limpiar`.
+4. Verify, commit, deploy.
+
+Al mostrar un texto nuevo de la base en un componente, pasarlo por `tc()` y, si
+viene de otra tabla o clave de `site_config`, sumarlo en `scripts/traducciones.mjs`.
+El guard `scripts/guards/contenido.mjs` chequea que los 4 diccionarios estén sanos.
 
 ## Architecture
 
