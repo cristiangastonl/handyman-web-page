@@ -19,6 +19,7 @@
     "verify:scope": "node scripts/verify.mjs --scope",
     "verify:prod": "node scripts/check-prod-seo.mjs",
     "verify:db": "node scripts/check-db-rows.mjs",
+    "verify:uso": "node scripts/check-supabase-uso.mjs",
     "set-origin": "node scripts/set-origin.mjs",
     "backup": "node scripts/backup.mjs"
   },

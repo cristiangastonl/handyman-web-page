@@ -53,6 +53,7 @@ run, read the failure, fix the cause, run again. Converge, then report.
 | `npm run e2e:ui` | Playwright UI mode | — | Writing or fixing E2E tests |
 | `npm run verify:prod` | prerender del sitio publicado | ~2s | Después de cada deploy |
 | `npm run verify:db` | filas por tabla contra la base real | ~3s | Cuando algo cargado no aparece |
+| `npm run verify:uso` | pedidos por día a Supabase (toda la org) | ~3s | Corre solo todos los días en GitHub; a mano si algo pesa |
 
 `verify:scope` runs the full cycle when the diff touches anything that reaches
 the browser (`src/components`, `src/lib`, `src/hooks`, `App.jsx`, `i18n.js`,
@@ -99,6 +100,16 @@ with the reason in the commit message.
   detectar eso, porque depende de cuánto creció la tabla. `work_items` ya se lee
   paginada (`src/lib/dbRead.js`) y un guard lo impone; este check es el que va a
   avisar cuando le toque a otra tabla.
+- **`scripts/check-supabase-uso.mjs`** — pedidos por día a Supabase, sumando
+  todos los proyectos de la organización (la cuota de egress es de la org). Falla
+  si el último día o el de hoy pasan 20.000 pedidos al storage o 40.000 a la base.
+  Lo corre todos los días `.github/workflows/uso-supabase.yml` (si falla, GitHub
+  manda un mail). Existe porque el 21/10/2026 Supabase cortó la org con un 402
+  (`exceed_cached_egress_quota`, los 250 GB de Pro) y el sitio quedó sin fotos:
+  lo había gastado casi todo el propio e2e bajando fotos originales del bucket.
+  Por eso **los tests no bajan fotos reales**: `test` de `e2e/helpers.js` las
+  responde con un PNG falso (un guard prohíbe importar el `test` crudo de
+  Playwright), y el prerender no pide imágenes.
 - **`e2e/smoke.spec.js`** (Playwright, desktop + mobile) — the 4 public routes
   render with no console errors and no raw i18n keys, nav works, language
   switching persists across pages, portfolio images have `alt`, `/admin` shows

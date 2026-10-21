@@ -1,0 +1,24 @@
+# Todos los días mira cuántos pedidos recibió Supabase y falla si se disparan.
+# Si falla, GitHub manda un mail a quien tocó el cron por última vez.
+# Por qué: el 21/10/2026 Supabase cortó la org por egress y nadie se enteró
+# hasta que el sitio quedó sin fotos. Ver scripts/check-supabase-uso.mjs.
+name: Uso de Supabase
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # 07:00 UTC, 08:00/09:00 en Zúrich
+  workflow_dispatch:
+
+jobs:
+  uso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Pedidos por día
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: node scripts/check-supabase-uso.mjs
