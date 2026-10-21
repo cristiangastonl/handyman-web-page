@@ -10,6 +10,8 @@ import { fileURLToPath } from 'url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const IDIOMAS = ['de', 'it', 'fr', 'es'];
 const MARCAS = ['Handyman', 'Highlights', 'Specialist Technician At Domestic Matters', 'Handyman Services in Zurich'];
+// "Highlights" → "Destacados" sólo en español (Gastón, 21/10/2026), igual que en i18n.mjs.
+const EXCEPCIONES_MARCA = { Highlights: ['es'] };
 
 export function checkContenido() {
   const errors = [];
@@ -32,7 +34,7 @@ export function checkContenido() {
       if (typeof tr !== 'string' || !tr.trim()) { errors.push(`contenido/${l}.json: «${corto}» está vacío`); continue; }
       if (en !== en.trim()) errors.push(`contenido/${l}.json: la clave «${corto}» tiene espacios en los bordes (tc() busca el texto recortado)`);
       if (l === 'de' && tr.includes('ß')) errors.push(`contenido/de.json: «${corto}» usa ß — el sitio va en alemán suizo (ss)`);
-      for (const m of MARCAS) if (en.includes(m) && !tr.includes(m)) errors.push(`contenido/${l}.json: «${corto}» tradujo la palabra de marca "${m}"`);
+      for (const m of MARCAS) if (en.includes(m) && !tr.includes(m) && !EXCEPCIONES_MARCA[m]?.includes(l)) errors.push(`contenido/${l}.json: «${corto}» tradujo la palabra de marca "${m}"`);
     }
   }
   return { errors, warnings };

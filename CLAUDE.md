@@ -79,7 +79,8 @@ with the reason in the commit message.
 
 - **`scripts/guards/i18n.mjs`** — all 5 locales have the same keys as `en.json`,
   no empty values, matching `{{placeholders}}`, and brand words
-  (`Handyman`, `Highlights`, `Specialist Technician At Domestic Matters`)
+  (`Handyman`, `Highlights`, `Specialist Technician At Domestic Matters`,
+  `Handyman Services in Zurich`; única excepción: `Highlights` es "Destacados" en español)
   are never translated away.
 - **`scripts/guards/conventions.mjs`** — no CSS imports or Tailwind classes
   (inline styles only), no hardcoded Supabase URLs/JWTs, no `debugger` or
@@ -215,5 +216,6 @@ Entry point: `src/main.jsx` renders `<App />` into `#root`.
 - **Brand color**: `R = "#D4781F"` (orange)
 - **"Handyman"** is a brand word — NEVER translate it
 - **"Specialist Technician At Domestic Matters"** — brand subtitle, keep in English everywhere
-- **"Highlights"** — keep in English everywhere
+- **"Highlights"** — keep in English everywhere, except Spanish: "Destacados" (Gastón, 21/10/2026)
+- **"Handyman Services in Zurich"** — business name, never translated (hero title included)
 - Admin panel at `/admin` (Ctrl+Shift+A shortcut), auth via Supabase

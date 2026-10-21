@@ -16,6 +16,10 @@ const BRAND_WORDS = [
   'Handyman Services in Zurich',
 ];
 
+// Idiomas donde una palabra de marca sí se traduce, por pedido explícito.
+// "Highlights" → "Destacados" sólo en español (Gastón, 21/10/2026).
+const EXCEPCIONES_MARCA = { Highlights: ['es'] };
+
 const flatten = (obj, prefix = '') =>
   Object.entries(obj).flatMap(([k, v]) => {
     const key = prefix ? `${prefix}.${k}` : k;
@@ -87,7 +91,7 @@ export function checkI18n() {
       String(locales[base][k]).includes(word)
     );
     for (const [lang, entries] of Object.entries(locales)) {
-      if (lang === base) continue;
+      if (lang === base || EXCEPCIONES_MARCA[word]?.includes(lang)) continue;
       for (const k of inBase) {
         if (entries[k] !== undefined && !String(entries[k]).includes(word))
           errors.push(

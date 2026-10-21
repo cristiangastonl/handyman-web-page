@@ -102,6 +102,15 @@ test.describe('i18n', () => {
     expect(await titulo()).toBe(ingles);
   });
 
+  test('"Highlights" es "Destacados" en español y sigue en inglés en el resto', async ({ page }) => {
+    // Única excepción a la palabra de marca (Gastón, 21/10/2026).
+    const titulos = () => page.locator('section h2').allInnerTexts();
+    await visit(page, '/?lang=es');
+    await expect.poll(titulos, { timeout: DATOS_MS }).toContain('Destacados');
+    await visit(page, '/?lang=de');
+    await expect.poll(titulos, { timeout: DATOS_MS }).toContain('Highlights');
+  });
+
   test('el pie va en inglés aunque el sitio esté en alemán', async ({ page }) => {
     // Decisión de Gastón (21/10/2026): el horario no se traduce —si Anibal lo cambia,
     // una traducción vieja mentiría— y el resto del pie acompaña.
