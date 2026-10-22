@@ -104,7 +104,7 @@ with the reason in the commit message.
   avisar cuando le toque a otra tabla.
 - **`scripts/check-supabase-uso.mjs`** — pedidos por día a Supabase, sumando
   todos los proyectos de la organización (la cuota de egress es de la org). Falla
-  si el último día o el de hoy pasan 20.000 pedidos al storage o 40.000 a la base.
+  si el último día o el de hoy pasan 20.000 pedidos al storage o 150.000 a la base.
   Lo corre todos los días `.github/workflows/uso-supabase.yml` (si falla, GitHub
   manda un mail). Existe porque el 21/10/2026 Supabase cortó la org con un 402
   (`exceed_cached_egress_quota`, los 250 GB de Pro) y el sitio quedó sin fotos:

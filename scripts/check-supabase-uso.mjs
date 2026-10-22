@@ -32,7 +32,11 @@ const PROYECTO = process.env.SUPABASE_PROJECT_REF || 'hjviylxrqgplcrpjodsa';
 // del sitio: ~300–1.200 al storage y ~150–700 a la base. El corte del 21/10 vino
 // de días con 49.000 y 116.000 al storage.
 const UMBRAL_STORAGE = 20_000; // ~20 GB en fotos originales: 250 GB se van en 12 días así
-const UMBRAL_REST = 40_000;
+// La base es otra cuota (egress no cacheado) y sus respuestas son chicas: un día de
+// mucho desarrollo, con los e2e leyendo datos reales, pasa los 40.000 sin ningún
+// problema (21/10/2026: 55.501). Estaba en 40.000 y la alerta saltó por eso; acá
+// sólo interesa algo del orden del incidente del 19/10 (152.492).
+const UMBRAL_REST = 150_000;
 
 const verde = (s) => `\x1b[32m${s}\x1b[0m`;
 const rojo = (s) => `\x1b[31m${s}\x1b[0m`;
