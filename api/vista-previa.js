@@ -54,6 +54,10 @@ export default async function handler(req, res) {
     datos = datosVistaPrevia({ url });
   }
 
+  // Quién pidió y qué recibió: para diagnosticar una vista previa que no aparece
+  // (22/10/2026, WhatsApp mostró la tarjeta pelada). Se ve en los logs de Vercel.
+  console.log(JSON.stringify({ ua: req.headers["user-agent"] || "", url, titulo: datos.titulo, imagen: datos.imagen }));
+
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("X-Robots-Tag", "noindex");
   // Lo cachea el CDN de Vercel: el mismo link pegado en varios chats no vuelve a
