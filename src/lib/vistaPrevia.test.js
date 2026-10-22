@@ -71,6 +71,9 @@ describe("vercel.json acompaña a la vista previa", () => {
     const home = fuentes.indexOf("/(.*) → /index.html");
     expect(robots).toBeGreaterThanOrEqual(0);
     expect(config.rewrites[robots].has[0].value).toMatch(/WhatsApp/);
+    // En la parte de parámetros, "+" es un espacio: con "?ruta=:path+" la función
+    // recibía "above-the-dinner-table " y no encontraba la subcategoría (21/10/2026).
+    expect(config.rewrites[robots].destination.split("?")[1]).not.toContain("+");
     expect(robots).toBeLessThan(portfolio);
     expect(portfolio).toBeLessThan(home);
   });

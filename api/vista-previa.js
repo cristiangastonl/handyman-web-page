@@ -23,8 +23,12 @@ async function leer(consulta) {
 
 export default async function handler(req, res) {
   const pedido = new URL(req.url, SITE_ORIGIN);
-  const ruta = `/portfolio/${pedido.searchParams.get("ruta") || ""}`;
+  // ?ruta= lo pone la regla de vercel.json; ?path= lo agrega Vercel solo, con el
+  // mismo valor. Ninguno de los dos es parte del link que se compartió.
+  const camino = (pedido.searchParams.get("ruta") || pedido.searchParams.get("path") || "").trim();
+  const ruta = `/portfolio/${camino}`;
   pedido.searchParams.delete("ruta");
+  pedido.searchParams.delete("path");
   const search = pedido.searchParams.toString();
   const url = `${SITE_ORIGIN}${ruta.replace(/\/+$/, "")}${search ? `?${search}` : ""}`;
 

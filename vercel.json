@@ -44,7 +44,7 @@
           "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|Discordbot|LinkedInBot|SkypeUriPreview|Viber|Pinterest|redditbot|Embedly|Iframely|vkShare|Applebot).*"
         }
       ],
-      "destination": "/api/vista-previa?ruta=:path+"
+      "destination": "/api/vista-previa?ruta=:path"
     },
     {
       "source": "/portfolio/:path+",
