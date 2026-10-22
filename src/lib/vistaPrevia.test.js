@@ -52,6 +52,14 @@ describe("htmlVistaPrevia", () => {
     expect(html).toContain('content="a &amp; b"');
     expect(html).toContain('<meta name="robots" content="noindex">');
   });
+
+  it("declara el ancho de la imagen: sin og:image:width WhatsApp dejaba la tarjeta pelada", () => {
+    // 22/10/2026: la función respondía bien y WhatsApp bajaba la foto, pero la
+    // tarjeta salía sin foto ni título. Con og:image:width/secure_url apareció.
+    const html = htmlVistaPrevia({ titulo: "x", descripcion: "y", imagen: IMAGEN_SITIO, url });
+    expect(html).toContain(`<meta property="og:image:width" content="${ANCHO_IMAGEN}">`);
+    expect(html).toContain(`<meta property="og:image:secure_url" content="${IMAGEN_SITIO}">`);
+  });
 });
 
 describe("vercel.json acompaña a la vista previa", () => {
