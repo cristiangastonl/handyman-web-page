@@ -46,7 +46,7 @@ function PlaylistLink({ playlistId, t }) {
 function ItemCard({ item, setLb, contextItems }) {
   const { t } = useTranslation();
   return (
-    <div key={item.id} onClick={() => setLb(item, contextItems)}
+    <div key={item.id} data-testid="item-card" data-item={item.id} onClick={() => setLb(item, contextItems)}
       style={{ borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
       onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
@@ -127,7 +127,7 @@ function DetailHeader({ title, subtitle, thumb, onBack, backLabel }) {
   );
 }
 
-export default function Portfolio({ cats, subcats, portfolioView, setPortfolioView, setLb, siteConfig = {} }) {
+export default function Portfolio({ cats, subcats, portfolioView, setPortfolioView, setLb, abrirFoto, fotoId, siteConfig = {} }) {
   const { t } = useTranslation();
   const tc = useContenido();
 
@@ -172,6 +172,33 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
   }, [nivelKey]);
   const itemsReady = levelItems.key === nivelKey;
   const currentItems = itemsReady ? levelItems.items : [];
+
+  // ?foto=1275 en la URL: el visor se abre con esa foto apenas llegan las del
+  // nivel, sea porque se tocó en la grilla o porque se llegó con el link. Las
+  // flechas recorren las de su misma pestaña (fotos o videos), como en la grilla.
+  useEffect(() => {
+    if (!fotoId || !itemsReady) return;
+    const item = currentItems.find(w => String(w.id) === String(fotoId));
+    if (!item) return;
+    const esVideo = (w) => w.type === "video" || w.type === "facebook";
+    setLb(item, currentItems.filter(w => esVideo(w) === esVideo(item)));
+  }, [fotoId, itemsReady, currentItems]);
+
+  // El título de la pestaña nombra el nivel: es lo que se ve al guardar el link o
+  // al tenerlo abierto entre otras pestañas.
+  const nombreNivel = (() => {
+    if (typeof portfolioView !== "object") return null;
+    const sub = portfolioView.subcat && (subcats || []).find(s => s.id === portfolioView.subcat);
+    if (sub) return tc(sub.name);
+    const cat = cats.find(c => c.id === portfolioView.cat);
+    return cat ? tc(cat.label) : null;
+  })();
+  useEffect(() => {
+    const base = "Handyman Services in Zurich";
+    const anterior = document.title;
+    document.title = nombreNivel ? `${nombreNivel} · Portfolio · ${base}` : anterior;
+    return () => { document.title = anterior; };
+  }, [nombreNivel]);
 
   if (!summary) {
     return (
@@ -285,7 +312,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
                     const scCount = countsOf(summary.bySubcat, sc.id);
                     const scThumb = cardThumb(sc.header_image, scCount.first);
                     return (
-                      <div key={sc.id}
+                      <div key={sc.id} data-testid="subcategory-card"
                         onClick={() => { setPortfolioView({ cat: portfolioView.cat, subcat: sc.id, tab: "photos" }); window.scrollTo?.(0, 0); }}
                         style={{ borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "1px solid #eee", background: "#fff", transition: "transform .2s, box-shadow .2s" }}
                         onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.01)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(212,120,31,0.1), 0 4px 12px rgba(0,0,0,0.06)"; }}
@@ -337,7 +364,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
                     items={currentItems}
                     activeTab={activeTab}
                     onTabChange={tab => setPortfolioView({ ...portfolioView, tab })}
-                    setLb={setLb}
+                    setLb={abrirFoto}
                     t={t}
                     siteConfig={siteConfig}
                   />
@@ -398,7 +425,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
                 items={currentItems}
                 activeTab={activeTab}
                 onTabChange={tab => setPortfolioView({ ...portfolioView, tab })}
-                setLb={setLb}
+                setLb={abrirFoto}
                 t={t}
                 siteConfig={siteConfig}
               />

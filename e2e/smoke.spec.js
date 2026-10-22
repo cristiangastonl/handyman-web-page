@@ -260,6 +260,84 @@ test.describe('portfolio', () => {
   });
 });
 
+// Anibal no podía mandarle a un cliente el link de un trabajo: todo el portfolio
+// vivía en /portfolio y el "atrás" del celu se iba del sitio (06/09/2026). Cada
+// nivel y cada foto tienen ahora su URL (src/lib/portfolioRutas.js).
+test.describe('links del portfolio', () => {
+  // Entra a la primera categoría que tenga subcategorías y a su primera subcategoría.
+  async function bajarHastaSubcategoria(page) {
+    await visit(page, '/portfolio');
+    const cats = page.getByTestId('category-card');
+    await expect(cats.first()).toBeVisible({ timeout: DATOS_MS });
+    for (let i = 0; i < await cats.count(); i++) {
+      await visit(page, '/portfolio');
+      await cats.nth(i).click();
+      const subs = page.getByTestId('subcategory-card');
+      // isVisible() no espera aunque reciba timeout: las subcategorías llegan con los datos.
+      if (await subs.first().waitFor({ state: 'visible', timeout: 5000 }).then(() => true, () => false)) {
+        const urlCategoria = page.url();
+        const nombre = (await subs.first().innerText()).split('\n')[0].trim();
+        await subs.first().click();
+        await expect(page).toHaveURL(/\/portfolio\/[a-z0-9-]+\/[a-z0-9-]+$/);
+        return { urlCategoria, urlSub: page.url(), nombre };
+      }
+    }
+    throw new Error('ninguna categoría tiene subcategorías');
+  }
+
+  test('cada nivel tiene su dirección y el "atrás" sube un nivel', async ({ page }) => {
+    const { urlCategoria } = await bajarHastaSubcategoria(page);
+    expect(new URL(urlCategoria).pathname).toMatch(/^\/portfolio\/[a-z0-9-]+$/);
+    await page.goBack();
+    await expect(page).toHaveURL(urlCategoria);
+    await expect(page.getByTestId('subcategory-card').first()).toBeVisible();
+    await page.goBack();
+    await expect(page).toHaveURL(/\/portfolio$/);
+    await expect(page.getByTestId('category-card').first()).toBeVisible();
+  });
+
+  test('el link de una subcategoría abre esa subcategoría', async ({ page }) => {
+    const { urlSub, nombre } = await bajarHastaSubcategoria(page);
+    await page.goto('about:blank');
+    await visit(page, new URL(urlSub).pathname);
+    await expect(page.locator('#main-content')).toContainText(nombre, { timeout: DATOS_MS });
+    await expect(page.getByTestId('subcategory-card')).toHaveCount(0);
+    expect(await page.title()).toContain(nombre);
+  });
+
+  test('una foto tiene su link: abre el visor y al cerrar queda en su grupo', async ({ page }) => {
+    const { urlSub } = await bajarHastaSubcategoria(page);
+    const visor = page.getByRole('dialog', { name: 'Image viewer' });
+    const foto = page.getByTestId('item-card').first();
+    await expect(foto).toBeVisible({ timeout: DATOS_MS });
+    const id = await foto.getAttribute('data-item');
+    await foto.click();
+    await expect(page).toHaveURL(new RegExp(`\\?foto=${id}$`));
+    await expect(visor).toBeVisible();
+
+    // Con el link de la foto en una pestaña nueva: se abre directo en esa foto.
+    const link = page.url();
+    await page.goto('about:blank');
+    await visit(page, new URL(link).pathname + new URL(link).search);
+    await expect(visor).toBeVisible({ timeout: DATOS_MS });
+    // Cerrar con la X deja en el grupo, no fuera del sitio (pregunta de Anibal, 12/10).
+    await page.getByRole('button', { name: 'Close' }).click();
+    await expect(visor).toBeHidden();
+    await expect(page).toHaveURL(urlSub);
+    await expect(page.getByTestId('item-card').first()).toBeVisible();
+  });
+
+  test('el "atrás" del celu con una foto abierta cierra la foto', async ({ page }) => {
+    const { urlSub } = await bajarHastaSubcategoria(page);
+    const visor = page.getByRole('dialog', { name: 'Image viewer' });
+    await page.getByTestId('item-card').first().click();
+    await expect(visor).toBeVisible();
+    await page.goBack();
+    await expect(visor).toBeHidden();
+    await expect(page).toHaveURL(urlSub);
+  });
+});
+
 test.describe('admin', () => {
   test('/admin pide login y no filtra el panel', async ({ page }) => {
     const console_ = watchConsole(page);

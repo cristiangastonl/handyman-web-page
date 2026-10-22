@@ -37,6 +37,8 @@ describe("URL canónica por ruta", () => {
     // /admin y los 404 muestran la home o el panel: no son páginas indexables
     // con identidad propia, así que no reclaman canonical propio.
     expect(urlCanonica("/admin")).toBe(`${SITE_ORIGIN}/`);
+    // Los links del portfolio no se indexan: su canónica es el portfolio, no la home.
+    expect(urlCanonica("/portfolio/all-about-lights/above-the-dinner-table")).toBe(`${SITE_ORIGIN}/portfolio`);
     expect(urlCanonica("/ruta-que-no-existe")).toBe(`${SITE_ORIGIN}/`);
   });
 });

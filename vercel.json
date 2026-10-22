@@ -6,6 +6,21 @@
     }
   },
   "buildCommand": "dnf install -y nss nspr atk at-spi2-atk at-spi2-core cups-libs libdrm libX11 libXcomposite libXdamage libXext libXfixes libXrandr libxkbcommon libxshmfence mesa-libgbm pango alsa-lib >/dev/null && npx puppeteer browsers install chrome && npm run build",
+  "images": {
+    "sizes": [1200],
+    "qualities": [75],
+    "minimumCacheTTL": 2678400,
+    "remotePatterns": [
+      { "protocol": "https", "hostname": "hjviylxrqgplcrpjodsa.supabase.co", "pathname": "^/storage/v1/object/public/.*$" },
+      { "protocol": "https", "hostname": "img.youtube.com", "pathname": "^/vi/.*$" }
+    ]
+  },
+  "headers": [
+    {
+      "source": "/portfolio/:path+",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+    }
+  ],
   "redirects": [
     {
       "source": "/(.*)",
@@ -20,6 +35,21 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/portfolio/:path+",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|Discordbot|LinkedInBot|SkypeUriPreview|Viber|Pinterest|redditbot|Embedly|Iframely|vkShare|Applebot).*"
+        }
+      ],
+      "destination": "/api/vista-previa?ruta=:path+"
+    },
+    {
+      "source": "/portfolio/:path+",
+      "destination": "/portfolio/index.html"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

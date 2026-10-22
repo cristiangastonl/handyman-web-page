@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -13,6 +13,7 @@ import {
 } from "./lib/supabase";
 import { FALLBACK_LIMIT } from "./lib/carouselItems";
 import { withAllCategory } from "./lib/categories";
+import { rutaPortfolio, leerRutaPortfolio } from "./lib/portfolioRutas";
 
 // Components (eager — needed on home page)
 import Nav from "./components/Nav";
@@ -75,7 +76,7 @@ export default function App() {
   // Derive page from current pathname for Nav highlighting
   const pathname = location.pathname;
   const page = pathname === "/" ? "home"
-    : pathname === "/portfolio" ? "portfolio"
+    : pathname === "/portfolio" || pathname.startsWith("/portfolio/") ? "portfolio"
     : pathname === "/reviews" ? "reviews"
     : pathname === "/faq" ? "faq"
     : pathname === "/admin" ? "admin"
@@ -84,7 +85,6 @@ export default function App() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const nav = (p) => {
     navigate(p === "home" ? "/" : "/" + p);
-    setPortfolioView("categories");
     setMobileMenu(false);
     window.scrollTo?.(0, 0);
   };
@@ -93,8 +93,7 @@ export default function App() {
     const match = cats.find(c => c.id !== "all" && (
       norm(c.label) === norm(skill) || c.id === skill
     ));
-    navigate("/portfolio");
-    setPortfolioView(match ? { cat: match.id, tab: "photos" } : "categories");
+    navigate(rutaPortfolio(match ? { cat: match.id } : "categories", cats, subcats));
     setMobileMenu(false);
     window.scrollTo?.(0, 0);
   };
@@ -106,7 +105,6 @@ export default function App() {
     setLb(item);
     setLbItems(Array.isArray(contextItems) && contextItems.length > 0 ? contextItems : (item ? [item] : []));
   };
-  const [portfolioView, setPortfolioView] = useState("categories");
   const [loading, setLoading] = useState(!!supabase && !PRE);
 
   // ── Data ──
@@ -125,6 +123,41 @@ export default function App() {
   const [siteConfig, setSiteConfig] = useState(PRE?.siteConfig ?? {});
   const [googleReviews, setGoogleReviews] = useState(PRE?.googleReviews ?? []);
   const [adminTab, setAdminTab] = useState("categories");
+
+  // ── Portfolio: el nivel y la foto abierta viven en la URL ──
+  // Antes era un useState y la dirección era siempre /portfolio: no había link
+  // para mandarle a un cliente, y el "atrás" del celu se iba del sitio (ver
+  // src/lib/portfolioRutas.js). Ahora navegar es cambiar la URL.
+  const rutaPf = useMemo(
+    () => leerRutaPortfolio(location.pathname, location.search, cats, subcats),
+    [location.pathname, location.search, cats, subcats],
+  );
+  const portfolioView = rutaPf.vista;
+  const setPortfolioView = (vista) => navigate(rutaPortfolio(vista, cats, subcats));
+  const enPortfolio = page === "portfolio";
+  const fotoEnUrl = enPortfolio ? rutaPf.foto : null;
+  // Abrir una foto del portfolio es ir a su URL; Portfolio la abre cuando están
+  // sus fotos. El state marca que se abrió desde la grilla: al cerrar se vuelve
+  // atrás. Si se llegó con el link de la foto, cerrar no puede irse del sitio.
+  const abrirFoto = (item) =>
+    navigate(rutaPortfolio(portfolioView, cats, subcats, item.id), { state: { fotoDesdeGrilla: true } });
+  const cerrarLightbox = () => {
+    setLb(null);
+    setLbItems([]);
+    if (!fotoEnUrl) return;
+    if (location.state?.fotoDesdeGrilla) navigate(-1);
+    else navigate(rutaPortfolio(portfolioView, cats, subcats), { replace: true });
+  };
+  const navegarLightbox = (item) => {
+    setLb(item);
+    if (fotoEnUrl && item) {
+      navigate(rutaPortfolio(portfolioView, cats, subcats, item.id), { replace: true, state: location.state });
+    }
+  };
+  // El "atrás" del celu con una foto abierta saca ?foto de la URL: el visor se cierra.
+  useEffect(() => {
+    if (enPortfolio && !fotoEnUrl) { setLb(null); setLbItems([]); }
+  }, [enPortfolio, fotoEnUrl]);
   // returning_customers está retirado del sitio y del admin; la clave queda vacía
   // para que nada que la lea se rompa, pero ya no se pide (era un request muerto
   // en cada una de las 4 rutas).
@@ -282,8 +315,9 @@ export default function App() {
           <Seo/>
           <Routes>
             <Route path="/" element={homeContent}/>
-            <Route path="/portfolio" element={
-              <Portfolio cats={cats} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView} setLb={openLightbox} siteConfig={siteConfig}/>
+            <Route path="/portfolio/*" element={
+              <Portfolio cats={cats} subcats={subcats} portfolioView={portfolioView} setPortfolioView={setPortfolioView}
+                setLb={openLightbox} abrirFoto={abrirFoto} fotoId={fotoEnUrl} siteConfig={siteConfig}/>
             }/>
             <Route path="/reviews" element={<ReviewsPage googleReviews={googleReviews} fbReviews={fbReviews} happyItems={carouselData.happy_customers} setLb={openLightbox} siteConfig={siteConfig}/>}/>
             <Route path="/faq" element={<FAQPage faqs={faqs} siteConfig={siteConfig}/>}/>
@@ -297,7 +331,7 @@ export default function App() {
           <Footer nav={nav} siteConfig={siteConfig}/>
           {/* Sin FAB flotante de WhatsApp ni barra sticky: el cliente pidió las dos
               fuera. El acceso a WhatsApp queda en el hero y en el CTA de cierre. */}
-          <Lightbox item={lb} items={lbItems} onClose={() => { setLb(null); setLbItems([]); }} onNavigate={setLb}/>
+          <Lightbox item={lb} items={lbItems} onClose={cerrarLightbox} onNavigate={navegarLightbox}/>
         </>
       )}
     </div>

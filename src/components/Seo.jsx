@@ -34,6 +34,9 @@ export function urlCanonica(pathname) {
   const limpio = pathname.replace(/\/+$/, "") || "/";
   // Lo que no está en el sitemap (/admin, un 404 que cae en la home) no tiene
   // canonical propio: apunta a la home, que es lo que efectivamente muestra.
+  // Los links de categoría, subcategoría y foto (/portfolio/...) no se indexan
+  // (X-Robots-Tag en vercel.json): su versión buena es el portfolio.
+  if (limpio.startsWith("/portfolio/")) return `${ORIGEN}/portfolio`;
   if (!RUTAS_INDEXABLES.has(limpio)) return `${ORIGEN}/`;
   return limpio === "/" ? `${ORIGEN}/` : `${ORIGEN}${limpio}`;
 }

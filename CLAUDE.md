@@ -170,6 +170,24 @@ Al mostrar un texto nuevo de la base en un componente, pasarlo por `tc()` y, si
 viene de otra tabla o clave de `site_config`, sumarlo en `scripts/traducciones.mjs`.
 El guard `scripts/guards/contenido.mjs` chequea que los 4 diccionarios estén sanos.
 
+## Links del portfolio
+
+Cada nivel del portfolio y cada foto tienen su URL, para que Anibal pueda mandarle
+a un cliente el link de un trabajo puntual (antes compartía álbumes de Facebook):
+`/portfolio/<categoría>/<subcategoría>?tab=videos&foto=<id>`.
+
+- `src/lib/portfolioRutas.js`: URL ↔ nivel. Lo usan la app y la función de vista
+  previa: las dos tienen que entender las mismas URLs. Un link viejo (subcategoría
+  renombrada) cae en el último nivel que existe.
+- `App.jsx`: el nivel sale de la URL (`portfolioView` ya no es estado). Abrir una
+  foto navega a `?foto=`; cerrarla vuelve a su grupo, y el "atrás" del celu la cierra.
+- **Vista previa de WhatsApp**: los robots de vista previa (por user-agent, en
+  `vercel.json`) van a `api/vista-previa.js`, que arma og:title/og:image con los
+  datos del link (`src/lib/vistaPrevia.js`). La foto va achicada por el optimizador
+  de imágenes de Vercel (`images` en `vercel.json`, mismo ancho y calidad que el
+  código; lo chequea un test). Los visitantes reciben `/portfolio/index.html`.
+- Los links profundos **no se indexan** (`X-Robots-Tag: noindex`) y su canonical es `/portfolio`.
+
 ## Architecture
 
 Refactored component-based app with Supabase for data persistence.
