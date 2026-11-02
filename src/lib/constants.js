@@ -384,10 +384,11 @@ export const STYLE_KEYS = {
   cta_bottom_title_style: { fontSize: 24, fontFamily: "DM Sans" },
   cta_bottom_subtitle_style: { fontSize: 14, fontFamily: "DM Sans" },
   // Stats bar labels (TYPO-05)
-  // En el celu las etiquetas van a 8 px para que las cuatro entren en un renglón; el
-  // admin tiene un tamaño aparte para el celu (Anibal, 02/11/2026: "el tamaño de
-  // counter labels sólo lo cambia en la compu").
-  stats_label_style: { fontSize: 11, fontFamily: "DM Sans", defaultMobileFontSize: 8 },
+  // En el celu las etiquetas van a 10 px (9 abajo de 360 px de ancho), lo más grande
+  // con que las cuatro entran en un renglón; el admin tiene además un tamaño aparte
+  // para el celu (Anibal, 02/11/2026: "el tamaño de counter labels sólo lo cambia en
+  // la compu" / "en el celu se ve chiquita").
+  stats_label_style: { fontSize: 11, fontFamily: "DM Sans", defaultMobileFontSize: 10 },
   stats_number_style: { fontSize: 24, fontFamily: "DM Sans" },
   // Footer (TYPO-06)
   footer_heading_style: { fontSize: 12, fontFamily: "DM Sans" },
@@ -776,7 +777,10 @@ export const css = `
        quedaban pegadas arriba. Así las cuatro van en un renglón hasta 320 px. */
     .stats-grid > div { min-width: unset !important; text-align: center !important; flex: 1 1 auto !important; }
     .stats-grid > div > div:first-child { font-size: 14px !important; }
-    .stats-grid > div > div:last-child { font-size: var(--fs-m, 8px) !important; margin-top: 4px !important; letter-spacing: 0 !important; white-space: nowrap; }
+    /* 10 px: lo más grande con que las cuatro etiquetas entran en un renglón desde
+       360 px de ancho (medido el 02/11/2026; antes 8, "en el celu se ve chiquita").
+       Abajo de 360, 9 (regla de max-width: 359px). */
+    .stats-grid > div > div:last-child { font-size: var(--fs-m, 10px) !important; margin-top: 4px !important; letter-spacing: 0 !important; white-space: nowrap; }
     /* 14 arriba de las tarjetas y 14 abajo (lo pone About): parejo. Suma lo mismo que
        antes (8 + 10 + 10 = 28), así no cambia lo que entra en la primera pantalla. */
     .social-cards { padding: 14px 16px 0 !important; }
@@ -859,6 +863,8 @@ export const css = `
     .hero-section .heroContent h1 { font-size: calc(var(--fs-m, 31px) * 21 / 31) !important; }
     .hero-section .heroContent .hero-brand { font-size: calc(var(--fs-m, 20px) * 14 / 20) !important; }
     .hero-section .heroContent .hero-subtitle { font-size: calc(var(--fs-m, 18px) * 12.5 / 18) !important; }
+    /* A 320 px, 10 ya no entra en un renglón: "Facebook Followers" se parte. */
+    .stats-grid > div > div:last-child { font-size: var(--fs-m, 9px) !important; }
   }
 
   @media (prefers-reduced-motion: reduce) {

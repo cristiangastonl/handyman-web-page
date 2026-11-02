@@ -1065,7 +1065,7 @@ test.describe('orden de la home', () => {
   // Anibal, 02/11/2026: "el tamaño de counter labels sólo lo cambia en la compu". En el
   // celu van a 8 px fijos para entrar en un renglón; ahora el admin tiene un tamaño
   // aparte para el celu. Se pisa la base en los dos casos para no depender de ella.
-  test('stats: el tamaño del celu de las etiquetas se respeta, y sin cargar queda en 8', async ({ page, isMobile }) => {
+  test('stats: el tamaño del celu de las etiquetas se respeta, y sin cargar queda en 10', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'el tamaño aparte es sólo del celu');
     const medir = async (celu) => {
       await page.unrouteAll({ behavior: 'wait' });
@@ -1078,9 +1078,34 @@ test.describe('orden de la home', () => {
     let etiqueta = await medir(10);
     await expect.poll(() => etiqueta.evaluate((el) => getComputedStyle(el).fontSize), { timeout: DATOS_MS }).toBe('10px');
     etiqueta = await medir(undefined);
-    await expect.poll(() => etiqueta.evaluate((el) => getComputedStyle(el).fontSize), { timeout: DATOS_MS }).toBe('8px');
+    await expect.poll(() => etiqueta.evaluate((el) => getComputedStyle(el).fontSize), { timeout: DATOS_MS }).toBe('10px');
     await page.unrouteAll({ behavior: 'wait' });
   });
+
+  // El 10 de arriba es lo más grande que entra; a 320 px baja a 9. En los dos anchos
+  // las cuatro etiquetas tienen que ir en un renglón y la franja no puede desbordar.
+  for (const ancho of [320, 360]) {
+    test(`stats: a ${ancho} px las etiquetas entran en un renglón sin desbordar`, async ({ page, isMobile }) => {
+      test.skip(!isMobile, 'es sobre el celu');
+      await page.setViewportSize({ width: ancho, height: 740 });
+      await pisarSiteConfig(page, { stats_label_style: { fontSize: 13, fontFamily: 'DM Sans', mobileFontSize: undefined } });
+      await visit(page, '/');
+      const grid = page.locator('.stats-grid');
+      await expect(grid).toBeVisible({ timeout: 20_000 });
+      const m = await grid.evaluate((g) => {
+        const lbls = [...g.querySelectorAll(':scope > div > div:last-child')];
+        return {
+          tam: getComputedStyle(lbls[0]).fontSize,
+          desborda: g.scrollWidth > g.clientWidth + 1,
+          pisan: lbls.some((l, i) => i && l.getBoundingClientRect().left < lbls[i - 1].getBoundingClientRect().right - 0.5),
+        };
+      });
+      expect(m.tam).toBe(ancho < 360 ? '9px' : '10px');
+      expect(m.desborda, 'la franja de stats desborda').toBe(false);
+      expect(m.pisan, 'las etiquetas se pisan').toBe(false);
+      await page.unrouteAll({ behavior: 'wait' });
+    });
+  }
 
   // La foto del About es la que mandó Anibal con su propio aro naranja (02/11/2026).
   // Llegó como JPEG con negro en las esquinas: sólo se ve bien si el <img> la

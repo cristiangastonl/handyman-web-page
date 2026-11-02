@@ -449,7 +449,7 @@ describe("tamaño del celu en los estilos del admin", () => {
   it("sin tamaño del celu guardado no lo inventa", () => {
     expect(getStyleConfig({ stats_label_style: '{"fontSize":13,"fontFamily":"DM Sans"}' }, "stats_label_style")).not.toHaveProperty("mobileFontSize");
   });
-  it("las etiquetas de los stats tienen tamaño de celu por defecto (8)", () => {
-    expect(STYLE_KEYS.stats_label_style.defaultMobileFontSize).toBe(8);
+  it("las etiquetas de los stats tienen tamaño de celu por defecto (10)", () => {
+    expect(STYLE_KEYS.stats_label_style.defaultMobileFontSize).toBe(10);
   });
 });
