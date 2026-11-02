@@ -763,10 +763,13 @@ test.describe('velocidad de los carruseles', () => {
     await page.mouse.move(0, 0); // el carrusel se pausa con el mouse encima
 
     // Los carruseles con un solo item no auto-scrollean a propósito, así que se
-    // usa el que más contenido tiene. Hay que esperarlo: sale de Supabase y
+    // usa el que más contenido tiene ENTRE LOS DE VELOCIDAD GLOBAL (factor 1).
+    // Elegía el de más contenido a secas, y el 28/10/2026 ese pasó a ser Custom
+    // Projects (78 tarjetas), que va a 2x a propósito: medía 1.0 y fallaba sin
+    // que el carrusel tuviera nada mal. Hay que esperarlo: sale de Supabase y
     // medir antes de que monte devolvía -1 de forma intermitente.
     await page.waitForFunction(
-      () => [...document.querySelectorAll('div')].some(
+      () => [...document.querySelectorAll('div[data-factor-velocidad="1"]')].some(
         (d) => d.style.willChange === 'transform' && d.children.length > 3),
       null,
       { timeout: 20_000 },
@@ -779,7 +782,7 @@ test.describe('velocidad de los carruseles', () => {
     // Todo dentro del browser: ida y vuelta por CDP entre lectura y lectura
     // agregaría ruido.
     const pxPorFrame = await page.evaluate(async () => {
-      const track = [...document.querySelectorAll('div')]
+      const track = [...document.querySelectorAll('div[data-factor-velocidad="1"]')]
         .filter((d) => d.style.willChange === 'transform')
         .sort((a, b) => b.children.length - a.children.length)[0];
       if (!track) return -1;
@@ -1013,23 +1016,140 @@ test.describe('orden de la home', () => {
     await visit(page, '/');
     await expect(page.locator('.stats-section')).toContainText('Works in CH');
     await expect(page.locator('.stats-section')).not.toContainText('Video Shows');
-    // "Years of Experience" y no "Years Experience" (Anibal, 21/10/2026). La franja
-    // va en mayúsculas por CSS, así que se compara sin distinguirlas.
-    await expect(page.locator('.stats-section')).toContainText(/years of experience/i);
+    // "Years of Experience" y no "Years Experience" (Anibal, 21/10/2026).
+    await expect(page.locator('.stats-section')).toContainText('Years of Experience');
   });
 
-  test('/faq cierra igual que /portfolio: título y botón verde de WhatsApp', async ({ page }) => {
-    // Anibal, 13/10/2026: "ese botón al pie de portfolio debería ser el mismo al
-    // pie de FAQs. Have another question (en negro) y abajo el coso verde 'ask me
-    // directly' con el loguito y todo".
-    await visit(page, '/faq');
-    const cierre = page.getByTestId('faq-cierre');
-    await expect(cierre).toContainText('Have another question?');
-    const boton = cierre.locator('a', { hasText: 'Ask me directly' });
-    await expect(boton).toHaveAttribute('href', /wa\.me|whatsapp/);
-    await expect(boton.locator('svg')).toHaveCount(1);
-    expect(await boton.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(37, 211, 102)');
+  // Anibal, 02/11/2026: "en el admin figura como normal, pero en la web sale todo
+  // mayúscula". Las etiquetas de los stats y los títulos del pie van con la Primera
+  // Letra de Cada Palabra en Mayúscula, nunca forzadas por CSS. Se mira lo que se ve
+  // (innerText aplica el text-transform), no el texto del DOM.
+  test('stats y títulos del pie en Title Case, sin mayúsculas forzadas', async ({ page }) => {
+    await visit(page, '/');
+    const stats = page.locator('.stats-section');
+    await expect(stats).toContainText('Years of Experience', { timeout: 20_000 });
+    const textoStats = await stats.evaluate((el) => el.innerText);
+    for (const etiqueta of ['Years of Experience', 'Works in CH', 'YouTube Views', 'Facebook Followers'])
+      expect(textoStats, `stats: "${etiqueta}"`).toContain(etiqueta);
+    const textoPie = await page.locator('footer').evaluate((el) => el.innerText);
+    for (const titulo of ['Contact', 'Service Areas', 'Quick Links'])
+      expect(textoPie, `pie: "${titulo}"`).toMatch(new RegExp(`(^|\\n)${titulo}(\\n|$)`));
+    // "Share this webpage" como las demás pastillas: naranja con letras blancas.
+    const compartir = page.getByTestId('compartir-pagina');
+    expect(await compartir.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(255, 255, 255)');
+    expect(await compartir.evaluate((el) => getComputedStyle(el).backgroundImage)).toMatch(/gradient/);
+    // Al copiar queda igual: naranja y del mismo ancho (Gastón, 02/11/2026; antes
+    // se ponía verde y se achicaba con "Copied!").
+    const ancho = (await compartir.boundingBox()).width;
+    await compartir.click();
+    await expect(compartir).toHaveAttribute('data-copiado', 'si');
+    await expect(compartir).toContainText('Copied!');
+    expect(await compartir.evaluate((el) => getComputedStyle(el).backgroundImage)).toMatch(/gradient/);
+    expect(Math.abs((await compartir.boundingBox()).width - ancho), 'el botón cambió de ancho al copiar').toBeLessThanOrEqual(1);
+    // El horario con espacio a los dos lados del guion: "8:00 - 20:00" (mismo PDF).
+    await expect(page.getByTestId('footer-horario')).toHaveText(/\d:\d\d - \d/);
   });
+
+  // Service Areas: "28 a Service Areas y 14 a lo de abajo" (Anibal, 02/11/2026). El
+  // título y el subtítulo siguen el estilo de Tailoring del admin; las zonas van a
+  // 14 fijo, como el subtítulo.
+  test('home: en Service Areas las zonas van a 14 px', async ({ page }) => {
+    await visit(page, '/');
+    const zonas = page.getByTestId('zonas');
+    await expect(zonas).toBeVisible({ timeout: 20_000 });
+    // Sólo lo que fija el código: el subtítulo sale del admin y compararlo haría
+    // depender el test de lo que esté cargado en la base.
+    expect(await zonas.evaluate((el) => getComputedStyle(el).fontSize)).toBe('14px');
+  });
+
+  // Anibal, 02/11/2026: "el tamaño de counter labels sólo lo cambia en la compu". En el
+  // celu van a 8 px fijos para entrar en un renglón; ahora el admin tiene un tamaño
+  // aparte para el celu. Se pisa la base en los dos casos para no depender de ella.
+  test('stats: el tamaño del celu de las etiquetas se respeta, y sin cargar queda en 8', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'el tamaño aparte es sólo del celu');
+    const medir = async (celu) => {
+      await page.unrouteAll({ behavior: 'wait' });
+      await pisarSiteConfig(page, { stats_label_style: { fontSize: 13, fontFamily: 'DM Sans', mobileFontSize: celu } });
+      await visit(page, '/');
+      const etiqueta = page.locator('.stats-grid > div > div:last-child').first();
+      await expect(etiqueta).toBeVisible({ timeout: 20_000 });
+      return etiqueta;
+    };
+    let etiqueta = await medir(10);
+    await expect.poll(() => etiqueta.evaluate((el) => getComputedStyle(el).fontSize), { timeout: DATOS_MS }).toBe('10px');
+    etiqueta = await medir(undefined);
+    await expect.poll(() => etiqueta.evaluate((el) => getComputedStyle(el).fontSize), { timeout: DATOS_MS }).toBe('8px');
+    await page.unrouteAll({ behavior: 'wait' });
+  });
+
+  // La foto del About es la que mandó Anibal con su propio aro naranja (02/11/2026).
+  // Llegó como JPEG con negro en las esquinas: sólo se ve bien si el <img> la
+  // recorta en círculo, en la compu y en el celu.
+  test('home: la foto del About es la del aro naranja, recortada en círculo', async ({ page }) => {
+    await visit(page, '/');
+    const foto = page.locator('.about-row img').first();
+    await expect(foto).toHaveAttribute('src', /foto_perfil_aro\.webp$/, { timeout: 20_000 });
+    const m = await foto.evaluate((el) => {
+      const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+      return { radio: cs.borderTopLeftRadius, w: r.width, h: r.height };
+    });
+    expect(['50%', `${m.w / 2}px`]).toContain(m.radio);
+    expect(Math.abs(m.w - m.h), 'la foto tiene que ser cuadrada para que el círculo no se deforme').toBeLessThanOrEqual(1);
+  });
+
+  // Bordes naranjas de la home, uno por uno como los repasó Anibal en el PDF del
+  // 02/11/2026: las 4 tarjetas de redes SÍ; "What to expect" / "What you truly get"
+  // / "Who I do assist" NO, sólo el costadito ("un detalle re cheto"); Top
+  // Questions SÍ, en la compu y en el celu.
+  test('home: bordes naranjas sólo donde van', async ({ page }) => {
+    await visit(page, '/');
+    const naranja = 'rgb(212, 120, 31)';
+    const redes = page.locator('a.social-card');
+    await expect(redes.first()).toBeVisible({ timeout: 20_000 });
+    for (const color of await redes.evaluateAll((els) => els.map((e) => getComputedStyle(e).borderTopColor)))
+      expect(color, 'tarjeta de redes').toBe(naranja);
+    const tarjetas = page.getByTestId('highlight-card');
+    await expect(tarjetas).toHaveCount(3);
+    for (const b of await tarjetas.evaluateAll((els) => els.map((e) => {
+      const cs = getComputedStyle(e);
+      return { arriba: cs.borderTopColor, izquierda: cs.borderLeftColor };
+    }))) {
+      expect(b.izquierda, 'What to expect: el costadito').toBe(naranja);
+      expect(b.arriba, 'What to expect: sin borde naranja alrededor').not.toBe(naranja);
+    }
+    const top = page.getByTestId('top-questions');
+    await top.scrollIntoViewIfNeeded();
+    expect(await top.evaluate((el) => getComputedStyle(el).borderTopColor), 'Top Questions').toBe(naranja);
+  });
+
+  // Anibal, 13/10/2026: "ese botón al pie de portfolio debería ser el mismo al pie
+  // de FAQs". El 26/10 pidió que sean el mismo componente (Cierre.jsx), editable
+  // desde el admin, con la pregunta en Caveat y textos nuevos.
+  // El 02/11/2026 /portfolio pasó a título + subtítulo en DM Sans.
+  for (const [ruta, pregunta, subtitulo, textoBoton] of [
+    ['/faq', 'Have another question?', null, 'Feel free to ask'],
+    ['/portfolio', 'In need of help for a similar job?', 'Maybe something different… ?', "Let's talk about it"],
+  ]) {
+    test(`${ruta} cierra con la pregunta en Caveat y el botón verde de WhatsApp`, async ({ page }) => {
+      await visit(page, ruta);
+      const cierre = page.getByTestId(`${ruta.slice(1)}-cierre`);
+      await expect(cierre).toContainText(pregunta);
+      expect(await cierre.locator('[data-cierre="titulo"]').evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/Caveat/);
+      if (subtitulo) {
+        const sub = cierre.locator('[data-cierre="subtitulo"]');
+        await expect(sub).toHaveText(subtitulo);
+        expect(await sub.evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/DM Sans/);
+      } else {
+        await expect(cierre.locator('[data-cierre="subtitulo"]')).toHaveCount(0);
+      }
+      // "Meterle delineado naranja a todas las pastillas" (Anibal, 26/10/2026).
+      expect(await cierre.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(212, 120, 31)');
+      const boton = cierre.locator('a', { hasText: textoBoton });
+      await expect(boton).toHaveAttribute('href', /wa\.me|whatsapp/);
+      await expect(boton.locator('svg')).toHaveCount(1);
+      expect(await boton.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(37, 211, 102)');
+    });
+  }
 
   // Filas de píxeles vacías arriba y abajo del contenido de una caja, medidas sobre
   // una foto de la caja. Medir cajas de texto no sirve: incluyen el aire invisible de
@@ -1154,8 +1274,9 @@ test.describe('orden de la home', () => {
     await fb.scrollIntoViewIfNeeded();
     if (await fb.count() === 0) return; // sin reseñas de Facebook cargadas no hay bloque
     await expect(fb.locator('span').first()).toHaveText('100%', { timeout: 10_000 });
-    // "144 Reviews", con la misma forma que el "25 Reviews" de Google.
-    await expect(page.getByTestId('home-facebook-conteo')).toHaveText(/^\d+ Reviews?$/);
+    // "145 Recommendations": Facebook recomienda, no puntúa (Anibal, 02/11/2026).
+    // Google sigue "33 Reviews".
+    await expect(page.getByTestId('home-facebook-conteo')).toHaveText(/^\d+ Recommendations?$/);
     const google = page.getByTestId('home-google');
     if (await google.count() === 0) return;
     const [g, f] = await Promise.all([google.boundingBox(), fb.boundingBox()]);
@@ -1251,7 +1372,10 @@ test.describe('orden de la home', () => {
   test('Caveat sin grosor elegido sale como el subtítulo del hero: normal y sin espaciado extra', async ({ page }) => {
     // Anibal, 19/10/2026: "todos los caveats deberían ser como este". Los títulos del
     // footer traen negrita y espaciado fijos pensados para DM Sans.
-    await pisarSiteConfig(page, { footer_heading_style: { fontFamily: 'Caveat' }, hero_title: { fontFamily: 'Caveat' } });
+    // `bold: undefined` saca el grosor que haya guardado en la base: el test es sobre
+    // Caveat SIN grosor elegido. Sin eso dependía del admin, y el 02/11/2026 se cayó
+    // cuando los títulos del pie quedaron guardados en Caveat con negrita.
+    await pisarSiteConfig(page, { footer_heading_style: { fontFamily: 'Caveat', bold: undefined }, hero_title: { fontFamily: 'Caveat', bold: undefined } });
     await visit(page, '/');
     const medir = (sel) => page.locator(sel).first().evaluate((el) => {
       const c = getComputedStyle(el);
@@ -1421,27 +1545,31 @@ test.describe('presentación en mobile', () => {
       // texto se acorte para esquivarla. Medir la caja diría que el título pisa la
       // foto cuando en pantalla no la pisa: se mide el texto renderizado.
       const textoDe = (el) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect(); };
+      const bioEl = document.querySelector('.about-row > div > p');
+      const r = document.createRange(); r.selectNodeContents(bioEl);
       return {
         hueco: bio.top - h2.bottom,
         // El título va al lado y a la izquierda: se lee antes que la foto.
         tituloAntesQueLaFoto: textoDe(h2El).right <= foto.left + 1,
-        // La bio respeta la columna de la foto de arriba a abajo.
-        bioEnSuColumna: bio.right <= foto.left + 1,
-        // La foto va centrada contra el bloque entero de título + bio.
-        desvioDelCentro: Math.abs(
-          (foto.top + foto.bottom) / 2 - (h2.top + bio.bottom) / 2),
+        // Algún renglón de la bio pasa por debajo de la foto y usa el ancho entero.
+        bioPorDebajo: [...r.getClientRects()].some((l) => l.top >= foto.bottom && l.right > foto.left + 1),
+        // Y también por arriba: algún renglón pasa por encima de la foto a lo ancho.
+        bioPorArriba: [...r.getClientRects()].some((l) => l.bottom <= foto.top && l.right > foto.left + 1),
+        desvioDelCentro: Math.abs((foto.top + foto.bottom) / 2 - (bio.top + bio.bottom) / 2),
       };
     });
-    expect(m.hueco, 'entre el título y su bio no debería quedar más que el row-gap').toBeLessThan(16);
+    expect(m.hueco, 'entre el título y su bio no debería quedar hueco').toBeLessThan(16);
     expect(m.hueco, 'pero tampoco pueden quedar encimados').toBeGreaterThanOrEqual(0);
     expect(m.tituloAntesQueLaFoto, 'el título va a la izquierda y la foto a la derecha').toBe(true);
-    // Este check pedía lo contrario —"la bio va de borde a borde"— porque en su
-    // momento se decidió que cruzara por debajo de la foto para no estirarse a
-    // nueve renglones en 227px. Anibal lo revirtió a propósito el 31/08: quiere que
-    // la foto tenga columna propia y que el texto la respete todo el recorrido, y
-    // que el bloque quede más alto justamente para que "What to expect" no asome.
-    expect(m.bioEnSuColumna, 'la bio se está metiendo abajo de la foto').toBe(true);
-    expect(m.desvioDelCentro, 'la foto no está centrada contra el texto').toBeLessThan(8);
+    // La historia de este check: el 31/08 Anibal quiso la foto en columna propia,
+    // con la bio respetándola de arriba a abajo. El 26/10/2026 lo dio vuelta: la foto
+    // va "dentro del texto y no como secciones o columnas distintas", así que la
+    // bio la rodea y sigue por debajo.
+    expect(m.bioPorDebajo, 'la bio tiene que rodear la foto y seguir por debajo').toBe(true);
+    // 28/10/2026: con la foto en el medio del párrafo ("dos arriba, dos abajo… y así
+    // la foto quedaría centrada"). Un renglón de margen por el corte de las líneas.
+    expect(m.bioPorArriba, 'tiene que haber renglones a lo ancho arriba de la foto').toBe(true);
+    expect(m.desvioDelCentro, 'la foto no está centrada contra la bio').toBeLessThan(20);
   });
 
   test('los tags de categoría van a ancho completo y centrados', async ({ page, isMobile }) => {
@@ -1573,8 +1701,12 @@ test.describe('resumen de /reviews', () => {
       // incluido.
       const reseniasGoogle = await page.locator('.reviews-grid [data-fuente="google"]').count();
       expect(await conteoGoogle(page), 'las barras de Google no cuentan las reseñas de Google').toBe(reseniasGoogle);
-      // "25 Reviews" a la izquierda, como en la home (Anibal, 13/10/2026).
-      await expect(page.getByTestId('conteo-google')).toHaveText(new RegExp(`^${reseniasGoogle} Reviews?$`));
+      // "25 rated" a la izquierda, en Caveat y sin las estrellas arriba (Anibal,
+      // 26/10/2026; antes "25 Reviews", como en la home).
+      // "Rated" con R mayúscula (Anibal, 02/11/2026: "te quedó con la erre en minúscula").
+      await expect(page.getByTestId('conteo-google')).toHaveText(new RegExp(`^${reseniasGoogle} Rated$`));
+      expect(await page.getByTestId('conteo-google').evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/Caveat/);
+      await expect(google.getByRole('img', { name: /star/i })).toHaveCount(0);
       // Por fuente y no por la URL: el link de Google es un g.page/r/... y
       // además Anibal lo puede cambiar desde el admin.
       await expect(google.locator('[data-boton-resena="google"]')).toHaveCount(1);
@@ -1587,14 +1719,11 @@ test.describe('resumen de /reviews', () => {
       // conteo se sigue chequeando en la home (home-facebook-conteo).
       // "…of 144 real people": el número es el de las reseñas de Facebook cargadas.
       const reseniasFb = await page.locator('.reviews-grid [data-fuente="facebook"]').count();
-      await expect(facebook.getByTestId('frase-facebook')).toContainText(`Built up on mentions and recommendations of ${reseniasFb} real`);
+      // "real customers", no "real people" (Anibal, 26/10/2026). La paridad de
+      // fuente con el conteo de Google se cayó ese día: "25 rated" va en Caveat.
+      await expect(facebook.getByTestId('frase-facebook')).toContainText(`Built up on mentions and recommendations of ${reseniasFb} real customer`);
       await expect(facebook).not.toContainText(/\d+ people recommend/);
-      // "Fuente y tamaño tienen que coincidir" con el "25 Reviews" de al lado.
-      if (hayGoogle) {
-        const estilo = (loc) => loc.evaluate((el) => { const c = getComputedStyle(el); return [c.fontFamily, c.fontSize, c.color].join(' / '); });
-        expect(await estilo(facebook.getByTestId('frase-facebook').locator('p')))
-          .toBe(await estilo(page.getByTestId('conteo-google')));
-      }
+      await expect(facebook).not.toContainText('👍');
       await expect(facebook.locator('[data-boton-resena="facebook"]')).toHaveCount(1);
       await expect(facebook.locator('[data-boton-resena="google"]')).toHaveCount(0);
     }
@@ -1705,6 +1834,43 @@ test.describe('aire alrededor de las cajas de cierre', () => {
     return { caja, arriba: caja?.previousElementSibling, abajo: document.querySelector('footer') };
   };
 
+  // /reviews: la caja de cierre la pidió fuera el 26/10/2026 y volvió el 02/11 con
+  // "Are you a Happy Customer?", su frase tal cual y los dos botones
+  // de "Leave a review", que siguen también arriba, en el resumen.
+  test('/reviews cierra con "Are you a Happy Customer?" y los dos botones de reseña', async ({ page }) => {
+    await visit(page, '/reviews');
+    const cierre = page.getByTestId('reviews-cierre');
+    await expect(cierre.locator('[data-cierre="titulo"]')).toHaveText('Are You a Happy Customer?', { timeout: 20_000 }); // "You" con mayúscula (Anibal, 02/11/2026)
+    expect(await cierre.locator('[data-cierre="titulo"]').evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/Caveat/);
+    const sub = cierre.locator('[data-cierre="subtitulo"]');
+    // El "if" en minúsculas entre "time" y "there" (Anibal, 02/11/2026).
+    await expect(sub).toContainText('In order to know by the next time if there would be');
+    expect(await sub.evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/DM Sans/);
+    expect(await cierre.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(212, 120, 31)');
+    await expect(cierre.locator('[data-boton-resena="google"]')).toHaveCount(1);
+    await expect(cierre.locator('[data-boton-resena="facebook"]')).toHaveCount(1);
+    // Sin el botón verde de WhatsApp de los otros cierres.
+    await expect(cierre.locator('a[href*="wa.me"]')).toHaveCount(0);
+    // Y los de arriba siguen.
+    await expect(page.getByTestId('resumen-google').locator('[data-boton-resena="google"]')).toHaveCount(1);
+  });
+
+  // Con título y subtítulo, las colas de Caveat no pueden pisar el subtítulo: la
+  // caja recorta el aire de cada renglón y el 02/11/2026 se montaban con 6 px.
+  for (const ruta of ['/portfolio', '/reviews']) {
+    test(`${ruta}: el título del cierre no pisa el subtítulo`, async ({ page }) => {
+      await visit(page, ruta);
+      const cierre = page.getByTestId(`${ruta.slice(1)}-cierre`);
+      await cierre.locator('[data-cierre="subtitulo"]').waitFor({ timeout: 20_000 });
+      const r = await cierre.evaluate((c) => {
+        const t = c.querySelector('[data-cierre="titulo"]'), sub = c.querySelector('[data-cierre="subtitulo"]');
+        return { gap: sub.getBoundingClientRect().top - t.getBoundingClientRect().bottom, fuente: parseFloat(getComputedStyle(t).fontSize) };
+      });
+      // Las colas de Caveat bajan ~0.35 del cuerpo por debajo de la línea de base.
+      expect(r.gap, `${r.gap}px entre título y subtítulo con Caveat de ${r.fuente}px`).toBeGreaterThanOrEqual(r.fuente * 0.35);
+    });
+  }
+
   for (const ruta of ['/faq', '/portfolio', '/reviews', '/']) {
     test(`${ruta}: la caja de cierre tiene el mismo aire arriba y abajo`, async ({ page }) => {
       await visit(page, ruta);
@@ -1759,6 +1925,26 @@ test.describe('resumen de /reviews: clásico o tarjetas', () => {
   });
 });
 
+// "33 rated" y "Recommended" con la misma pastilla, y "Recommended" sin el celeste de
+// Facebook que nunca se había ido (Anibal, 02/11/2026). Es la "onda cristal" que
+// pidió: el naranja claro liso que probamos no le gustó y volvió el vidrio gris.
+test('/reviews: "rated" y "Recommended" llevan la misma pastilla cristal, sin celeste', async ({ page }) => {
+  await visit(page, '/reviews?resumen=tarjetas');
+  await expect(page.getByTestId('conteo-google')).toBeVisible({ timeout: 20_000 });
+  const estilos = await page.locator('[data-pastilla-resumen]').evaluateAll((els) => els.map((e) => {
+    const cs = getComputedStyle(e);
+    return { imagen: cs.backgroundImage, fondo: cs.backgroundColor, color: cs.color };
+  }));
+  expect(estilos.length, 'falta alguna de las dos pastillas').toBe(await page.getByTestId('resumen-facebook').count() ? 2 : 1);
+  for (const e of estilos) {
+    expect(e.imagen, 'el vidrio').toMatch(/gradient/);
+    expect(e.color, 'sin el azul de Facebook').not.toBe('rgb(24, 119, 242)');
+    expect(e.fondo, 'sin el celeste de antes').not.toBe('rgb(231, 240, 253)');
+    expect(e.imagen, 'sin el naranja claro que no le gustó').not.toMatch(/242, 188, 136/);
+  }
+  expect(new Set(estilos.map((e) => e.imagen)).size, 'las dos pastillas no son iguales').toBe(1);
+});
+
 test('/reviews: "Newest first" tiene el mismo aire arriba y abajo', async ({ page }) => {
   // Anibal, 14/10/2026: quedaba más cerca del resumen (20 px) que de las
   // reseñas (36). Se mide contra lo que se ve: el borde de abajo de las
@@ -1772,4 +1958,111 @@ test('/reviews: "Newest first" tiene el mismo aire arriba y abajo', async ({ pag
     return { arriba: boton.top - Math.max(...columnas), abajo: grilla.top - boton.bottom };
   });
   expect(Math.abs(r.arriba - r.abajo), `${Math.round(r.arriba)} px arriba contra ${Math.round(r.abajo)} abajo`).toBeLessThanOrEqual(3);
+});
+
+// Las redes van en el orden de las tarjetas de arriba de "Meet your handyman"
+// (Anibal, 02/11/2026): en el pie Google, YouTube, WhatsApp, Facebook, y en el
+// header, que no tiene Google, YouTube, WhatsApp, Facebook.
+test('las redes del pie y del header siguen el orden de las tarjetas de redes', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'en el celu las redes del header están dentro del menú');
+  await visit(page, '/');
+  const etiquetas = (sel) => page.locator(sel).evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
+  expect(await etiquetas('nav a[aria-label]')).toEqual(['YouTube', 'WhatsApp', 'Facebook']);
+  expect(await etiquetas('footer a[aria-label]')).toEqual(['Google Maps', 'YouTube', 'WhatsApp', 'Facebook']);
+});
+
+// Pie (26/10/2026): en la compu las tres columnas ocupan todo el ancho de la línea
+// —Contact desde el borde izquierdo, Quick Links hasta el derecho— y Service Areas
+// queda en el medio. En el celu van apiladas, una pegada a la otra.
+test('las columnas del pie van de borde a borde en la compu y apiladas en el celu', async ({ page, isMobile }) => {
+  await visit(page, '/faq');
+  await page.locator('footer').scrollIntoViewIfNeeded();
+  const m = await page.evaluate(() => {
+    const fila = document.querySelector('.footer-cols').getBoundingClientRect();
+    const cols = [...document.querySelectorAll('.footer-cols > div')].map((d) => d.getBoundingClientRect());
+    return {
+      izq: cols[0].left - fila.left, der: fila.right - cols[2].right,
+      huecos: [cols[1].left - cols[0].right, cols[2].left - cols[1].right],
+      apiladas: cols.every((c, i) => i === 0 || c.top >= cols[i - 1].bottom),
+      aireEntreApiladas: cols.slice(1).map((c, i) => c.top - cols[i].bottom),
+    };
+  });
+  if (isMobile) {
+    expect(m.apiladas, 'en el celu las columnas van una abajo de la otra').toBe(true);
+    for (const aire of m.aireEntreApiladas) expect(aire, 'hueco entre columnas apiladas').toBeLessThan(48);
+  } else {
+    expect(Math.abs(m.izq), 'Contact arranca en el borde izquierdo').toBeLessThanOrEqual(1);
+    expect(Math.abs(m.der), 'Quick Links termina en el borde derecho').toBeLessThanOrEqual(1);
+    expect(Math.abs(m.huecos[0] - m.huecos[1]), `Service Areas centrada: ${m.huecos.map(Math.round)}`).toBeLessThanOrEqual(2);
+  }
+});
+
+// Tamaños y espacios (auditoría del 02/11/2026). Cada test traba una incoherencia
+// que se midió y se arregló: no tenían check y se habían colado sin que nadie las viera.
+test.describe('tamaños y espacios', () => {
+  // Entre 641 y ~840 px el menú de la compu no entraba (en alemán necesita ~590 px más
+  // el logo) y la página tenía scroll horizontal. Ahora es hamburguesa hasta 959.
+  test('en tablet no hay scroll horizontal, en ningún idioma', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'el ancho de tablet se fija a mano en desktop');
+    for (const width of [641, 768, 900, 959, 960]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const lang of ['en', 'de']) {
+        await page.addInitScript((l) => localStorage.setItem('lang', l), lang);
+        await visit(page, '/faq');
+        const ancho = await page.evaluate(() => document.documentElement.scrollWidth);
+        expect(ancho, `${width} px en ${lang}: la página mide ${ancho}`).toBeLessThanOrEqual(width);
+      }
+    }
+  });
+
+  // Con flex-basis 200, entre 641 y ~880 px se partían 3 + 1 y Facebook quedaba sola.
+  test('las 4 tarjetas de redes van en una sola fila', async ({ page, isMobile }) => {
+    for (const width of isMobile ? [null] : [641, 768, 1440]) {
+      if (width) await page.setViewportSize({ width, height: 900 });
+      await visit(page, '/');
+      const tops = await page.locator('.social-card').evaluateAll((as) => as.map((a) => Math.round(a.getBoundingClientRect().top)));
+      expect(tops, `tops de las tarjetas a ${width ?? 'celu'} px`).toHaveLength(4);
+      expect(new Set(tops).size, `tops de las tarjetas a ${width ?? 'celu'} px: ${tops}`).toBe(1);
+    }
+  });
+
+  // El hero, las reseñas de la home y el pie ponían el padding afuera de su ancho
+  // máximo, así que en la compu iban 24 px más afuera que el resto de las secciones.
+  test('el hero, las reseñas y el pie usan la misma columna que el resto', async ({ page }) => {
+    await visit(page, '/');
+    await page.locator('footer').scrollIntoViewIfNeeded();
+    const x = await page.evaluate(() => {
+      const r = (sel) => document.querySelector(sel).getBoundingClientRect();
+      return { about: r('.about-row'), hero: r('.heroContent'), resenas: r('.rev-head'), pie: r('footer > div') };
+    });
+    for (const k of ['hero', 'resenas', 'pie']) {
+      expect(Math.abs(x[k].left - x.about.left), `${k} arranca en ${x[k].left}, About en ${x.about.left}`).toBeLessThanOrEqual(1);
+    }
+    expect(Math.abs(x.resenas.right - x.pie.right), 'reseñas y pie terminan en el mismo lugar').toBeLessThanOrEqual(1);
+  });
+
+  // /faq tenía 32 arriba y /portfolio 28: el título saltaba 4 px al pasar de una a la
+  // otra. (/reviews no tiene título: arranca con el resumen.)
+  test('el título arranca a la misma altura en /faq y /portfolio', async ({ page }) => {
+    const alturas = {};
+    for (const ruta of ['/faq', '/portfolio']) {
+      await visit(page, ruta);
+      alturas[ruta] = await page.locator('h1').first().evaluate((h) => Math.round(h.getBoundingClientRect().top + scrollY));
+    }
+    expect(alturas['/faq'], JSON.stringify(alturas)).toBe(alturas['/portfolio']);
+  });
+
+  // Las tarjetas tienen sombra y el scroller 4 px de padding abajo para no cortarla:
+  // con SECTION_Y entero abajo, la sección quedaba 40 arriba y 44 abajo.
+  test('las reseñas de la home tienen el mismo aire arriba y abajo', async ({ page }) => {
+    await visit(page, '/');
+    await page.locator('.rev-head').scrollIntoViewIfNeeded();
+    const m = await page.evaluate(() => {
+      const head = document.querySelector('.rev-head');
+      const sec = head.closest('section').getBoundingClientRect();
+      const fondo = Math.max(...[...head.closest('section').querySelectorAll('.review-card')].map((c) => c.getBoundingClientRect().bottom));
+      return { arriba: head.getBoundingClientRect().top - sec.top, abajo: sec.bottom - fondo };
+    });
+    expect(Math.abs(m.arriba - m.abajo), `arriba ${m.arriba}, abajo ${m.abajo}`).toBeLessThanOrEqual(1);
+  });
 });

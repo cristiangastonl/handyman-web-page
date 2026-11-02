@@ -26,24 +26,16 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { CLAVES_TRADUCIBLES } from '../src/lib/clavesTraducibles.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const IDIOMAS = ['de', 'it', 'fr', 'es'];
 const PENDIENTES = join(root, 'traducciones-pendientes.json');
 const dicPath = (l) => join(root, 'src', 'locales', 'contenido', `${l}.json`);
 
-// Textos de site_config que se muestran y se traducen. No van: el teléfono, las
-// zonas (nombres de lugares), unidades de los contadores, URLs, el subtítulo de
-// marca ("Specialist Technician At Domestic Matters", siempre en inglés), el título
-// del hero ("Handyman Services in Zurich" es el nombre del negocio) y el horario:
-// el pie va entero en inglés (Footer.jsx).
-const CLAVES_CONFIG = [
-  'hero_subtitle', 'hero_trust', 'about_title', 'bio_text',
-  'about_highlight1_title', 'about_highlight1_text', 'about_highlight2_title',
-  'about_highlight2_text', 'about_highlight3_title', 'about_highlight3_text',
-  'highlights_section_title', 'social_card_google', 'social_card_yt',
-  'social_card_wa', 'social_card_fb',
-];
+// Textos de site_config que se muestran y se traducen. La lista es la misma que usa
+// el admin para avisar qué pasa con cada texto en los otros idiomas.
+const CLAVES_CONFIG = CLAVES_TRADUCIBLES;
 // Textos fijos que no vienen de la base pero se muestran con tc().
 const FIJOS = ['All'];
 

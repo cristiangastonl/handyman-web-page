@@ -28,7 +28,22 @@ export const G = "#4A4A4A";
 // negro" (21/10): el #1a1a1a que heredaban del root se leía negro. Uno solo para todos,
 // así si pide más claro u oscuro es cambiar este valor.
 export const TITLE_COLOR = "#333333";
+// Borde de las "pastillas": las cajas claras redondeadas (cierres de /faq y
+// /portfolio, tarjetas de redes, resumen de /reviews). Antes gris #f0f0f0; pedido
+// del 26/10/2026, "meterle delineado naranja a todas las pastillas". "What to
+// expect" y "Top Questions" volvieron al gris: Anibal no las quiso naranjas
+// ("como estaban queda mejor", 28/10/2026).
+export const BORDE_PASTILLA = `1px solid ${R}`;
 export const PHONE = "+41 76 594 95 81";
+// La casilla creada el 10/10/2026 en Infomaniak. Se cambia desde el admin (site_email).
+export const EMAIL = "info@handymanservicesinzurich.ch";
+// Horario por defecto del pie, de 8 a 20 (Anibal, 26/10/2026). Lo que se guarde en
+// el admin (site_hours) manda sobre esto. Va siempre en inglés, como todo el pie.
+export const HORARIO = "Mon–Sat · 8:00 - 20:00";
+// "Deja un espacio a ambos lados del guion porfa: 8:00 - 20:00" (Anibal, 02/11/2026).
+// Se aplica a lo que se muestre, venga del admin o del valor por defecto: así un
+// "9:00-17:00" guardado también sale bien. Sólo entre números: "Mon–Sat" no se toca.
+export const formatoHorario = (texto = "") => texto.replace(/(\d)\s*[-–—]\s*(\d)/g, "$1 - $2");
 // El mensaje en inglés es el que escribió Anibal (10/10/2026), tal cual: no corregirle el inglés.
 // Lo que se ve en el sitio sale de site_config.whatsapp_url; esto es el fallback.
 const WA_MSGS = {
@@ -70,7 +85,12 @@ export const WA_LINK = getWALink("en");
 export const HERO_IMG = "/anibal/hero.webp";
 // Recorte de las dos primeras filas del collage, para mobile. Ver Hero.jsx.
 export const HERO_IMG_MOBILE = "/anibal/hero-mobile.webp";
-export const PROFILE_IMG = "/anibal/foto_perfil_colores.webp";
+// La foto del About con su propio aro naranja (Anibal, 02/11/2026: "ese es el borde
+// que va, a celu y compu"). Es su PNG original (llegó por mail; por WhatsApp llegaba
+// como JPEG con negro en las esquinas), pasado a WebP con la transparencia. El
+// recorte redondo del <img> (About.jsx) se queda igual: si algún día cargan una
+// versión sin transparencia, el negro sigue quedando afuera.
+export const PROFILE_IMG = "/anibal/foto_perfil_aro.webp";
 
 export const DEFAULT_CATS = [
   { id: "all", label: "All" },
@@ -169,10 +189,13 @@ export const YT_PLAYLISTS_URL = `${socialUrls.yt}/playlists`;
  */
 const limpia = (v) => (typeof v === "string" ? v.trim() : "");
 
+// El orden de las claves es el de los íconos del header y del pie: YouTube,
+// WhatsApp, Facebook, como las tarjetas de redes de arriba de "Meet your handyman"
+// (Anibal, 02/11/2026). El pie suma Google adelante.
 export const getSocialUrls = (siteConfig = {}) => ({
-  fb: limpia(siteConfig.facebook_url) || socialUrls.fb,
   yt: limpia(siteConfig.youtube_url) || socialUrls.yt,
   wa: limpia(siteConfig.whatsapp_url) || WA_LINK,
+  fb: limpia(siteConfig.facebook_url) || socialUrls.fb,
 });
 
 /** La solapa de playlists del canal que esté configurado. */
@@ -291,6 +314,22 @@ export const SITE_TEXTS = {
   social_card_wa: { label: "Social card — WhatsApp", defaultText: "Response in less than 24hs", defaultFontSize: 11, defaultMobileFontSize: 9, defaultFontFamily: "DM Sans" },
   social_card_fb: { label: "Social card — Facebook", defaultText: "100+ Real Reviews", defaultFontSize: 11, defaultMobileFontSize: 9, defaultFontFamily: "DM Sans" },
   about_highlight3_text: { label: "Highlight 3 — Text", defaultText: "Always pleased to help both the local community and the expat community across Zurich and the surrounding region.", defaultFontSize: 12, defaultFontFamily: "DM Sans" },
+  // Las cajas de cierre de /faq y /portfolio (Cierre.jsx), editables desde el admin
+  // a pedido de Anibal (26/10/2026), con la pregunta en Caveat.
+  cierre_faq_titulo: { label: "Cierre de /faq — Pregunta", defaultText: "Have another question?", defaultFontSize: 24, defaultFontFamily: "Caveat" },
+  cierre_faq_boton: { label: "Cierre de /faq — Botón", defaultText: "Feel free to ask", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
+  // /portfolio pasó a título + subtítulo, como "Ready to get started?" (Anibal, 02/11/2026).
+  cierre_portfolio_titulo: { label: "Cierre de /portfolio — Título", defaultText: "In need of help for a similar job?", defaultFontSize: 24, defaultFontFamily: "Caveat" },
+  cierre_portfolio_subtitulo: { label: "Cierre de /portfolio — Subtítulo", defaultText: "Maybe something different… ?", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
+  cierre_portfolio_boton: { label: "Cierre de /portfolio — Botón", defaultText: "Let's talk about it", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
+  // El cierre de /reviews volvió el 02/11/2026 con los dos botones de "Leave a
+  // review" en vez del de WhatsApp. El subtítulo es la frase de Anibal tal cual:
+  // no corregirle el inglés ("en mi cabeza es como suena… es la voz en off del
+  // handyman"). El "if" va entre "time" y "there", en minúsculas: el "IF" en
+  // mayúsculas de su mensaje marcaba el lugar, no cómo se escribe (02/11/2026). Título a 28 como
+  // en el boceto que aprobó Gastón.
+  cierre_reviews_titulo: { label: "Cierre de /reviews — Título", defaultText: "Are You a Happy Customer?", defaultFontSize: 28, defaultFontFamily: "Caveat" },
+  cierre_reviews_subtitulo: { label: "Cierre de /reviews — Subtítulo", defaultText: "In order to know by the next time if there would be something else I might do for you to get you totally satisfied and beyond, I'm always happy to hear about your feedback", defaultFontSize: 14, defaultFontFamily: "DM Sans" },
 };
 
 // Parse a site config value — supports both plain text (legacy) and JSON {text, fontSize, fontFamily, mobileFontSize}
@@ -345,7 +384,10 @@ export const STYLE_KEYS = {
   cta_bottom_title_style: { fontSize: 24, fontFamily: "DM Sans" },
   cta_bottom_subtitle_style: { fontSize: 14, fontFamily: "DM Sans" },
   // Stats bar labels (TYPO-05)
-  stats_label_style: { fontSize: 11, fontFamily: "DM Sans" },
+  // En el celu las etiquetas van a 8 px para que las cuatro entren en un renglón; el
+  // admin tiene un tamaño aparte para el celu (Anibal, 02/11/2026: "el tamaño de
+  // counter labels sólo lo cambia en la compu").
+  stats_label_style: { fontSize: 11, fontFamily: "DM Sans", defaultMobileFontSize: 8 },
   stats_number_style: { fontSize: 24, fontFamily: "DM Sans" },
   // Footer (TYPO-06)
   footer_heading_style: { fontSize: 12, fontFamily: "DM Sans" },
@@ -370,6 +412,7 @@ export const getStyleConfig = (siteConfig, key) => {
       fontSize: parsed.fontSize || defaults.fontSize,
       fontFamily: parsed.fontFamily || defaults.fontFamily,
       ...(typeof parsed.bold === "boolean" && { bold: parsed.bold }),
+      ...(Number(parsed.mobileFontSize) > 0 && { mobileFontSize: Number(parsed.mobileFontSize) }),
     };
   } catch {
     return defaults;
@@ -464,6 +507,11 @@ export const getHighlightField = (siteConfig, key, fallbackText) => {
 // con 12 y con 14. Ahora sale todo de acá.
 export const SECTION_X = 24;
 export const SECTION_Y = 40;
+// Ancho del contenido: las secciones miden 940 con SECTION_X de cada lado adentro.
+// Lo que pone el padding afuera (hero, reseñas de la home, pie) usa esto para que su
+// contenido arranque y termine en la misma columna; con 940 iba 24 px más afuera en
+// la compu (medido el 02/11/2026).
+export const CONTENIDO_MAX = 940 - 2 * SECTION_X;
 // Aire arriba y abajo de las tarjetas de redes: el mismo de los dos lados (lo pone
 // StatsBar arriba y About arriba suyo). En el celu lo pisa el CSS de mobile.
 export const ABOUT_TOP = 24;
@@ -549,9 +597,15 @@ export const css = `
   @media (max-width: 900px) {
     .sticky-bar { display: none !important; }
   }
-  @media (max-width: 640px) {
+  /* Menú hamburguesa hasta 959 px y no sólo en el celu: el menú de la compu necesita
+     ~590 px en alemán (el idioma más largo) más los 286 del logo. Con el corte en 640,
+     entre 641 y ~840 px se salía de la pantalla y aparecía scroll horizontal, y hasta
+     ~900 quedaba pegado al logo (medido el 02/11/2026). */
+  @media (max-width: 959px) {
     .desktop-nav { display: none !important; }
     .mobile-hamburger { display: block !important; }
+  }
+  @media (max-width: 640px) {
     /* Keep the full horizontal wordmark on mobile — the circular icon alone
        dropped the "Handyman Services in Zurich" name from small screens. */
     .logo-desktop { height: 26px !important; max-width: 60vw !important; }
@@ -581,52 +635,37 @@ export const css = `
        sigue es el carrusel Recent Works, que arranca sin padding propio, y con 16
        quedaba más pegado que los otros dos carruseles. Antes seguía Service Areas. */
     section:has(> .about-row) { padding: 14px 24px 40px !important; }
-    /* Dos columnas: el texto en la primera y la foto en la segunda, centrada
-       verticalmente contra el bloque entero de título + bio.
+    /* La foto flota a la derecha y el texto la rodea, incluso por debajo.
 
-       Pasó por tres formas hasta acá. Primero la foto ocupaba una fila de 88px y
-       al lado sólo entraba el título, con la bio cruzando a lo ancho por debajo:
-       quedaba una franja de aire muerto que Anibal marcó dos veces. Después flotó
-       dentro del texto, que mató el hueco pero dejaba la bio metiéndose abajo de
-       la foto a partir del cuarto renglón. Ahora la foto tiene columna propia y el
-       texto la respeta de arriba a abajo: no hay aire muerto, no hay texto que se
-       meta debajo, y el bloque queda más alto —a propósito, porque así "What to
-       expect" no asoma en la primera pantalla.
+       Pasó por cuatro formas. Primero la foto ocupaba una fila de 88px con la bio
+       por debajo (aire muerto que Anibal marcó dos veces). Después flotó, y la bio
+       se metía abajo de la foto. Después tuvo columna propia de arriba a abajo. El
+       26/10/2026 Anibal pidió volver a que esté "dentro del texto y no como
+       secciones o columnas distintas": flota de nuevo, ahora a propósito.
+       shape-outside hace que el texto siga la curva del círculo.
 
        El !important es porque About.jsx trae display:flex inline para desktop.
        (Ojo: nada de backticks acá adentro, este CSS es un template literal.) */
-    .about-row {
-      display: grid !important;
-      grid-template-columns: 1fr 112px;
-      column-gap: 12px !important;
-      row-gap: 6px !important;
-      justify-content: start !important;
-      text-align: left !important;
-    }
-    /* display:contents saca al div del medio para que la foto y el texto queden
-       como hermanos y entren los cuatro en la misma grilla, sin tocar el JSX. */
-    .about-row > div { display: contents; }
+    .about-row { display: block !important; text-align: left !important; }
+    .about-row::after { content: ""; display: block; clear: both; }
+    /* El separador que baja la foto hasta el medio de la bio (28/10/2026): ancho 0,
+       así los renglones que pasan a su lado usan todo el ancho. Su alto lo pone
+       useFotoCentrada en About.jsx. */
+    .about-empuje { display: block !important; float: right; width: 0; height: var(--empuje, 0px); }
     .about-row img {
-      /* Abarca las filas del título y de la bio, y se centra contra las dos: es lo
-         que la deja a media altura del texto en vez de colgada de un extremo. */
-      grid-column: 2; grid-row: 1 / span 2;
-      align-self: center;
-      /* 112 y no 88: la foto crece 27% y cuesta un solo renglón de bio, exactamente
-         lo mismo que costaría llevarla apenas a 100. De 112 para arriba cada salto
-         cuesta el doble o el triple, porque la columna del texto se angosta y la
-         bio se va a 11 y 12 renglones. Medido en un Pixel 5. */
-      width: 112px !important; height: 112px !important; margin: 0 !important;
+      float: right; clear: right;
+      width: 112px !important; height: 112px !important;
+      /* Sin margen arriba ni abajo (28/10/2026, eran 4 y 6): el pie de la foto se
+         alinea con el corte entre renglones (useFotoCentrada en About.jsx) y Gastón
+         la quiso pareja arriba y abajo. Sólo queda el aire contra el texto. */
+      margin: 0 0 0 12px !important;
+      shape-outside: circle(50%);
     }
-    /* El título iba centrado en una fila que mide 88px por culpa de la foto, así
-       que abajo le quedaban ~28px de aire antes del texto y se leía como dos
-       bloques sueltos. Alineado al final de la fila queda pegado a su párrafo,
-       que es lo que pidió Anibal ("que no quede tanto espacio entre handyman y
-       texto"). La foto sigue centrada contra el bloque entero. */
-    .about-row h2 { grid-column: 1; grid-row: 1; align-self: end; margin-bottom: 0 !important; }
-    .about-row > div > p { grid-column: 1; grid-row: 2; font-size: 13px !important; line-height: 1.5 !important; margin-bottom: 0 !important; }
-    /* Los tags sí van a lo ancho: abajo de la foto ya no hay columna que respetar. */
+    .about-row h2 { margin-bottom: 4px !important; }
+    .about-row > div > p { font-size: 13px !important; line-height: 1.5 !important; margin-bottom: 0 !important; }
+    /* Los tags van abajo de todo, a lo ancho y centrados. */
     .skill-tags {
-      grid-column: 1 / -1; grid-row: 3;
+      clear: both;
       justify-content: center !important;
       margin-top: 12px !important;
     }
@@ -674,11 +713,15 @@ export const css = `
        margenCard una vez, y el delta válido es la ventana entre las dos. El 02/09 medía
        holguraTags=-25.4 y margenCard=53.4: la ventana era (27.4, 45.4) y se tomó 36, el
        centro, que deja ~10 px de un lado y ~17 del otro. No se toca el test, que es el
-       que lo detecta. */
+       que lo detecta.
+
+       26/10/2026: la foto vuelve a flotar dentro del texto (pedido de Anibal) y el bloque
+       se achicó. Medido: holguraTags=58.2 y margenCard=-30.2, ventana (38.2, 56.2), se
+       tomó 47: de 564 a 517. */
     .hero-section {
       aspect-ratio: auto !important;
-      height: calc(100vh - 564px) !important;
-      height: calc(100dvh - 564px) !important;
+      height: calc(100vh - 517px) !important;
+      height: calc(100dvh - 517px) !important;
       /* El max-height topaba al hero en 460 y en pantallas altas (956) le quedaban
          13 px sin absorber, justo los que hacían asomar las tarjetas de "What to
          expect". 500 le deja llegar a los 473 que pide esa altura sin clamp. */
@@ -733,7 +776,7 @@ export const css = `
        quedaban pegadas arriba. Así las cuatro van en un renglón hasta 320 px. */
     .stats-grid > div { min-width: unset !important; text-align: center !important; flex: 1 1 auto !important; }
     .stats-grid > div > div:first-child { font-size: 14px !important; }
-    .stats-grid > div > div:last-child { font-size: 8px !important; margin-top: 4px !important; letter-spacing: 0 !important; white-space: nowrap; }
+    .stats-grid > div > div:last-child { font-size: var(--fs-m, 8px) !important; margin-top: 4px !important; letter-spacing: 0 !important; white-space: nowrap; }
     /* 14 arriba de las tarjetas y 14 abajo (lo pone About): parejo. Suma lo mismo que
        antes (8 + 10 + 10 = 28), así no cambia lo que entra en la primera pantalla. */
     .social-cards { padding: 14px 16px 0 !important; }
@@ -751,13 +794,20 @@ export const css = `
        iguales con el separador al medio, y "See all reviews" abajo. Con flex-wrap el
        bloque de Facebook se caía al renglón de abajo y dejaba el separador colgando
        (Anibal: "se repite el error… y se bajó todo", 13/10/2026). */
-    .rev-head { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+    /* El margen de abajo, medido por píxeles con la pastilla de "See all reviews" en su
+       propio renglón (26/10/2026): con el de la compu quedaba 42 arriba contra 36 abajo. */
+    /* Apiladas, y sin el flex-basis de Service Areas: en columna sería su alto. */
+    .footer-cols { flex-direction: column !important; }
+    .footer-cols > div { flex: none !important; }
+    .rev-head { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; margin-bottom: 42px !important; }
     .rev-fuentes { justify-content: center; gap: 10px !important; }
     .rev-fuentes:has(> :nth-child(3)) { display: grid !important; grid-template-columns: 1fr auto 1fr; justify-items: center; }
     .rev-head > button { align-self: center; }
   }
-  @media (min-width: 641px) {
+  @media (min-width: 960px) {
     .mobile-menu { display: none !important; }
+  }
+  @media (min-width: 641px) {
     /* En /reviews, con las columnas lado a lado, la frase de Facebook arranca a la
        altura de las barras de Google (debajo de las estrellas) y se centra contra
        ellas: es lo que pidió Anibal, que "equilibre la altura de las 5 barras". */

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText, mobileFontVar, pesoLetra } from "../lib/constants";
+import { R, HERO_IMG, HERO_IMG_MOBILE, parseSiteText, mobileFontVar, pesoLetra, CONTENIDO_MAX } from "../lib/constants";
 import { useContenido } from "../lib/contenido";
 
 // El título va entero en el naranja de la marca. Antes era a dos tonos —"Handyman"
@@ -69,7 +69,7 @@ export default function Hero({ siteConfig = {} }) {
 
       {/* Content overlay */}
       <div className="hero-overlay" style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 20px" }}>
-        <div className="heroContent" style={{ maxWidth: 940, margin: "0 auto" }}>
+        <div className="heroContent" style={{ maxWidth: CONTENIDO_MAX, margin: "0 auto" }}>
             <h1 style={{
               fontSize: title?.fontSize ? `${title.fontSize}px` : "clamp(24px, 4vw, 36px)",
               fontFamily: title?.fontFamily ? `'${title.fontFamily}', sans-serif` : undefined,

@@ -1,13 +1,13 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import Cierre from "./Cierre";
 import { useLocation } from "react-router-dom";
 import { estiloResumen } from "../lib/resumenResenas";
-import { R, svgP, ab, getStyleConfig, pesoLetra, parseReviewDate, formatReviewDate, getSocialUrls, getFbReviewsUrl, getGoogleReviewUrl, SECTION_PAD, SECTION_Y, TITLE_COLOR } from "../lib/constants";
+import { R, G, svgP, ab, getStyleConfig, pesoLetra, parseReviewDate, formatReviewDate, getFbReviewsUrl, getGoogleReviewUrl, SECTION_X, SECTION_Y, CONTENIDO_MAX, TITLE_COLOR, BORDE_PASTILLA } from "../lib/constants";
 import { useCarouselSpeed, SPEED_FACTORS } from "../lib/carouselSpeed";
 import { fetchHappyCustomers } from "../lib/supabase";
-import { Stars, GoogleG, SocialIcon } from "./ui";
+import { Stars, GoogleG, SocialIcon, PASTILLA, pastillaHover } from "./ui";
 import { FadeIn, AnimatedCounter } from "./FadeIn";
-import BandaCentrada from "./BandaCentrada";
 import HappyCustomerRails, { HappyCustomerTile, HappyCustomerCard } from "./HappyCustomers";
 
 // Sin título "Reviews" ni pastilla de fuentes (G + F), ni en la home ni en
@@ -156,14 +156,18 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
 
   return (
     <FadeIn>
-    <section style={{ padding: SECTION_PAD, background: "#fafafa" }}>
-      <div style={{ maxWidth: 940, margin: "0 auto" }}>
+    {/* Abajo SECTION_Y − 4: el scroller tiene 4 de padding abajo para no cortar la
+        sombra de las tarjetas, y con SECTION_Y entero quedaban 44 contra 40 arriba. */}
+    <section style={{ padding: `${SECTION_Y}px ${SECTION_X}px ${SECTION_Y - 4}px`, background: "#fafafa" }}>
+      <div style={{ maxWidth: CONTENIDO_MAX, margin: "0 auto" }}>
         {/* Centrada entre el borde de arriba de la sección y las tarjetas: arriba hay
-            SECTION_Y de padding y abajo el mismo margen, más 3 px porque el número
-            grande trae más aire invisible arriba que "See all reviews" abajo (medido
-            por píxeles: 46 contra 43). Con 24 se veía corrida para abajo (Anibal,
-            13/10/2026); el test de centrado la mide junto con las bandas. */}
-        <div className="rev-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SECTION_Y + 3, flexWrap: "wrap", gap: 16 }}>
+            SECTION_Y de padding y abajo el mismo margen, corregido a lo que se ve.
+            Fue +3 mientras el link era texto suelto; con la pastilla de "See all
+            reviews" (26/10/2026) lo más bajo pasó a ser su borde y medido por
+            píxeles quedaba 40 contra 44: ahora es −1. Con 24 se veía corrida para
+            abajo (Anibal, 13/10/2026); el test de centrado la mide junto con las
+            bandas. */}
+        <div className="rev-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: SECTION_Y - 1, flexWrap: "wrap", gap: 16 }}>
           {/* flexWrap acá también, no sólo en la fila de afuera: con las dos fuentes
               la tirada "Reviews · G 5.0 ★★★★★ · 👍 145 100% recommended" no entra en
               393 px. Sin wrap no se desbordaba visiblemente —Chromium achica la
@@ -189,8 +193,8 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
                     así que sin esto arrancaba pegado al borde izquierdo de ellas y se
                     leía descolgado. Anibal: "lo de 158 reviews deberia centrarse"
                     (02/09). Las estrellas, que son lo más ancho, no se mueven. */}
+                {/* Sin las estrellas abajo del 5.0: Anibal las sacó el 26/10/2026. */}
                 <div style={{ textAlign: "center" }}>
-                  <Stars n={Math.round(parseFloat(avg))} sz={15}/>
                   {/* El conteo va sobre las reseñas de Google, que son las únicas que
                       entran en el promedio de al lado. Contaba allReviews, así que con
                       una sola reseña de Google mostraba "5.0" sobre el total sumándole
@@ -211,11 +215,13 @@ export function GoogleReviewsHome({ nav, googleReviews = [], fbReviews = [], hap
                 <span style={{ fontSize: revScoreStyle.fontSize, fontFamily: `'${revScoreStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(revScoreStyle, 800), color: TITLE_COLOR, lineHeight: 1 }}>
                   <AnimatedCounter target={100} duration={1400} decimals={0}/>%
                 </span>
-                <div data-testid="home-facebook-conteo" style={{ fontSize: 11, color: "#777" }}>{t("reviews.count", { count: fbOnly.length })}</div>
+                {/* "Recommendations" y no "Reviews": Facebook no puntúa, recomienda (Anibal,
+                    02/11/2026). Sólo cambia en inglés; los otros idiomas siguen igual. */}
+                <div data-testid="home-facebook-conteo" style={{ fontSize: 11, color: "#777" }}>{t("reviews.recommendations", { count: fbOnly.length })}</div>
               </div>
             </>}
           </div>
-          <button onClick={() => nav("reviews")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: R, fontWeight: 600 }}>{t("reviews.seeAll")}</button>
+          <button onClick={() => nav("reviews")} style={PASTILLA} {...pastillaHover}>{t("reviews.seeAll")}</button>
         </div>
 
         {/* Se frena con el mouse encima y al tocar: si no, no se alcanza a terminar
@@ -323,6 +329,19 @@ function interleaveHappy(reviews, photos, paso = REVIEWS_POR_FOTO) {
 // Anibal pidió que "fuente y tamaño tienen que coincidir, y tal vez color"
 // (13/10/2026), y antes eran 14 px gris claro contra 15 px gris oscuro.
 const TEXTO_CONTEO = { fontSize: 15, color: "#555" };
+// "25 rated" y "Recommended" van en Caveat (Anibal, 26/10/2026).
+const TEXTO_CAVEAT = { fontFamily: "'Caveat', cursive", fontSize: 22, fontWeight: 400, color: "#555", lineHeight: 1.2 };
+// La pastilla de "33 rated" y "Recommended" (Anibal, 02/11/2026): sin el celeste de
+// Facebook que tenía "Recommended", y la misma en las dos columnas. Es la "onda
+// cristal transparente" que pidió: probamos naranja claro liso y no le gustó
+// ("eso del color naranja… No"), así que volvió el vidrio gris del principio.
+const PASTILLA_RESUMEN = {
+  display: "inline-flex", alignItems: "center", padding: "1px 14px", borderRadius: 999,
+  background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(236,236,236,0.75) 100%)",
+  border: "1px solid rgba(0,0,0,0.08)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,1), 0 2px 8px rgba(0,0,0,0.06)",
+  backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",
+};
 // Aire arriba y abajo del botón "Newest first", entre el resumen y las reseñas.
 const AIRE_ORDEN = 28;
 
@@ -333,7 +352,7 @@ const NUMEROS = {
   clasico: { icono: 28, google: 56, facebook: 50 },
   tarjetas: { icono: 22, google: 36, facebook: 33 },
 };
-const TARJETA_RESUMEN = { border: "1px solid #ececec", borderRadius: 16, padding: "22px 26px", background: "#fff", boxShadow: "0 2px 10px rgba(0,0,0,0.04)", minWidth: 280, flex: "1 1 280px", maxWidth: 400 };
+const TARJETA_RESUMEN = { border: BORDE_PASTILLA, borderRadius: 16, padding: "22px 26px", background: "#fff", boxShadow: "0 2px 10px rgba(0,0,0,0.04)", minWidth: 280, flex: "1 1 280px", maxWidth: 400 };
 
 // Full reviews page
 /**
@@ -348,13 +367,21 @@ function BotonDejarResena({ href, label, icon, fuente }) {
   // aire mínimo, porque en la columna más alta el auto no sobra nada.
   return (
     <div style={{ marginTop: "auto", paddingTop: 18 }}>
-      <a href={href} target="_blank" rel="noopener noreferrer" data-boton-resena={fuente}
-        style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 18px", border: "1px solid #ddd", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#555", textDecoration: "none", transition: "border-color .2s, color .2s" }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = "#ddd"; e.currentTarget.style.color = "#555"; }}>
-        {icon}{label}
-      </a>
+      <EnlaceResena href={href} label={label} icon={icon} fuente={fuente}/>
     </div>
+  );
+}
+
+// La pastilla naranja de todo el sitio (Anibal, 26/10/2026). El logo va en un
+// círculo blanco: sobre el naranja, la G y la F se perdían. La usan las columnas
+// del resumen y la caja de cierre de /reviews.
+function EnlaceResena({ href, label, icon, fuente }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" data-boton-resena={fuente}
+      style={{ ...PASTILLA, fontSize: 13 }} {...pastillaHover}>
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: "50%", background: "#fff" }}>{icon}</span>
+      {label}
+    </a>
   );
 }
 
@@ -399,12 +426,10 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
                   <AnimatedCounter target={parseFloat(avg)} duration={1600} decimals={1}/>
                 </span>
               </div>
-              <div style={{ margin: "8px 0 6px" }}><Stars n={Math.round(parseFloat(avg))} sz={22}/></div>
-              {/* "25 Reviews", igual que en la home. Hubo un "Based on N Google Reviews"
-                  que Anibal sacó el 13/10 y esa misma tarde pidió el número de vuelta,
-                  corto: "a la izquierda el 25 y a la derecha el 144, igual que en la
-                  home". */}
-              <div data-testid="conteo-google" style={TEXTO_CONTEO}>{t("reviews.count", { count: googleOnly.length })}</div>
+              {/* Sin las estrellas abajo del 5.0, y "25 rated" en Caveat en vez de
+                  "25 Reviews" (Anibal, 26/10/2026). Hubo un "Based on N Google
+                  Reviews" que sacó el 13/10. */}
+              <div data-testid="conteo-google" data-pastilla-resumen style={{ ...TEXTO_CAVEAT, ...PASTILLA_RESUMEN, marginTop: 8 }}>{t("reviews.rated", { count: googleOnly.length })}</div>
               {/* La distribución por estrellas es de Google y de nadie más: estaba
                   centrada debajo de las dos columnas y se leía como si también
                   resumiera las recomendaciones de Facebook, que no tienen puntaje. */}
@@ -447,8 +472,9 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
                   contenido) y no queda el hueco debajo del 100%. */}
               {tarjetas && (
                 <div data-testid="pildora-facebook" style={{ margin: "8px 0 6px", minHeight: 27, display: "flex", alignItems: "center" }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#E7F0FD", color: "#1877F2", fontWeight: 700, fontSize: 13, padding: "3px 12px", borderRadius: 999 }}>
-                    👍 {t("reviews.recommendedPill")}
+                  {/* Sin el pulgar y en Caveat (Anibal, 26/10/2026). */}
+                  <span data-pastilla-resumen style={{ ...TEXTO_CAVEAT, ...PASTILLA_RESUMEN }}>
+                    {t("reviews.recommendedPill")}
                   </span>
                 </div>
               )}
@@ -476,9 +502,11 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
         <div data-testid="orden-resenas" style={{ marginTop: AIRE_ORDEN }}>
           <button onClick={() => setDirection(d => d === "desc" ? "asc" : "desc")}
             aria-label={t("reviews.sortAria", "Change review order")}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 16px", borderRadius: 10, border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#555", transition: "border-color .2s, color .2s" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.color = R; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "#ddd"; e.currentTarget.style.color = "#555"; }}>
+            // Naranja siempre, no sólo con el mouse encima: "así debería quedar
+            // default" (Anibal, 26/10/2026, con la captura del hover).
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 16px", borderRadius: 10, border: `1px solid ${R}`, background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: R, transition: "background .2s" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "rgba(212,120,31,0.08)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#fff"; }}>
             <span style={{ fontSize: 13, lineHeight: 1 }}>{direction === "desc" ? "↓" : "↑"}</span>
             {direction === "desc" ? t("reviews.newestFirst", "Newest first") : t("reviews.oldestFirst", "Oldest first")}
           </button>
@@ -504,14 +532,15 @@ export function ReviewsPage({ googleReviews = [], fbReviews = [], happyItems = [
           </div>
         ))}
       </div>
-      <BandaCentrada data-testid="reviews-cierre" py={24} px={20} style={{ marginTop: SECTION_Y, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "#4A4A4A", marginBottom: 10 }}>{t("reviews.ctaTitle", "Ready to experience the same quality?")}</p>
-        <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
-          {t("cta.button")}
-        </a>
-      </BandaCentrada>
+      {/* La caja de cierre volvió el 02/11/2026: la había pedido fuera el 26/10
+          ("esto volarlo") y después la quiso con los dos botones de "Leave a
+          review", que siguen también arriba en el resumen (Gastón, 02/11). */}
+      <Cierre cual="reviews" siteConfig={siteConfig}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
+          <EnlaceResena fuente="google" href={getGoogleReviewUrl(siteConfig)} label={t("reviews.leaveReview")} icon={<GoogleG/>}/>
+          <EnlaceResena fuente="facebook" href={getFbReviewsUrl(siteConfig)} label={t("reviews.leaveReviewFb")} icon={<SocialIcon type="fb" size={16}/>}/>
+        </div>
+      </Cierre>
     </div>
   );
 }

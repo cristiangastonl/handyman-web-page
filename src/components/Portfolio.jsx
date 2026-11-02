@@ -4,7 +4,7 @@ import { R, G, getSocialUrls, itemThumb, svgP, playlistUrl, SECTION_Y, TITLE_COL
 import { fetchPortfolioSummary, fetchPortfolioItems, normalizeWorkItem } from "../lib/supabase";
 import { normalizeSummaryRow, buildPortfolioSummary, countsOf } from "../lib/portfolioSummary";
 import { SocialIcon } from "./ui";
-import BandaCentrada from "./BandaCentrada";
+import Cierre from "./Cierre";
 import { useContenido } from "../lib/contenido";
 
 function Spinner() {
@@ -356,7 +356,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
               <>
                 {catSubcats.length > 0 && (
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#777", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
-                    {t("portfolio.general", "General")}
+                    {t("portfolio.general", "Overview")}
                   </div>
                 )}
                 {itemsReady ? (
@@ -436,16 +436,7 @@ export default function Portfolio({ cats, subcats, portfolioView, setPortfolioVi
 
       {/* Bottom CTA. SECTION_Y arriba y abajo (el contenedor cierra con lo mismo):
           Anibal pidió el mismo aire de los dos lados (14/10/2026); eran 40 y 80. */}
-      <BandaCentrada data-testid="portfolio-cierre" py={24} px={20} style={{ marginTop: SECTION_Y, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("portfolio.ctaTitle", "Like what you see?")}</p>
-        <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
-          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
-          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
-          {t("portfolio.ctaButton", "Tell me about your project")}
-        </a>
-      </BandaCentrada>
+      <Cierre cual="portfolio" siteConfig={siteConfig}/>
     </div>
   );
 }

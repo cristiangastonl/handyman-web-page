@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { R, G, getSocialUrls, svgP, SECTION_PAD, SECTION_Y, TITLE_COLOR } from "../lib/constants";
+import { R, G, SECTION_PAD, SECTION_Y, TITLE_COLOR, BORDE_PASTILLA } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
-import BandaCentrada from "./BandaCentrada";
+import Cierre from "./Cierre";
+import { PASTILLA, pastillaHover } from "./ui";
 import { useContenido } from "../lib/contenido";
 
 // Quick FAQs on home page
@@ -12,7 +13,9 @@ export function FAQHome({ faqs, nav, siteConfig = {} }) {
   return (
     <FadeIn>
     <section style={{ padding: SECTION_PAD }}>
-      <div style={{ maxWidth: 600, margin: "0 auto", background: "#fafafa", borderRadius: 14, padding: "28px 24px", border: "1px solid #f0f0f0" }}>
+      {/* Borde naranja en la compu y en el celu (Anibal, 02/11/2026: "como en la
+          compu, SI"). El 28/10 había vuelto a gris; el PDF del 02/11 lo pisa. */}
+      <div data-testid="top-questions" style={{ maxWidth: 600, margin: "0 auto", background: "#fafafa", borderRadius: 14, padding: "28px 24px", border: BORDE_PASTILLA }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 18, textAlign: "center", color: TITLE_COLOR }}>{t("faq.common")}</h2>
         {faqs.slice(0, 3).map((f, i) => (
           <div key={f.id || i} style={{ borderBottom: i < 2 ? "1px solid #e8e8e8" : "none", padding: "14px 0", borderLeft: `3px solid ${R}`, paddingLeft: 14, marginBottom: i < 2 ? 0 : 0 }}>
@@ -24,7 +27,7 @@ export function FAQHome({ faqs, nav, siteConfig = {} }) {
             queda sólo el paso a la página de preguntas. En /faq sí sobrevive, pero
             en naranja — ver FAQPage. */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 18 }}>
-          <button onClick={() => nav("faq")} style={{ background: "none", border: "none", color: R, fontSize: 12, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}>{t("faq.viewAll")}</button>
+          <button onClick={() => nav("faq")} style={PASTILLA} {...pastillaHover}>{t("faq.viewAll")}</button>
         </div>
       </div>
     </section>
@@ -40,7 +43,9 @@ export function FAQPage({ faqs, siteConfig = {} }) {
   return (
     // Cierra con SECTION_Y y no con 80: la caja de "Have another question?" tiene
     // SECTION_Y arriba, y Anibal pidió el mismo aire arriba y abajo (14/10/2026).
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: `32px 24px ${SECTION_Y}px` }}>
+    // 28 arriba, igual que /portfolio y /reviews: con 32 el título quedaba 4 px más
+    // abajo al pasar de una página a otra (02/11/2026).
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: `28px 24px ${SECTION_Y}px` }}>
       <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: TITLE_COLOR }}>{t("faq.title")}</h1>
       {faqs.map((f, i) => {
         const isOpen = fq === i;
@@ -95,16 +100,7 @@ export function FAQPage({ faqs, siteConfig = {} }) {
           WhatsApp con su logo. Antes era un link naranja chico de una línea. Pedido
           de Anibal (13/10/2026): "ese botón al pie de portfolio debería ser el mismo
           al pie de FAQs". */}
-      <BandaCentrada data-testid="faq-cierre" py={24} px={20} style={{ marginTop: SECTION_Y, background: "#fafafa", borderRadius: 12, border: "1px solid #f0f0f0" }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 10 }}>{t("faq.anotherQuestion")}</p>
-        <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "transform .2s" }}
-          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
-          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
-          {t("faq.askDirectly")}
-        </a>
-      </BandaCentrada>
+      <Cierre cual="faq" siteConfig={siteConfig}/>
     </div>
   );
 }

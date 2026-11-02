@@ -58,6 +58,20 @@ export function checkConventions() {
         warnings.push(`${at}: URL de localhost hardcodeada`);
     });
 
+    // Un "//" entre etiquetas JSX no es un comentario: React lo pinta como texto.
+    // El 02/11/2026 se vio en la vista previa, arriba de las reseñas de la home, un
+    // comentario entero sobre SECTION_Y. Dentro del JSX se comenta con {/* */}.
+    if (rel.endsWith('.jsx')) {
+      let prev = '';
+      lines.forEach((line, i) => {
+        const t = line.trim();
+        if (!t) return;
+        if (t.startsWith('//') && /[^=\-/]>$/.test(prev) && !prev.startsWith('//') && !prev.startsWith('*') && !prev.startsWith('{/*'))
+          errors.push(`${rel}:${i + 1}: comentario "//" dentro del JSX — se ve como texto en la página; usá {/* */}`);
+        prev = t;
+      });
+    }
+
     // Atributos que lee el visitante (lector de pantalla, alt, tooltip) en duro: con
     // DE/IT/FR/ES seguían en inglés (auditoría del 21/10). Van por t(). El alt del
     // logo es el nombre de la marca; ShareButton no lo usa ninguna página pública.

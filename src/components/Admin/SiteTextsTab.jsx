@@ -5,9 +5,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { SITE_TEXTS, parseSiteText, STYLE_KEYS, getStyleConfig, PHONE, SERVICE_AREAS,
   getSocialUrls, WA_NUMBER, buildWALink, parseWALink,
-  STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix, pesoLetra } from "../../lib/constants";
+  STATS, STAT_UNITS, statUnitKey, getStatValue, getStatUnit, formatStatSuffix, pesoLetra, EMAIL, HORARIO } from "../../lib/constants";
 import { textoVigente, payloadSiteText, tamanoCelu } from "../../lib/siteText";
 import { estiloResumen } from "../../lib/resumenResenas";
+import { avisoDeIdioma } from "../../lib/clavesTraducibles";
 import { colors, spacing, typography, radii, A } from "../../lib/adminStyles";
 import { AdminButton, AdminInput, AdminCard } from "./adminUI";
 
@@ -41,6 +42,10 @@ const KNOWN_KEYS = new Set([
   "hero_img_y",
   "site_phone",
   "site_hours",
+  "site_email",
+  // Ya no lo usa nada: el botón de mayúsculas se sacó el 02/11/2026 (los stats van
+  // siempre en Title Case). Puede seguir guardado en site_config.
+  "stats_label_mayusculas",
   "site_service_areas",
   // Legacy keys already in site_config (managed elsewhere or via Contact & Business Info)
   "phone",
@@ -206,17 +211,23 @@ function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
   const [fontSize, setFontSize] = useState(current.fontSize);
   const [fontFamily, setFontFamily] = useState(current.fontFamily);
   const [grosor, setGrosor] = useState(boldAOpcion(current.bold));
+  // Sólo los estilos que en el celu van con otro tamaño (STYLE_KEYS con
+  // defaultMobileFontSize) traen el campo del celu.
+  const tieneCelu = "defaultMobileFontSize" in defaults;
+  const [mobileFontSize, setMobileFontSize] = useState(current.mobileFontSize || "");
 
   useEffect(() => {
     const c = getStyleConfig(siteConfig, configKey);
     setFontSize(c.fontSize);
     setFontFamily(c.fontFamily);
     setGrosor(boldAOpcion(c.bold));
+    setMobileFontSize(c.mobileFontSize || "");
   }, [siteConfig[configKey]]);
 
   const handleSave = () => {
     const bold = opcionABold(grosor);
-    onSave(configKey, JSON.stringify({ fontSize: Number(fontSize), fontFamily, ...(bold !== undefined && { bold }) }));
+    const celu = tieneCelu && Number(mobileFontSize) > 0 ? { mobileFontSize: Number(mobileFontSize) } : {};
+    onSave(configKey, JSON.stringify({ fontSize: Number(fontSize), fontFamily, ...(bold !== undefined && { bold }), ...celu }));
   };
 
   return (
@@ -240,12 +251,20 @@ function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
         </div>
       )}
       <div style={{ display: "flex", gap: spacing.sm, alignItems: "flex-end" }}>
-        <div style={{ width: 80 }}>
-          <label style={typography.caption}>Size (px)</label>
+        <div style={{ width: tieneCelu ? 110 : 80 }}>
+          <label style={typography.caption}>{tieneCelu ? "💻 Compu (px)" : "Size (px)"}</label>
           <input type="number" value={fontSize} onChange={e => setFontSize(e.target.value)}
             placeholder={`${defaults.fontSize}`}
             className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}/>
         </div>
+        {tieneCelu && (
+          <div style={{ width: 110 }}>
+            <label style={typography.caption}>📱 Celu (px)</label>
+            <input type="number" value={mobileFontSize} onChange={e => setMobileFontSize(e.target.value)}
+              placeholder={`${defaults.defaultMobileFontSize}`} data-celu={configKey}
+              className="admin-input" style={{ ...A.input, marginTop: 2, height: 32, fontSize: 12 }}/>
+          </div>
+        )}
         <div style={{ flex: 1 }}>
           <label style={typography.caption}>Font</label>
           <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}
@@ -259,6 +278,11 @@ function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
         </div>
         <AdminButton size="small" loading={loading} onClick={handleSave}>Save</AdminButton>
       </div>
+      {tieneCelu && (
+        <p style={{ ...typography.caption, color: colors.gray400, marginTop: 4 }}>
+          📱 Vacío = {defaults.defaultMobileFontSize} px, el tamaño de siempre en el celu. Más grande puede no entrar en un renglón en celus chicos.
+        </p>
+      )}
     </div>
   );
 }
@@ -279,7 +303,7 @@ function StyleControl({ configKey, label, hint, siteConfig, onSave, loading }) {
  * eso, si el texto quedó idéntico al default, no se manda: se guarda sólo lo que
  * él efectivamente cambió y la traducción sigue viva.
  */
-function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
+function SiteTextRow({ configKey, def, currentValue, onSave, loading, soloTexto = false }) {
   const parsed = parseSiteText(currentValue) || {};
   const [text, setText] = useState(() => textoVigente(currentValue, def));
   const [fontSize, setFontSize] = useState(parsed.fontSize || "");
@@ -300,8 +324,10 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
 
   const sinTocar = !payloadSiteText({ text }, def).text;
 
+  // soloTexto: el tamaño y la fuente de este texto los maneja otro control, así que
+  // se guarda sólo el texto (y se limpia lo que hubiera quedado guardado de antes).
   const handleSave = () =>
-    onSave(configKey, JSON.stringify(payloadSiteText({ text, fontSize, fontFamily, mobileFontSize, bold: opcionABold(grosor) }, def)));
+    onSave(configKey, JSON.stringify(payloadSiteText(soloTexto ? { text } : { text, fontSize, fontFamily, mobileFontSize, bold: opcionABold(grosor) }, def)));
 
   return (
     <div style={{ ...A.card, marginBottom: spacing.md }}>
@@ -314,10 +340,11 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
         rows={configKey === "bio_text" ? 4 : 2}
         className="admin-input" style={{ ...A.textarea, marginBottom: spacing.xs }}/>
       <p style={{ ...typography.caption, color: colors.gray400, marginBottom: spacing.sm }}>
-        {sinTocar
-          ? "Sin cambios: cada idioma sigue mostrando su propia traducción."
-          : "Editado: este texto se va a ver igual en los 5 idiomas."}
+        {avisoDeIdioma(configKey, !sinTocar)}
       </p>
+      {soloTexto ? (
+        <p data-solo-texto style={{ ...typography.caption, color: colors.gray500 }}>{soloTexto}</p>
+      ) : (
       <div style={{ display: "flex", gap: spacing.sm, flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 120 }}>
           <label style={typography.caption}>{tieneCelu ? "💻 Tamaño en la compu (px)" : "Font size (px)"}</label>
@@ -351,6 +378,7 @@ function SiteTextRow({ configKey, def, currentValue, onSave, loading }) {
           <GrosorSelect value={grosor} onChange={setGrosor}/>
         </div>
       </div>
+      )}
       <AdminButton loading={loading} onClick={handleSave}
         style={{ marginTop: spacing.sm }}>
         Save
@@ -514,7 +542,7 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
               return (
                 <div key={stat.key} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: numStyle.fontSize, fontFamily: `'${numStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(numStyle, 800), color: colors.brand }}>{val}{formatStatSuffix(getStatUnit(siteConfig, stat.key, stat.defaultUnit))}</div>
-                  <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(lblStyle, 600), color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
+                  <div style={{ fontSize: lblStyle.fontSize > 9 ? 9 : lblStyle.fontSize, fontFamily: `'${lblStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(lblStyle, 600), color: "rgba(255,255,255,0.7)", letterSpacing: "0.05em", marginTop: 2 }}>{stat.label}</div>
                 </div>
               );
             })}
@@ -530,7 +558,6 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Typography</p>
         <StyleControl configKey="stats_number_style" label="Counter Numbers" hint="20+, 400+, 1.3M+, 1.4K+ — magnitude is set per stat above" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="stats_label_style" label="Counter Labels" hint="Years of Experience, Works in CH, YouTube Views, Facebook Followers" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Tarjetas de redes</p>
         <p style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>Las 4 tarjetas de abajo de los números, en el orden en que se ven: Google, YouTube, WhatsApp, Facebook.</p>
         <p style={{ ...typography.caption, marginBottom: spacing.sm, color: colors.gray500 }}>📱 Para elegir dónde corta en el celu, apretá Enter en ese lugar del texto. En la compu se sigue viendo todo en una línea.</p>
@@ -584,7 +611,11 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
       {/* ── 4. Carousels — Recent Work, Custom Projects y Highlights ── */}
       <AdminCard title="4 · Carruseles" style={{ marginBottom: spacing.xl }}>
         <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>Recent Work, Custom Projects y Highlights, en ese orden en la página.</p>
-        <SiteTextRow configKey="highlights_section_title" def={SITE_TEXTS.highlights_section_title} currentValue={siteConfig.highlights_section_title} onSave={onSave} loading={loading} />
+        {/* Sólo el texto: el tamaño y la fuente del título son los de "Highlights —
+            Section Title", abajo. Antes este bloque también mostraba tamaño y fuente
+            que no hacían nada, y Anibal preguntó qué eran (02/11/2026). */}
+        <SiteTextRow configKey="highlights_section_title" def={SITE_TEXTS.highlights_section_title} currentValue={siteConfig.highlights_section_title} onSave={onSave} loading={loading}
+          soloTexto={'El tamaño y la fuente de este título se eligen abajo, en "Highlights — Section Title".'} />
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Carousel Title Typography</p>
         <StyleControl configKey="carousel_recent_work_title_style" label="Recent Work — Section Title" hint="Recent work" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="carousel_highlights_title_style" label="Highlights — Section Title" hint="Highlights" siteConfig={siteConfig} onSave={onSave} loading={loading} />
@@ -601,7 +632,11 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <StyleControl configKey="cta_tailoring_text_style" label="Tailoring — Description" hint="I also do tailored work — from unique installations to custom projects..." siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Bottom CTA (before footer)</p>
         <StyleControl configKey="cta_bottom_title_style" label="Bottom CTA — Title" hint="Ready to get started?" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="cta_bottom_subtitle_style" label="Bottom CTA — Subtitle" hint="Reply within 24 hours · Lifetime guarantee" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="cta_bottom_subtitle_style" label="Bottom CTA — Subtitle" hint="Happy to listen and chat about your project" siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <p style={{ ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm }}>Cajas de cierre de /faq, /portfolio y /reviews</p>
+        {["cierre_faq_titulo", "cierre_faq_boton", "cierre_portfolio_titulo", "cierre_portfolio_subtitulo", "cierre_portfolio_boton", "cierre_reviews_titulo", "cierre_reviews_subtitulo"].map(key => (
+          <SiteTextRow key={key} configKey={key} def={SITE_TEXTS[key]} currentValue={siteConfig[key]} onSave={onSave} loading={loading} />
+        ))}
       </AdminCard>
 
       {/* ── 6. Reviews — la cabecera y las tarjetas de reseñas ── */}
@@ -631,9 +666,11 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
 
       {/* ── 7. Footer — el pie de página ── */}
       <AdminCard title="7 · Footer" style={{ marginBottom: spacing.xl }}>
-        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>El teléfono, los horarios y las zonas están en "8 · Datos del negocio", más abajo: se usan en todo el sitio, no sólo acá.</p>
+        <p style={{ ...typography.caption, marginBottom: spacing.lg, color: colors.gray500 }}>El teléfono, las redes y las zonas están en "8 · Datos del negocio", más abajo: se usan en todo el sitio, no sólo acá.</p>
+        <FooterField label="Business Hours" configKey="site_hours" defaultValue={HORARIO} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Va igual en los 5 idiomas" />
+        <FooterField label="Email" configKey="site_email" defaultValue={EMAIL} siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <StyleControl configKey="footer_heading_style" label="Footer — Section Headings" hint="Contact, Hours, Quick Links" siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <StyleControl configKey="footer_hours_style" label="Footer — Hours Text" hint={siteConfig.site_hours || "Mon–Sat · 8:00–19:00"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
+        <StyleControl configKey="footer_hours_style" label="Footer — Hours Text" hint={siteConfig.site_hours || HORARIO} siteConfig={siteConfig} onSave={onSave} loading={loading} />
       </AdminCard>
 
       {/* ── 8. Contact & Business Info — NO es una sección: se usa en todo el sitio ── */}
@@ -645,7 +682,6 @@ export default function SiteTextsTab({ siteConfig, onSave, loading, cfgKey, setC
         <FooterField label="YouTube URL" configKey="youtube_url" defaultValue={siteConfig.youtube_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Google Review URL" configKey="google_review_url" defaultValue={siteConfig.google_review_url || ""} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="El link corto de Google que abre el formulario de reseña (g.page/r/.../review)" />
         <FooterField label="Brand Subtitle" configKey="brand_subtitle" defaultValue={siteConfig.brand_subtitle || "Specialist Technician At Domestic Matters"} siteConfig={siteConfig} onSave={onSave} loading={loading} />
-        <FooterField label="Business Hours" configKey="site_hours" defaultValue="Mon–Sat · 8:00–19:00" siteConfig={siteConfig} onSave={onSave} loading={loading} />
         <FooterField label="Service Areas" configKey="site_service_areas" defaultValue={SERVICE_AREAS.map(a => a.name).join(" · ")} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Separate with · (middle dot)" />
         <FooterField label="Storage Limit (GB)" configKey="storage_limit_gb" defaultValue={siteConfig.storage_limit_gb || "10"} siteConfig={siteConfig} onSave={onSave} loading={loading} hint="Max GB for this project (shown in header bar)" />
       </AdminCard>

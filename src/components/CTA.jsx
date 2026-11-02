@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { R, G, getSocialUrls, svgP, SERVICE_AREAS, getStyleConfig, pesoLetra, SECTION_PAD, SECTION_PAD_TIGHT } from "../lib/constants";
-import { MapPin } from "./ui";
 import { FadeIn } from "./FadeIn";
 import BandaCentrada from "./BandaCentrada";
 
@@ -22,21 +21,15 @@ export function TailoringCTA({ nav, siteConfig = {} }) {
       }}>
         <h3 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(tTitleStyle, 800), marginBottom: 12 }}>{t("tailoring.title")}</h3>
         <p style={{ fontSize: tTextStyle.fontSize, fontFamily: `'${tTextStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(tTextStyle), color: "rgba(255,255,255,0.85)", lineHeight: 1.6, maxWidth: 460, margin: "0 auto 20px" }}>{t("tailoring.text")}</p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", color: R, padding: "11px 26px", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.15)", transition: "transform .2s" }}
-            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
-            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill={R}><path d={svgP.wa}/></svg>
-            {t("tailoring.button")}
-          </a>
-          <button onClick={() => nav("portfolio")}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", color: "#fff", padding: "11px 26px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", border: "1px solid rgba(255,255,255,0.5)", cursor: "pointer", transition: "background .2s" }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.15)"}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-            {t("tailoring.seeWork")}
-          </button>
-        </div>
+        {/* Un solo botón, "Let's chat" en el verde de WhatsApp: "See my work" se fue
+            (Anibal, 26/10/2026). */}
+        <a href={getSocialUrls(siteConfig).wa} target="_blank" rel="noopener noreferrer"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#25D366", color: "#fff", padding: "11px 26px", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.15)", transition: "transform .2s" }}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d={svgP.wa}/></svg>
+          {t("tailoring.button")}
+        </a>
       </BandaCentrada>
     </section>
     </FadeIn>
@@ -52,7 +45,7 @@ export function ServiceAreasCTA({ siteConfig = {} }) {
   return (
     <FadeIn delay={0.15}>
     <section style={{ padding: SECTION_PAD_TIGHT, maxWidth: 940, margin: "0 auto" }}>
-      <BandaCentrada py={34} px={28} style={{
+      <BandaCentrada py={26} px={28} style={{
         borderRadius: 14,
         background: `linear-gradient(180deg, ${R} 0%, #B5621A 50%, ${G} 100%)`,
         color: "#fff",
@@ -64,21 +57,19 @@ export function ServiceAreasCTA({ siteConfig = {} }) {
             subtítulo; debería coincidir en color y tamaño". */}
         <h4 style={{ fontSize: tTitleStyle.fontSize, fontFamily: `'${tTitleStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(tTitleStyle, 800), marginBottom: 12 }}>{t("serviceAreas.title")}</h4>
         <p style={{ fontSize: tTextStyle.fontSize, fontFamily: `'${tTextStyle.fontFamily}', sans-serif`, fontWeight: pesoLetra(tTextStyle), color: "rgba(255,255,255,0.85)", marginBottom: 18 }}>{t("serviceAreas.subtitle")}</p>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
-          {areaNames.map(name => (
-            <div key={name} style={{
-              display: "flex", alignItems: "center", gap: 5,
-              padding: "8px 16px", borderRadius: 8,
-              background: "rgba(255,255,255,0.15)",
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: 12,
-            }}>
-              <MapPin size={13} color="rgba(255,255,255,0.7)"/>
-              {name}
-            </div>
-          ))}
-        </div>
+        {/* Las zonas en una tirada de texto separada por puntos, como en el pie: con
+            una pastilla por zona la banda ocupaba el doble ("reducir esta parte,
+            hacerlo como el pie de página", Anibal, 26/10/2026). */}
+        {/* .banda-centrada recorta los p a la línea de base, y la "g" de Thurgau
+            colgaba abajo del recorte (27 px arriba contra 23 abajo en el celu): este
+            recorta abajo al pie de las letras ("text") en vez de a la línea de base.
+            Espacio duro antes del punto: si no, un renglón podía arrancar con "·". */}
+        {/* 14 como el subtítulo: "28 a Service Areas y 14 a lo de abajo" (Anibal,
+            02/11/2026). El título y el subtítulo ya salen del estilo de Tailoring
+            en el admin (28 y 14); la banda no tiene campos propios y no los quiere. */}
+        <p data-testid="zonas" style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", lineHeight: 1.8, maxWidth: 640, margin: 0, textBox: "trim-both cap text" }}>
+          {areaNames.join(" · ")}
+        </p>
       </BandaCentrada>
     </section>
     </FadeIn>

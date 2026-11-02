@@ -37,7 +37,10 @@ export default function BrandStrip() {
   const animationDuration = useAnimationDuration(STRIP_SECONDS);
   return (
     <FadeIn>
-      <section style={{ padding: "24px 0 20px", overflow: "hidden", background: "#fafafa", borderTop: "1px solid #f0f0f0", borderBottom: "1px solid #f0f0f0" }}>
+      {/* 20 arriba y 24 abajo para que se VEA parejo: el título en mayúsculas deja
+          ~4 px de aire propio arriba y los logos casi nada abajo. Con 24/20 se
+          veían ~28 arriba contra ~21 abajo (02/11/2026). */}
+      <section style={{ padding: "20px 0 24px", overflow: "hidden", background: "#fafafa", borderTop: "1px solid #f0f0f0", borderBottom: "1px solid #f0f0f0" }}>
         <p style={{ textAlign: "center", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", margin: "0 0 16px" }}>
           {t("brands.title", "Trusted Brands I Work With")}
         </p>

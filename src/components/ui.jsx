@@ -10,7 +10,8 @@ export const Stars = ({ n, sz = 12 }) => {
   );
 };
 
-const socialLabels = { fb: "Facebook", yt: "YouTube", wa: "WhatsApp" };
+export const REDES = { fb: "Facebook", yt: "YouTube", wa: "WhatsApp" };
+const socialLabels = REDES;
 
 export const SocialIcon = ({ type, size = 28 }) => {
   const c = socialColors[type];
@@ -85,4 +86,43 @@ export const LangSelector = ({ currentLang, onChange }) => (
       </button>
     ))}
   </div>
+);
+
+// La pastilla naranja de las categorías de "Meet your handyman" (About.jsx), hecha
+// botón para todo el sitio: Anibal pidió que "See all reviews", "View all FAQs" y
+// los "Leave a review" de /reviews sean "como el de categorías" (26/10/2026).
+// El borde naranja oscuro es el "delineado naranja a todas las pastillas".
+export const NARANJA_OSCURO = "#B5621A";
+export const PASTILLA = {
+  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+  padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+  cursor: "pointer", textDecoration: "none", color: "#fff",
+  background: `linear-gradient(180deg, ${R} 0%, ${NARANJA_OSCURO} 100%)`,
+  border: `1px solid ${NARANJA_OSCURO}`,
+  transition: "transform .2s, box-shadow .2s, filter .2s",
+};
+const PASTILLA_SOMBRA = "0 8px 28px rgba(212,120,31,0.28)";
+// Se oscurece con filter y no cambiando el fondo: CSS no interpola de un gradiente
+// a un color plano y por un frame se veía el blanco de atrás.
+export const pastillaHover = {
+  onMouseEnter: e => { e.currentTarget.style.filter = "brightness(0.92)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = PASTILLA_SOMBRA; },
+  onMouseLeave: e => { e.currentTarget.style.filter = "none"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; },
+};
+
+// Íconos de línea del pie (teléfono, horario, mail) y la flecha de compartir que
+// mandó Anibal (26/10/2026). En currentColor, así toman el color del texto.
+const Linea = ({ size, children }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>{children}</svg>
+);
+export const IconoTelefono = ({ size = 14 }) => (
+  <Linea size={size}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></Linea>
+);
+export const IconoReloj = ({ size = 14 }) => (
+  <Linea size={size}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></Linea>
+);
+export const IconoMail = ({ size = 14 }) => (
+  <Linea size={size}><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></Linea>
+);
+export const IconoCompartir = ({ size = 14 }) => (
+  <Linea size={size}><path d="M14 4.5v4C7.5 8.5 3.5 12.5 3 20c2.5-4 6-5.5 11-5.5v4l7-7z"/></Linea>
 );

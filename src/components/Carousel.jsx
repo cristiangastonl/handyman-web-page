@@ -189,6 +189,9 @@ export default function Carousel({
       onTouchEnd={() => { setTimeout(() => setPaused(false), 5000); }}>
       <div
         ref={trackRef}
+        // El factor de velocidad de este carrusel, para que el test de velocidad
+        // mida uno de los de velocidad global y no el más lento (ver smoke.spec.js).
+        data-factor-velocidad={speedFactor}
         style={{ display: "flex", gap: CARD_GAP, alignItems: "stretch", willChange: "transform", cursor: "grab" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}

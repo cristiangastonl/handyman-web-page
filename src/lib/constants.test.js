@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, pesoLetra, espaciadoLetra, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl, mobileFontVar } from "./constants";
+import { formatoHorario, itemThumb, ytId, fbEmbedUrl, getWALink, buildWALink, parseWALink, WA_LINK, svgP, playlistUrl, CAROUSEL_TITLE, STYLE_KEYS, SITE_TEXTS, getStyleConfig, parseSiteText, getHighlightField, pesoLetra, espaciadoLetra, socialUrls, YT_PLAYLISTS_URL, getSocialUrls, getYtPlaylistsUrl, getFbReviewsUrl, getGoogleReviewUrl, getGoogleProfileUrl, mobileFontVar } from "./constants";
 import en from "../locales/en.json";
 
 describe("itemThumb", () => {
@@ -424,5 +424,32 @@ describe("Caveat por defecto", () => {
     expect(espaciadoLetra({ fontFamily: "Caveat" }, 1)).toBe("normal");
     expect(espaciadoLetra({ fontFamily: "DM Sans" }, 1)).toBe(1);
     expect(espaciadoLetra(undefined, "0.05em")).toBe("0.05em");
+  });
+});
+
+
+
+describe("formatoHorario", () => {
+  // Anibal, 02/11/2026: "deja un espacio a ambos lados del guion: 8:00 - 20:00".
+  it("separa el guion de los rangos de horas, venga como venga", () => {
+    expect(formatoHorario("9:00-17:00")).toBe("9:00 - 17:00");
+    expect(formatoHorario("Mon–Sat · 8:00–20:00")).toBe("Mon–Sat · 8:00 - 20:00");
+    expect(formatoHorario("8:00 -20:00")).toBe("8:00 - 20:00");
+  });
+  it("no toca los guiones entre palabras", () => {
+    expect(formatoHorario("Mon–Fri · 9:00 - 17:00")).toBe("Mon–Fri · 9:00 - 17:00");
+  });
+});
+
+describe("tamaño del celu en los estilos del admin", () => {
+  // Anibal, 02/11/2026: "el tamaño de counter labels sólo lo cambia en la compu".
+  it("getStyleConfig devuelve el tamaño del celu si está guardado", () => {
+    expect(getStyleConfig({ stats_label_style: '{"fontSize":13,"fontFamily":"DM Sans","mobileFontSize":10}' }, "stats_label_style").mobileFontSize).toBe(10);
+  });
+  it("sin tamaño del celu guardado no lo inventa", () => {
+    expect(getStyleConfig({ stats_label_style: '{"fontSize":13,"fontFamily":"DM Sans"}' }, "stats_label_style")).not.toHaveProperty("mobileFontSize");
+  });
+  it("las etiquetas de los stats tienen tamaño de celu por defecto (8)", () => {
+    expect(STYLE_KEYS.stats_label_style.defaultMobileFontSize).toBe(8);
   });
 });

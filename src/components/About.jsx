@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { R, PROFILE_IMG, parseSiteText, getHighlightField, pesoLetra, SECTION_X, SECTION_Y, ABOUT_TOP, TITLE_COLOR } from "../lib/constants";
 import { FadeIn } from "./FadeIn";
@@ -17,9 +18,55 @@ const TAG_FONDO = `linear-gradient(180deg, ${R} 0%, ${NARANJA_OSCURO} 100%)`;
 // mismo contenido en la otra página; así el tag se comporta como la tarjeta a la que lleva.
 const TAG_SOMBRA_HOVER = "0 8px 28px rgba(212,120,31,0.28)";
 
+// En el celu la foto flota y la bio la rodea. Anibal la quiere en el medio del
+// párrafo, con renglones a lo ancho arriba y abajo ("los 4 renglones que quedaron
+// abajo, pueden quedar dos arriba, dos abajo… y así la foto quedaría centrada",
+// 28/10/2026). Un float no se puede ubicar a mitad de un texto, así que antes de la
+// foto flota un separador de ancho 0 (.about-empuje) y la foto se apila debajo con
+// clear: los renglones que pasan al lado del separador usan todo el ancho. Su alto
+// sale de medir la bio, porque Anibal la edita desde el admin. Se repite la medida
+// porque bajar la foto cambia dónde corta cada renglón; a la tercera ya no se mueve.
+function useFotoCentrada(filaRef, deps) {
+  useLayoutEffect(() => {
+    const fila = filaRef.current;
+    if (!fila || typeof window === "undefined" || !window.matchMedia) return;
+    const celu = window.matchMedia("(max-width: 640px)");
+    const medir = () => {
+      const foto = fila.querySelector(":scope > img");
+      const bio = fila.querySelector(":scope > div > p");
+      if (!celu.matches || !foto || !bio) { fila.style.removeProperty("--empuje"); return; }
+      // Alto de un renglón de la bio: el pie de la foto se alinea con el corte entre
+      // dos renglones. Si cae a mitad de uno, ese renglón pasa al lado de la foto y
+      // corta corto aunque la foto ya casi terminó (en el iPhone 17 Pro Max quedaba
+      // así "live in, so … and get", 28/10/2026).
+      const renglon = parseFloat(getComputedStyle(bio).lineHeight) || 0;
+      let empuje = 0;
+      for (let i = 0; i < 3; i++) {
+        fila.style.setProperty("--empuje", `${empuje}px`);
+        const arriba = fila.getBoundingClientRect().top;
+        const b = bio.getBoundingClientRect();
+        const alto = foto.offsetHeight;
+        // El pie de la foto, centrada contra la bio, medido desde el arriba de la bio.
+        let pie = (b.height + alto) / 2;
+        if (renglon) pie = Math.round(pie / renglon) * renglon;
+        empuje = Math.max(0, Math.round(b.top - arriba + pie - alto));
+      }
+      fila.style.setProperty("--empuje", `${empuje}px`);
+    };
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(fila);
+    document.fonts?.ready.then(medir);
+    celu.addEventListener?.("change", medir);
+    return () => { ro.disconnect(); celu.removeEventListener?.("change", medir); };
+  }, deps);
+}
+
 export default function About({ nav, navToCategory, cats = [], siteConfig = {} }) {
   const { t } = useTranslation();
   const tc = useContenido();
+  const filaRef = useRef(null);
+  useFotoCentrada(filaRef, [siteConfig.bio_text, siteConfig.about_title]);
   // Tags mirror the real Portfolio categories the client uploads, not a hardcoded list.
   const realCats = cats.filter(c => c.id !== "all");
   const tags = realCats.length > 0
@@ -37,7 +84,10 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           envuelve, y un float sólo envuelve lo que viene después de él. En desktop
           el order la manda de vuelta a la derecha, así que se sigue leyendo el
           título antes que la cara, que es como lo quería Anibal. */}
-      <div className="about-row" style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
+      <div ref={filaRef} className="about-row" style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
+        {/* Sólo en el celu (constants.js): un float sin ancho que baja la foto hasta
+            el medio de la bio. Ver useFotoCentrada. */}
+        <span className="about-empuje" aria-hidden="true" style={{ display: "none" }}/>
         <img src={PROFILE_IMG} alt={t("alt.profile")} width={150} height={150} decoding="async" style={{ order: 2, width: 150, height: 150, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}/>
         <div style={{ order: 1, flex: 1, minWidth: 240 }}>
           {/* El fontFamily va explícito y no heredado del root: Anibal lo quiere
@@ -65,7 +115,8 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
                 style={{
                   padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
                   cursor: "pointer", transition: "transform .2s, box-shadow .2s, filter .2s",
-                  background: TAG_FONDO, color: "#fff", border: "1px solid transparent",
+                  // Delineado naranja oscuro, igual que PASTILLA en ui.jsx (26/10/2026).
+                  background: TAG_FONDO, color: "#fff", border: `1px solid ${NARANJA_OSCURO}`,
                 }}
                 // Se oscurece con filter y no cambiando el fondo: CSS no sabe interpolar de
                 // un gradiente a un color plano, así que al asignarlo se borraba el degradado
@@ -84,7 +135,7 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           const title = getHighlightField(siteConfig, `about_highlight${n}_title`, t(`about.highlight${n}.title`));
           const body = getHighlightField(siteConfig, `about_highlight${n}_text`, t(`about.highlight${n}.text`));
           return (
-          <div key={n} style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", borderLeft: "3px solid #D4781F" }}>
+          <div key={n} data-testid="highlight-card" style={{ padding: "16px 18px", borderRadius: 10, background: "#fafafa", border: "1px solid #f0f0f0", borderLeft: "3px solid #D4781F" }}>
             <div style={{ fontSize: title.fontSize, fontFamily: `'${title.fontFamily}', sans-serif`, fontWeight: pesoLetra(title, 700), color: TITLE_COLOR, marginBottom: 4, whiteSpace: "pre-line" }}>{tc(title.text)}</div>
             <div style={{ fontSize: body.fontSize, fontFamily: `'${body.fontFamily}', sans-serif`, fontWeight: pesoLetra(body), color: "#555", lineHeight: 1.55, whiteSpace: "pre-line" }}>{tc(body.text)}</div>
           </div>
