@@ -300,6 +300,11 @@ export function checkConventions() {
       const code = readFileSync(join(e2eDir, f), 'utf8');
       if (/import\s*\{[^}]*\btest\b[^}]*\}\s*from\s*['"]@playwright\/test['"]/.test(code))
         errors.push(`e2e/${f}: importa test de @playwright/test — usá el de ./helpers.js, que no baja fotos de Supabase`);
+      // `fotosReales: true` deja pasar todas las fotos: una home con scroll baja decenas.
+      // El bloque de Happy Customers lo tenía y fue la mitad de los 10.000 pedidos del
+      // 02/11/2026. Se declara un patrón con sólo las fotos que el test mide.
+      if (/fotosReales\s*:\s*true\b/.test(code))
+        errors.push(`e2e/${f}: fotosReales: true baja todas las fotos del bucket — pasá un patrón con sólo las que el test necesita`);
     }
   }
 

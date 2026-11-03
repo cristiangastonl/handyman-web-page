@@ -42,16 +42,27 @@ const FOTO_FALSA = pngGris(800, 600);
  *
  * Al navegador le llega igual el pedido y una respuesta 200, así que lo que se mide
  * de los pedidos (cuántas fotos pide la home) sigue valiendo. Un test que necesite
- * la foto de verdad (su proporción, por ejemplo) declara `test.use({ fotosReales: true })`.
+ * fotos de verdad (su proporción, por ejemplo) declara cuáles con un patrón:
+ * `test.use({ fotosReales: /\/images\/happy\// })`. `true` las deja pasar todas;
+ * no hay test que lo necesite y no conviene: una home con scroll baja decenas.
+ *
+ * La ruta va en el contexto y no en la página a propósito: los tests que pisan
+ * site_config llaman a `page.unrouteAll()`, y eso borraba también este mock. El
+ * 02/11/2026 un test de stats lo hacía a mitad de camino y volvía a cargar la home
+ * con las fotos reales; con eso y el bloque de Happy Customers bajando todas, el
+ * día dio 10.000 pedidos al storage desde los e2e. `unrouteAll` no toca el contexto.
  */
 export const test = base.extend({
   fotosReales: [false, { option: true }],
-  page: async ({ page, fotosReales }, use) => {
-    if (!fotosReales) {
-      await page.route('**/storage/v1/object/**', (route) =>
-        route.request().resourceType() === 'image'
+  page: async ({ page, context, fotosReales }, use) => {
+    if (fotosReales !== true) {
+      await context.route('**/storage/v1/object/**', (route) => {
+        const req = route.request();
+        const real = fotosReales instanceof RegExp && fotosReales.test(req.url());
+        return req.resourceType() === 'image' && !real
           ? route.fulfill({ status: 200, contentType: 'image/png', body: FOTO_FALSA })
-          : route.continue());
+          : route.continue();
+      });
     }
     await use(page);
   },

@@ -354,9 +354,10 @@ test.describe('admin', () => {
 });
 
 test.describe('happy customers', () => {
-  // Miden la proporción de la foto contra su caja: necesitan la imagen de verdad.
-  // Son pocas fotos; el resto del harness no baja ninguna (ver helpers.js).
-  test.use({ fotosReales: true });
+  // Miden la proporción de la foto contra su caja: necesitan la imagen de verdad,
+  // pero sólo las de Happy Customers. Los trabajos de los carruseles de la home van
+  // falsos como en el resto del harness (ver helpers.js).
+  test.use({ fotosReales: /\/images\/happy\// });
   // El chequeo es el que motivó el diseño: las fotos tienen que acompañar TODO
   // el scroll, no verse sólo arriba. En desktop ancho viven en los márgenes
   // (fixed) y en mobile intercaladas entre las reviews, así que se verifica
@@ -1068,7 +1069,7 @@ test.describe('orden de la home', () => {
   test('stats: el tamaño del celu de las etiquetas se respeta, y sin cargar queda en 10', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'el tamaño aparte es sólo del celu');
     const medir = async (celu) => {
-      await page.unrouteAll({ behavior: 'wait' });
+      await page.unroute('**/rest/v1/site_config*');
       await pisarSiteConfig(page, { stats_label_style: { fontSize: 13, fontFamily: 'DM Sans', mobileFontSize: celu } });
       await visit(page, '/');
       const etiqueta = page.locator('.stats-grid > div > div:last-child').first();
