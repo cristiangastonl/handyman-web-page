@@ -22,7 +22,8 @@
     "verify:uso": "node scripts/check-supabase-uso.mjs",
     "traducciones": "node scripts/traducciones.mjs",
     "set-origin": "node scripts/set-origin.mjs",
-    "backup": "node scripts/backup.mjs"
+    "backup": "node scripts/backup.mjs",
+    "verify:salud": "node scripts/check-salud.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

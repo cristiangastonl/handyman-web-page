@@ -54,6 +54,7 @@ run, read the failure, fix the cause, run again. Converge, then report.
 | `npm run verify:prod` | prerender del sitio publicado | ~2s | Después de cada deploy |
 | `npm run verify:db` | filas por tabla contra la base real | ~3s | Cuando algo cargado no aparece |
 | `npm run verify:uso` | pedidos por día a Supabase (toda la org) | ~3s | Corre solo todos los días en GitHub; a mano si algo pesa |
+| `npm run verify:salud` | sitio, dominio, certificado, base, fotos, vista previa, Supabase, deploy | ~3s | Corre solo cada hora en GitHub (abre un issue si falla) |
 | `npm run traducciones` | qué contenido de la base falta traducir | ~3s | La "corrida" de traducciones (ver abajo) |
 
 `verify:scope` runs the full cycle when the diff touches anything that reaches
@@ -105,13 +106,25 @@ with the reason in the commit message.
 - **`scripts/check-supabase-uso.mjs`** — pedidos por día a Supabase, sumando
   todos los proyectos de la organización (la cuota de egress es de la org). Falla
   si el último día o el de hoy pasan 20.000 pedidos al storage o 150.000 a la base.
-  Lo corre todos los días `.github/workflows/uso-supabase.yml` (si falla, GitHub
+  Lo corre todos los días `.github/workflows/diario.yml` (si falla, GitHub
   manda un mail). Existe porque el 21/10/2026 Supabase cortó la org con un 402
   (`exceed_cached_egress_quota`, los 250 GB de Pro) y el sitio quedó sin fotos:
   lo había gastado casi todo el propio e2e bajando fotos originales del bucket.
   Por eso **los tests no bajan fotos reales**: `test` de `e2e/helpers.js` las
   responde con un PNG falso (un guard prohíbe importar el `test` crudo de
   Playwright), y el prerender no pide imágenes.
+- **`scripts/check-salud.mjs`** — la salud del sitio **publicado**, liviana porque
+  corre cada hora (`.github/workflows/salud.yml`): la home responde prerenderizada
+  y su bundle existe, el dominio sin www redirige, el certificado no vence en menos
+  de 14 días, la base responde, la última foto subida está (un `HEAD`, no la baja),
+  la vista previa de WhatsApp trae `og:image`, el proyecto de Supabase está
+  `ACTIVE_HEALTHY` y el último deploy de Production salió bien. No avisa con el mail
+  de "Run failed": abre un issue con la etiqueta `salud` al caer y lo cierra al
+  volver. La página "Vercel Security Checkpoint" cuenta como salteado, no como caída.
+  Existe porque el monitoreo es parte del abono de Anibal (desde noviembre de 2026) y
+  ninguna de las caídas anteriores se vio a tiempo.
+  Los otros tres chequeos con red (`verify:uso`, `verify:db`, `verify:prod`) corren
+  una vez por día en `.github/workflows/diario.yml`; si fallan, llega el mail.
 - **`e2e/smoke.spec.js`** (Playwright, desktop + mobile) — the 4 public routes
   render with no console errors and no raw i18n keys, nav works, language
   switching persists across pages, portfolio images have `alt`, `/admin` shows

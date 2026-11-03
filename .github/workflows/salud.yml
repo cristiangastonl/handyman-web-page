@@ -1,0 +1,78 @@
+# Cada hora mira que el sitio publicado esté entero (scripts/check-salud.mjs):
+# que responda prerenderizado, el dominio, el certificado, la base, las fotos, la
+# vista previa de WhatsApp, el proyecto de Supabase y el último deploy.
+#
+# Avisa con un issue, no con el mail de "Run failed": si el sitio se cae a las 3
+# de la mañana, serían 24 mails por día. Abre un issue al caer (un mail), lo
+# actualiza si cambia lo que falla y lo cierra cuando vuelve (otro mail). El job
+# queda verde a propósito; el aviso es el issue.
+name: Salud del sitio
+
+on:
+  schedule:
+    - cron: '17 * * * *' # cada hora, fuera del :00 que GitHub tiene saturado
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  deployments: read
+
+concurrency:
+  group: salud
+  cancel-in-progress: false
+
+jobs:
+  salud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Chequeos
+        id: chequeo
+        continue-on-error: true
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SALUD_REPORTE: ${{ runner.temp }}/salud.md
+        run: node scripts/check-salud.mjs
+
+      - name: Abrir, actualizar o cerrar el issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULTADO: ${{ steps.chequeo.outcome }}
+          REPORTE: ${{ runner.temp }}/salud.md
+          CORRIDA: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create salud --color B60205 --description "Alerta automática de salud del sitio" 2>/dev/null || true
+          abierto=$(gh issue list --label salud --state open --json number --jq '.[0].number // empty')
+          [ -f "$REPORTE" ] || echo "- ❌ El chequeo no llegó a correr (ver la corrida)." > "$REPORTE"
+          ahora=$(TZ=Europe/Zurich date '+%d/%m %H:%M')
+
+          if [ "$RESULTADO" = "success" ]; then
+            if [ -n "$abierto" ]; then
+              printf '✅ Volvió a estar sano (%s, hora de Zúrich).\n\n%s\n\n[Corrida](%s)\n' "$ahora" "$(cat "$REPORTE")" "$CORRIDA" \
+                | gh issue close "$abierto" --comment-file -
+            fi
+            exit 0
+          fi
+
+          # Sólo lo que falla, para comparar con lo que ya dice el issue.
+          fallas=$(grep '❌' "$REPORTE" | sed 's/ — .*//' || true)
+          if [ -z "$abierto" ]; then
+            printf '@cristiangastonl el chequeo de salud encontró problemas (%s, hora de Zúrich).\n\n%s\n\n[Corrida](%s) · Se cierra solo cuando vuelva a dar verde.\n\n<!-- fallas\n%s\n-->\n' \
+              "$ahora" "$(cat "$REPORTE")" "$CORRIDA" "$fallas" \
+              | gh issue create --label salud --title "🔴 Sitio con problemas: $(echo "$fallas" | head -1 | sed 's/.*\*\*\(.*\)\*\*.*/\1/')" --body-file -
+          else
+            antes=$(gh issue view "$abierto" --json body,comments --jq '[.body] + [.comments[].body] | last' | sed -n '/<!-- fallas/,/-->/p' | sed '1d;$d')
+            if [ "$antes" != "$fallas" ]; then
+              printf 'Cambió lo que falla (%s):\n\n%s\n\n[Corrida](%s)\n\n<!-- fallas\n%s\n-->\n' "$ahora" "$(cat "$REPORTE")" "$CORRIDA" "$fallas" \
+                | gh issue comment "$abierto" --body-file -
+            fi
+          fi

@@ -12,7 +12,7 @@
  * original de ~1 MB. Se mira la organización entera porque la cuota es de la org:
  * HandyMan comparte los 250 GB con los otros proyectos que viven ahí.
  *
- * Corre todos los días desde .github/workflows/uso-supabase.yml (si falla, GitHub
+ * Corre todos los días desde .github/workflows/diario.yml (si falla, GitHub
  * manda un mail) y a mano con `npm run verify:uso`. No va dentro de `verify`
  * porque necesita red y un token de la cuenta.
  *
