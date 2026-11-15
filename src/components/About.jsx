@@ -109,25 +109,29 @@ export default function About({ nav, navToCategory, cats = [], siteConfig = {} }
           }}>
             {tc(bio?.text) || t("about.bio")}
           </p>); })()}
-          <div className="skill-tags" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-            {tags.map(tag => (
-              <button key={tag.key} className="skill-tag" onClick={() => navToCategory ? navToCategory(tag.target) : nav("portfolio")}
-                style={{
-                  padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-                  cursor: "pointer", transition: "transform .2s, box-shadow .2s, filter .2s",
-                  // Delineado naranja oscuro, igual que PASTILLA en ui.jsx (26/10/2026).
-                  background: TAG_FONDO, color: "#fff", border: `1px solid ${NARANJA_OSCURO}`,
-                }}
-                // Se oscurece con filter y no cambiando el fondo: CSS no sabe interpolar de
-                // un gradiente a un color plano, así que al asignarlo se borraba el degradado
-                // y por un frame se veía el blanco de la página detrás.
-                onMouseEnter={e => { e.currentTarget.style.filter = "brightness(0.92)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = TAG_SOMBRA_HOVER; }}
-                onMouseLeave={e => { e.currentTarget.style.filter = "none"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                {tc(tag.label)}
-              </button>
-            ))}
-          </div>
         </div>
+      </div>
+      {/* Los tags van afuera de la fila texto + foto, a todo el ancho. Adentro de la
+          columna del texto (710 px) los seis entraban en una fila sólo en inglés: en
+          alemán, italiano, francés y español el último bajaba solo a una segunda fila
+          (Gastón, 15/11/2026). A todo el ancho (~890 px) entran en los cinco idiomas. */}
+      <div className="skill-tags" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+        {tags.map(tag => (
+          <button key={tag.key} className="skill-tag" onClick={() => navToCategory ? navToCategory(tag.target) : nav("portfolio")}
+            style={{
+              padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+              cursor: "pointer", transition: "transform .2s, box-shadow .2s, filter .2s",
+              // Delineado naranja oscuro, igual que PASTILLA en ui.jsx (26/10/2026).
+              background: TAG_FONDO, color: "#fff", border: `1px solid ${NARANJA_OSCURO}`,
+            }}
+            // Se oscurece con filter y no cambiando el fondo: CSS no sabe interpolar de
+            // un gradiente a un color plano, así que al asignarlo se borraba el degradado
+            // y por un frame se veía el blanco de la página detrás.
+            onMouseEnter={e => { e.currentTarget.style.filter = "brightness(0.92)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = TAG_SOMBRA_HOVER; }}
+            onMouseLeave={e => { e.currentTarget.style.filter = "none"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+            {tc(tag.label)}
+          </button>
+        ))}
       </div>
       {/* Highlight cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginTop: 28 }}>

@@ -681,7 +681,11 @@ export const css = `
        más despacio que la pantalla y en celulares altos sobraban hasta 187 px, por los que
        asomaban las tarjetas de "What to expect" — que van en el scroll siguiente. Restando,
        el hero se queda con todo el sobrante y de paso se ve más collage cuanto más alta es
-       la pantalla. dvh y no vh porque en mobile vh cuenta la barra del browser.
+       la pantalla. svh y no vh porque en mobile vh cuenta la barra del browser. Y svh,
+       no dvh: dvh crece cuando Safari esconde la barra al scrollear, el hero se estiraba
+       y la foto (object-fit cover) hacía un zoom antes de que la página empezara a
+       moverse (iPhone 17 Pro Max, Gastón 15/11/2026). svh es el alto con la barra
+       visible: al cargar es el mismo número, y después no cambia.
 
        El min-height no es cosmético: por debajo, en pantallas angostas el título se va a
        dos líneas y el bloque de texto se desborda del hero.
@@ -722,7 +726,7 @@ export const css = `
     .hero-section {
       aspect-ratio: auto !important;
       height: calc(100vh - 517px) !important;
-      height: calc(100dvh - 517px) !important;
+      height: calc(100svh - 517px) !important;
       /* El max-height topaba al hero en 460 y en pantallas altas (956) le quedaban
          13 px sin absorber, justo los que hacían asomar las tarjetas de "What to
          expect". 500 le deja llegar a los 473 que pide esa altura sin clamp. */

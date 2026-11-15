@@ -1623,6 +1623,19 @@ test.describe('presentación en mobile', () => {
     expect(m.filas).toBeLessThanOrEqual(4);
   });
 
+  test('en desktop los tags de categoría entran en una fila en los cinco idiomas', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'sólo desktop');
+    // Gastón, 15/11/2026: en la columna del texto sólo el inglés entraba en una fila; en
+    // los otros cuatro idiomas el último tag quedaba solo abajo. Van a todo el ancho.
+    for (const lang of ['en', 'de', 'it', 'fr', 'es']) {
+      await visit(page, `/?lang=${lang}`);
+      await esperarPresentacionAsentada(page);
+      const filas = await page.evaluate(() =>
+        new Set([...document.querySelectorAll('.skill-tag')].map(t => Math.round(t.getBoundingClientRect().top))).size);
+      expect(filas, `los tags ocupan más de una fila en ${lang}`).toBe(1);
+    }
+  });
+
   test('las tarjetas de "What to expect" quedan para el scroll siguiente', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'sólo mobile');
     // El hero absorbe el sobrante de la pantalla. Con una altura fija en vh crecía más

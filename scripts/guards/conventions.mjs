@@ -26,6 +26,12 @@ export function checkConventions() {
     lines.forEach((line, i) => {
       const at = `${rel}:${i + 1}`;
 
+      // dvh cambia cuando el celu esconde la barra del browser al scrollear: lo que se
+      // mida con dvh se estira en pleno scroll (el hero hacía zoom en el iPhone,
+      // 15/11/2026). Para alturas atadas a la pantalla, svh.
+      if (/\d+dvh/.test(line) && !/^\s*(\/\/|\*)/.test(line))
+        errors.push(`${at}: dvh se estira al scrollear en mobile — usar svh`);
+
       // Inline styles only — nada de CSS externo ni Tailwind.
       if (/^\s*import\s+["'].*\.css["']/.test(line))
         errors.push(`${at}: import de CSS — el proyecto usa estilos inline`);
