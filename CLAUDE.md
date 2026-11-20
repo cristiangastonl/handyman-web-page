@@ -132,6 +132,10 @@ with the reason in the commit message.
   El Worker usa un fine-grained token de GitHub (sólo este repo, Actions: Read and
   write) guardado como secret `GITHUB_TOKEN` en Cloudflare; deploy con
   `npx wrangler@4.40.0 deploy` desde esa carpeta (versión fija: la 4.165 falla al deployar).
+  **El `secret put GITHUB_TOKEN` hay que correrlo en una terminal real, NO con el `!`
+  de Claude Code: sin TTY wrangler no abre el prompt y guarda el token VACÍO (largo 0)
+  diciendo "Success" igual** — el síntoma es que `salud.yml` no corre por
+  `workflow_dispatch` aunque el Worker no dé error (20/11/2026).
 - **`scripts/check-monitoreo.mjs`** (`verify:monitoreo`) — falla si `salud.yml` no
   corrió en las últimas 2 horas. Es el que avisa si el Worker o su token dejan de andar.
   Los otros chequeos con red (`verify:uso`, `verify:db`, `verify:prod`,
