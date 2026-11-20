@@ -9,6 +9,9 @@
 #              sin error (01/10/2026). Ver scripts/check-db-rows.mjs.
 # - prerender: las 4 rutas llegan prerenderizadas, con title y description
 #              (SEO). Ver scripts/check-prod-seo.mjs.
+# - monitoreo: salud.yml corrió en las últimas 2 horas. Lo dispara cada hora un
+#              Worker de Cloudflare (monitoreo/disparador); si el Worker o su token
+#              dejan de andar, esto avisa. Ver scripts/check-monitoreo.mjs.
 name: Chequeos diarios
 
 on:
@@ -58,6 +61,19 @@ jobs:
           node-version: 20
       - name: Prerender y SEO del sitio publicado
         run: node scripts/check-prod-seo.mjs
+
+  monitoreo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: El chequeo de salud corre cada hora
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/check-monitoreo.mjs
 
   # GitHub apaga los cron de un repo sin commits en 60 días. Con el sitio en
   # mantenimiento puede pasar meses sin tocarse, y el monitoreo se apagaría

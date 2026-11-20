@@ -54,7 +54,8 @@ run, read the failure, fix the cause, run again. Converge, then report.
 | `npm run verify:prod` | prerender del sitio publicado | ~2s | Después de cada deploy |
 | `npm run verify:db` | filas por tabla contra la base real | ~3s | Cuando algo cargado no aparece |
 | `npm run verify:uso` | pedidos por día a Supabase (toda la org) | ~3s | Corre solo todos los días en GitHub; a mano si algo pesa |
-| `npm run verify:salud` | sitio, dominio, certificado, base, fotos, vista previa, Supabase, deploy | ~3s | Corre solo cada hora en GitHub (abre un issue si falla) |
+| `npm run verify:salud` | sitio, dominio, certificado, base, fotos, vista previa, Supabase, deploy | ~3s | Corre solo cada hora en GitHub, disparado por un Worker de Cloudflare (abre un issue si falla) |
+| `npm run verify:monitoreo` | que `salud.yml` haya corrido en las últimas 2 h | ~1s | Corre solo todos los días en GitHub |
 | `npm run traducciones` | qué contenido de la base falta traducir | ~3s | La "corrida" de traducciones (ver abajo) |
 
 `verify:scope` runs the full cycle when the diff touches anything that reaches
@@ -118,13 +119,24 @@ with the reason in the commit message.
   y su bundle existe, el dominio sin www redirige, el certificado no vence en menos
   de 14 días, la base responde, la última foto subida está (un `HEAD`, no la baja),
   la vista previa de WhatsApp trae `og:image`, el proyecto de Supabase está
-  `ACTIVE_HEALTHY` y el último deploy de Production salió bien. No avisa con el mail
+  `ACTIVE_HEALTHY`, el registro de usuarios de Supabase sigue cerrado (con las
+  políticas de RLS actuales, cualquier cuenta tiene permiso total; estuvo abierto
+  hasta el 20/11/2026) y el último deploy de Production salió bien. No avisa con el mail
   de "Run failed": abre un issue con la etiqueta `salud` al caer y lo cierra al
   volver. La página "Vercel Security Checkpoint" cuenta como salteado, no como caída.
-  Existe porque el monitoreo es parte del abono de Anibal (desde noviembre de 2026) y
-  ninguna de las caídas anteriores se vio a tiempo.
-  Los otros tres chequeos con red (`verify:uso`, `verify:db`, `verify:prod`) corren
-  una vez por día en `.github/workflows/diario.yml`; si fallan, llega el mail.
+  Existe porque ninguna de las caídas anteriores se vio a tiempo.
+  **Quién lo dispara:** un Worker de Cloudflare (`monitoreo/disparador`, cron
+  `17 * * * *`) le pide a GitHub que corra `salud.yml` cada hora. El cron propio de
+  GitHub queda de respaldo, pero no sirve solo: GitHub no garantiza los horarios y
+  entre el 03/11 y el 20/11/2026 lo corrió cada 5 a 8 horas (59 veces en vez de ~400).
+  El Worker usa un fine-grained token de GitHub (sólo este repo, Actions: Read and
+  write) guardado como secret `GITHUB_TOKEN` en Cloudflare; deploy con
+  `npx wrangler@4.40.0 deploy` desde esa carpeta (versión fija: la 4.165 falla al deployar).
+- **`scripts/check-monitoreo.mjs`** (`verify:monitoreo`) — falla si `salud.yml` no
+  corrió en las últimas 2 horas. Es el que avisa si el Worker o su token dejan de andar.
+  Los otros chequeos con red (`verify:uso`, `verify:db`, `verify:prod`,
+  `verify:monitoreo`) corren una vez por día en `.github/workflows/diario.yml`; si
+  fallan, llega el mail.
 - **`e2e/smoke.spec.js`** (Playwright, desktop + mobile) — the 4 public routes
   render with no console errors and no raw i18n keys, nav works, language
   switching persists across pages, portfolio images have `alt`, `/admin` shows

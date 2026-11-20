@@ -27,3 +27,6 @@ backup/
 
 # Lista de trabajo de la corrida de traducciones (scripts/traducciones.mjs)
 traducciones-pendientes.json
+
+# Estado local de wrangler (Worker de monitoreo/disparador)
+.wrangler/

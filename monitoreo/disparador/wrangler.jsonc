@@ -1,0 +1,20 @@
+// Worker de Cloudflare que dispara salud.yml cada hora. Ver src/index.js.
+//
+// Deploy (desde esta carpeta):  npx wrangler@4.40.0 deploy
+// Token (una vez):             npx wrangler@4.40.0 secret put GITHUB_TOKEN
+//   Fine-grained token de GitHub, sólo para este repo, con Actions: Read and write.
+//   IMPORTANTE: correrlo en una terminal real, NO con el `!` de Claude Code: sin TTY
+//   wrangler no abre el prompt y guarda el token VACÍO (largo=0) sin avisar (20/11/2026).
+// Versión fija a propósito: con la 4.165.0 el primer deploy subía el script y después
+// fallaba ("This Worker does not exist", y luego "reading 'tag'") sin crear el cron
+// (20/11/2026). La 4.40.0 lo deployó bien.
+{
+  "name": "handyman-disparador-salud",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  // :17 como el cron de GitHub, fuera del :00 que está saturado en todos lados.
+  "triggers": { "crons": ["17 * * * *"] },
+  // Sin URL pública: el Worker no atiende pedidos, sólo corre con el cron.
+  "workers_dev": false,
+  "observability": { "enabled": true }
+}

@@ -4,8 +4,7 @@
  * Por qué existe: los problemas que tuvo el sitio en producción no los vio nadie
  * a tiempo. El 21/10/2026 Supabase cortó la org (402) y el sitio quedó sin fotos
  * hasta que alguien entró a mirar; antes, Vercel sirvió una cáscara vacía sin
- * prerender durante días. Desde noviembre de 2026 el monitoreo es parte del abono
- * de Anibal: este script es ese monitoreo.
+ * prerender durante días.
  *
  * Corre cada hora desde .github/workflows/salud.yml, que abre un issue en GitHub
  * cuando algo falla y lo cierra cuando vuelve (un mail al caer, otro al volver;
@@ -139,6 +138,21 @@ const CHEQUEOS = [
     const { status } = await res.json();
     if (status !== 'ACTIVE_HEALTHY') throw new Error(`estado "${status}" (pausado, restaurando o con problemas)`);
     return status;
+  }],
+
+  // Todas las políticas de RLS (tablas y bucket de fotos) dan permiso total a
+  // cualquier usuario logueado, y la URL y la anon key están en el bundle. Con el
+  // registro abierto, cualquiera podía crearse una cuenta y editar o borrar todo
+  // (estuvo abierto hasta el 20/11/2026). El admin no usa el registro: las cuentas
+  // se crean a mano.
+  ['Nadie puede registrarse en el admin', async () => {
+    const tok = E.SUPABASE_ACCESS_TOKEN;
+    if (!tok) throw new Salteado('sin SUPABASE_ACCESS_TOKEN');
+    const res = await pedir(`https://api.supabase.com/v1/projects/${PROYECTO}/config/auth`, { headers: { Authorization: `Bearer ${tok}` } });
+    if (!res.ok) throw new Error(`Management API: HTTP ${res.status}`);
+    const { disable_signup } = await res.json();
+    if (disable_signup !== true) throw new Error('el registro de usuarios está abierto: cualquiera puede crearse una cuenta con permiso total sobre la base y las fotos (Supabase → Authentication → Sign In / Providers → "Allow new users to sign up")');
+    return 'registro cerrado';
   }],
 
   ['El último deploy salió bien', async () => {

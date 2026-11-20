@@ -10,7 +10,8 @@ export default defineConfig({
   test: {
     // Los .spec de Playwright viven en e2e/ y los corre `npm run e2e`,
     // no Vitest: importarlos desde acá revienta con "test.describe() here".
-    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    // monitoreo/: el Worker de Cloudflare que dispara salud.yml.
+    include: ['src/**/*.{test,spec}.{js,jsx}', 'monitoreo/**/*.test.js'],
   },
   build: {
     rollupOptions: {
